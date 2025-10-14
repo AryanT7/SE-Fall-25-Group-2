@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
 import { Order, OrderRegretData } from '../../App';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface PostOrderFeedbackProps {
   order: Order;

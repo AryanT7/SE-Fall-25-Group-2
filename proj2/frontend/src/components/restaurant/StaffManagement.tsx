@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Plus, Edit, Trash2, Users, Shield, Key } from 'lucide-react';
 import { User } from '../../App';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface StaffMember {
   id: string;

@@ -8,7 +8,7 @@ import { Separator } from '../ui/separator';
 import { Badge } from '../ui/badge';
 import { Target, TrendingUp, Calculator, Info } from 'lucide-react';
 import { User } from '../../App';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface CalorieSettingsProps {
   user: User;

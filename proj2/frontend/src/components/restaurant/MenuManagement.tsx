@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Plus, Edit, Trash2, Upload, ChefHat, Leaf, AlertCircle } from 'lucide-react';
 import { User, MenuItem } from '../../App';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface MenuManagementProps {
   user: User;

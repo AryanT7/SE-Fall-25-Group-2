@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Plus, Minus, Search, Star, Clock, Leaf, AlertCircle, Sparkles, MessageSquare } from 'lucide-react';
 import { Restaurant, MenuItem, CartItem, User } from '../../App';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import FoodSuggestions from './FoodSuggestions';
 
 const MenuPage: React.FC = () => {

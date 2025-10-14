@@ -6,7 +6,7 @@ import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Clock, MapPin, Star, RotateCcw, Package } from 'lucide-react';
 import { User, Order } from '../../App';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface OrderHistoryProps {
   user: User;

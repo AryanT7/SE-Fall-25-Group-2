@@ -17,7 +17,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { User, Order } from '../../App';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface OrderManagementProps {
   user: User;
