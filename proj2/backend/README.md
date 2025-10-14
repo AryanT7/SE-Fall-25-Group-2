@@ -6,6 +6,7 @@ A FastAPI-based backend service for managing cafe operations, menu items, orders
 
 Documentation
 
+New line
 ## 🚀 Quick Start
 
 ### Prerequisites
