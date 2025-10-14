@@ -1,6 +1,10 @@
+
 # Cafe Calories Backend API
 
 A FastAPI-based backend service for managing cafe operations, menu items, orders, and calorie tracking.
+
+
+Documentation
 
 ## 🚀 Quick Start
 
