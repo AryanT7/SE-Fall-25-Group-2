@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine
+from . import models  # ensure all models are imported before create_all
 from .routers import auth as auth_router
 from .routers import users as users_router
 from .routers import cafes as cafes_router
