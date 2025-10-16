@@ -103,13 +103,17 @@ def get_current_user(token):
 
 def seed_admin_user():
     """Create admin user using the seed_user endpoint."""
-    admin_data = {
+    # The seed_user endpoint expects query parameters, not JSON body
+    params = {
         "email": "admin@example.com",
-        "name": "Admin User",
+        "name": "Admin User", 
         "password": "admin123",
         "role": "ADMIN"
     }
-    return make_request("POST", "/auth/seed_user", admin_data)
+    # Build query string
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    endpoint = f"/auth/seed_user?{query_string}"
+    return make_request("POST", endpoint)
 
 def seed_users():
     """Register all users or login if they already exist."""

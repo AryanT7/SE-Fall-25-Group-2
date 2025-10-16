@@ -9,6 +9,6 @@ class Settings(BaseModel):
     REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_EXPIRE_DAYS", 7))
     SQLALCHEMY_DATABASE_URI: str = os.getenv("DATABASE_URL", "sqlite:///./app.db")
     ORDER_CANCEL_GRACE_MINUTES: int = int(os.getenv("ORDER_CANCEL_GRACE_MINUTES", 15))
-    POSTGRES_DATABASE_URL: str = os.getenv("POSTGRES_DATABASE_URL", "postgresql://rekhanarsimha@localhost:5432/cafe_calories")
+    POSTGRES_DATABASE_URL: str = os.getenv("POSTGRES_DATABASE_URL", "postgresql://app_user@localhost:5432/cafe_calories")
 
 settings = Settings()

@@ -13,6 +13,9 @@ database_uri = (
     or settings.SQLALCHEMY_DATABASE_URI
 )
 
+print("DB URI in use:", database_uri)
+
+
 engine = create_engine(
     database_uri,
     connect_args={"check_same_thread": False} if database_uri.startswith("sqlite") else {},
