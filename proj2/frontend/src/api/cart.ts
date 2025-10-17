@@ -1,0 +1,58 @@
+import { apiClient } from './client';
+import { CartAddRequest, CartSummary } from './types';
+
+// Cart API Functions
+export const cartApi = {
+  /**
+   * Add an item to the cart
+   */
+  async addToCart(itemData: CartAddRequest): Promise<{ data?: any; error?: string }> {
+    return apiClient.post('/cart/add', itemData);
+  },
+
+  /**
+   * Get cart summary with calories and prices
+   */
+  async getSummary(): Promise<{ data?: CartSummary; error?: string }> {
+    return apiClient.get<CartSummary>('/cart/summary');
+  },
+
+  /**
+   * Update item quantity in cart
+   */
+  async updateItemQuantity(cartItemId: number, quantity: number): Promise<{ data?: any; error?: string }> {
+    return apiClient.put(`/cart/item/${cartItemId}`, { quantity });
+  },
+
+  /**
+   * Remove an item from cart
+   */
+  async removeItem(cartItemId: number): Promise<{ data?: { message: string }; error?: string }> {
+    return apiClient.delete(`/cart/item/${cartItemId}`);
+  },
+
+  /**
+   * Clear all items from cart
+   */
+  async clearCart(): Promise<{ data?: { message: string }; error?: string }> {
+    return apiClient.delete('/cart/clear');
+  },
+
+  /**
+   * Get detailed cart items
+   */
+  async getCartItems(): Promise<{ data?: any[]; error?: string }> {
+    return apiClient.get('/cart/items');
+  },
+};
+
+// Export individual functions for convenience
+export const {
+  addToCart,        // was addItem
+  getSummary,
+  updateItemQuantity,
+  removeItem,
+  clearCart,
+  getCartItems,
+} = cartApi;
+

@@ -1,78 +1,44 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { User } from '../../App';
+import { useAuth } from '../../hooks/useAuth';
 import { toast } from 'sonner';
 
-interface LoginPageProps {
-  onLogin: (user: User) => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { login, isLoading, error, clearError } = useAuth();
+  const navigate = useNavigate();
 
-  // Mock data for demo
-  const mockUsers = [
-    {
-      id: '1',
-      email: 'customer@demo.com',
-      name: 'John Customer',
-      type: 'customer' as const,
-      height: 180,
-      weight: 75,
-      calorieGoal: 2200,
-      goalType: 'daily' as const
-    },
-    {
-      id: '2',
-      email: 'restaurant@demo.com',
-      name: 'Pizza Palace',
-      type: 'restaurant_owner' as const,
-      restaurantId: 'rest1'
-    },
-    {
-      id: '3',
-      email: 'staff@demo.com',
-      name: 'Sarah Staff',
-      type: 'staff' as const,
-      restaurantId: 'rest1'
-    }
-  ];
-
-  const handleLogin = async (e: React.FormEvent, userType: 'customer' | 'restaurant') => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Find mock user
-    const user = mockUsers.find(u => 
-      u.email === email && 
-      (userType === 'customer' ? u.type === 'customer' : u.type !== 'customer')
-    );
-
-    if (user) {
-      onLogin(user);
-      toast.success('Login successful!');
-    } else {
-      toast.error('Invalid credentials');
-    }
+    clearError(); // Clear any previous errors
     
-    setLoading(false);
+    const success = await login({ email, password });
+    
+    if (success) {
+      toast.success('Login successful!');
+      navigate('/dashboard'); // Redirect to dashboard
+    } else {
+      toast.error(error || 'Login failed');
+    }
   };
 
-  const handleDemoLogin = (userType: 'customer' | 'restaurant' | 'staff') => {
-    const user = mockUsers.find(u => u.type === userType);
-    if (user) {
-      onLogin(user);
-      toast.success(`Logged in as ${userType}!`);
+  const handleDemoLogin = async (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    
+    const success = await login({ email: demoEmail, password: demoPassword });
+    
+    if (success) {
+      toast.success('Demo login successful!');
+      navigate('/dashboard');
+    } else {
+      toast.error('Demo login failed');
     }
   };
 
@@ -93,7 +59,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </TabsList>
             
             <TabsContent value="customer" className="space-y-4">
-              <form onSubmit={(e) => handleLogin(e, 'customer')} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="customer-email">Email</Label>
                   <Input
@@ -116,8 +82,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Signing in...' : 'Sign In'}
+                {error && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                    {error}
+                  </div>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
               
@@ -125,7 +96,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => handleDemoLogin('customer')}
+                  onClick={() => handleDemoLogin('customer@demo.com', 'demo123')}
                 >
                   Try Customer Demo
                 </Button>
@@ -133,7 +104,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </TabsContent>
             
             <TabsContent value="restaurant" className="space-y-4">
-              <form onSubmit={(e) => handleLogin(e, 'restaurant')} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="restaurant-email">Email</Label>
                   <Input
@@ -156,8 +127,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Signing in...' : 'Sign In'}
+                {error && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                    {error}
+                  </div>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
               
@@ -165,14 +141,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => handleDemoLogin('restaurant')}
+                  onClick={() => handleDemoLogin('restaurant@demo.com', 'demo123')}
                 >
                   Try Restaurant Demo
                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => handleDemoLogin('staff')}
+                  onClick={() => handleDemoLogin('staff@demo.com', 'demo123')}
                 >
                   Try Staff Demo
                 </Button>
@@ -195,7 +171,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               Customer: customer@demo.com<br/>
               Restaurant: restaurant@demo.com<br/>
               Staff: staff@demo.com<br/>
-              Password: any
+              Password: demo123
             </p>
           </div>
         </CardContent>

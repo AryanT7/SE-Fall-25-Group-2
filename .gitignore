@@ -6,8 +6,18 @@ __pycache__/
 
 .env
 
+# Python virtualenvs
+.venv/
 venv/
-*.pyc
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.pytest_cache/
 
 # Node & dependencies
 node_modules/

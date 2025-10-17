@@ -1,0 +1,87 @@
+import React from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { Navigate, useLocation } from 'react-router-dom';
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRole?: 'USER' | 'OWNER' | 'STAFF' | 'ADMIN';
+  fallbackPath?: string;
+}
+
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requiredRole,
+  fallbackPath = '/login',
+}) => {
+  const { isAuthenticated, user, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to={fallbackPath} state={{ from: location }} replace />;
+  }
+
+  // Check role-based access
+  if (requiredRole && user?.role !== requiredRole) {
+    // Redirect to appropriate page based on user role
+    const roleRedirects: Record<string, string> = {
+      USER: '/dashboard',
+      OWNER: '/restaurant/dashboard',
+      STAFF: '/restaurant/dashboard',
+      ADMIN: '/admin/dashboard',
+    };
+    
+    const redirectPath = roleRedirects[user?.role || 'USER'] || '/dashboard';
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Convenience components for different role requirements
+export const UserRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ProtectedRoute requiredRole="USER">{children}</ProtectedRoute>
+);
+
+export const OwnerRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ProtectedRoute requiredRole="OWNER">{children}</ProtectedRoute>
+);
+
+export const StaffRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ProtectedRoute requiredRole="STAFF">{children}</ProtectedRoute>
+);
+
+export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ProtectedRoute requiredRole="ADMIN">{children}</ProtectedRoute>
+);
+
+// Component for role-based conditional rendering
+interface RoleGuardProps {
+  children: React.ReactNode;
+  allowedRoles: ('USER' | 'OWNER' | 'STAFF' | 'ADMIN')[];
+  fallback?: React.ReactNode;
+}
+
+export const RoleGuard: React.FC<RoleGuardProps> = ({
+  children,
+  allowedRoles,
+  fallback = null,
+}) => {
+  const { user } = useAuth();
+  
+  if (!user || !allowedRoles.includes(user.role)) {
+    return <>{fallback}</>;
+  }
+  
+  return <>{children}</>;
+};
+
