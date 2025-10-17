@@ -124,3 +124,22 @@ class OCRMenuItem(BaseModel):
 
 class OCRResult(BaseModel):
     items: List[OCRMenuItem]
+
+class DriverLocationIn(BaseModel):
+    lat: float
+    lng: float
+    timestamp: datetime
+
+class AssignedOrderOut(OrderOut):
+    driver_id: Optional[int]
+
+class DriverLocationOut(BaseModel):
+    driver_id: int
+    lat: float
+    lng: float
+    timestamp: datetime
+
+class DriverLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+

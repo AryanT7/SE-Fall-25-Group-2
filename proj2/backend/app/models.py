@@ -9,6 +9,7 @@ class Role(str, enum.Enum):
     OWNER = "OWNER"
     STAFF = "STAFF"
     ADMIN = "ADMIN"
+    DRIVER = "DRIVER"
 
 class User(Base):
     __tablename__ = "users"
@@ -83,12 +84,14 @@ class OrderStatus(str, enum.Enum):
     PICKED_UP = "PICKED_UP"
     CANCELLED = "CANCELLED"
     REFUNDED = "REFUNDED"
+    DELIVERED = "DELIVERED"
 
 class Order(Base):
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
     cafe_id = Column(Integer, ForeignKey("cafes.id"), index=True)
+    driver_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=True)
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
     created_at = Column(DateTime, default=datetime.utcnow)
     can_cancel_until = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(minutes=15))
@@ -135,3 +138,11 @@ class RefundRequest(Base):
     order_id = Column(Integer, ForeignKey("orders.id"), index=True)
     reason = Column(Text)
     status = Column(String, default="PENDING")  # APPROVED/REJECTED
+
+class DriverLocation(Base):
+    __tablename__ = "driver_locations"
+    id = Column(Integer, primary_key=True)
+    driver_id = Column(Integer, ForeignKey("users.id"), index=True)
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
