@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class OCRService:
     def __init__(self):
         self.api_key = settings.MISTRAL_API_KEY
-        self.openrouter_url = "https://openrouter.ai/api/v1/chat/completions"
+        self.mistral_url = "https://api.mistral.ai/v1/chat/completions"
     
     def extract_text_from_pdf(self, file_bytes: bytes) -> str:
         """Extract text content from PDF file bytes."""
@@ -61,27 +61,19 @@ Menu text:
 Return the JSON array of menu items:
 """
 
-            messages = [
-                {"role": "user", "content": prompt}
-            ]
-            
-            # Use OpenRouter API
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "http://localhost:8000",  # Optional: for tracking
-                "X-Title": "Cafe Calories OCR Service"  # Optional: for tracking
+                "Content-Type": "application/json"
             }
             
             payload = {
-                "model": "mistralai/mistral-small-latest",
-                "messages": messages,
+                "model": "mistral-small-latest",
+                "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.1,
-                "max_tokens": 4000,
-                "stream": False
+                "max_tokens": 2000
             }
             
-            response = requests.post(self.openrouter_url, headers=headers, json=payload)
+            response = requests.post(self.mistral_url, headers=headers, json=payload)
             response.raise_for_status()
             
             response_data = response.json()
@@ -105,11 +97,16 @@ Return the JSON array of menu items:
             
             for item_data in menu_data:
                 try:
+                    # Convert ingredients list to string if it's a list
+                    ingredients = item_data.get('ingredients')
+                    if isinstance(ingredients, list):
+                        ingredients = ', '.join(ingredients)
+                    
                     menu_item = OCRMenuItem(
                         name=item_data.get('name', ''),
                         calories=int(item_data.get('calories', 0)),
                         price=float(item_data.get('price', 0.0)),
-                        ingredients=item_data.get('ingredients'),
+                        ingredients=ingredients,
                         quantity=item_data.get('quantity'),
                         servings=item_data.get('servings'),
                         veg_flag=item_data.get('veg_flag', True),
