@@ -18,6 +18,10 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user)
     return user
 
+@router.get("/me", response_model=UserOut)
+def get_me(current: User = Depends(get_current_user)):
+    return current
+
 @router.delete("/me", response_model=dict)
 def delete_self(current: User = Depends(get_current_user), db: Session = Depends(get_db)):
     current.is_active = False

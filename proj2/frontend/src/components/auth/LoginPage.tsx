@@ -6,12 +6,15 @@ import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useAuth } from '../../hooks/useAuth';
+
+
 import { toast } from 'sonner';
+
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading, error, clearError } = useAuth();
+  const {user,  login, isLoading, error, clearError , } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -22,7 +25,13 @@ const LoginPage: React.FC = () => {
     
     if (success) {
       toast.success('Login successful!');
-      navigate('/dashboard'); // Redirect to dashboard
+      const redirects: Record<string, string> = {
+        USER: '/dashboard',
+        OWNER: '/restaurant/dashboard',
+        STAFF: '/restaurant/dashboard',
+        ADMIN: '/admin/dashboard',
+      };
+      navigate(redirects[user?.role || 'USER']);
     } else {
       toast.error(error || 'Login failed');
     }

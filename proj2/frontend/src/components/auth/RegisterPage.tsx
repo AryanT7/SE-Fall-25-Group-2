@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -7,14 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { User } from '../../App';
+import { useAuth } from '../../hooks/useAuth';
 import { toast } from 'sonner';
 
-interface RegisterPageProps {
-  onLogin: (user: User) => void;
-}
-
-const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
+const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,7 +22,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
     cuisine: '',
     description: ''
   });
-  const [loading, setLoading] = useState(false);
+  const { register, isLoading, error, clearError } = useAuth();
+  const navigate = useNavigate();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -34,35 +31,31 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
 
   const handleRegister = async (e: React.FormEvent, userType: 'customer' | 'restaurant') => {
     e.preventDefault();
-    setLoading(true);
+    clearError();
 
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
-      setLoading(false);
       return;
     }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const newUser: User = {
-      id: Date.now().toString(),
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    
+    console.log('calling register from tsx:');
+    const success = await register({
       email: formData.email,
       name: userType === 'customer' ? formData.name : formData.restaurantName,
-      type: userType === 'customer' ? 'customer' : 'restaurant_owner',
-      ...(userType === 'customer' ? {
-        height: parseInt(formData.height),
-        weight: parseInt(formData.weight),
-        calorieGoal: 2200, // Default goal
-        goalType: 'daily' as const
-      } : {
-        restaurantId: `rest_${Date.now()}`
-      })
-    };
-
-    onLogin(newUser);
-    toast.success('Registration successful!');
-    setLoading(false);
+      password: formData.password
+    });
+    console.log('Registration successful:', success);
+    if (success) {
+      toast.success('Registration successful!');
+      navigate('/dashboard');
+    } else {
+      toast.error(error || 'Registration failed');
+    }
   };
 
   return (
@@ -113,7 +106,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
                       placeholder="180"
                       value={formData.height}
                       onChange={(e) => handleInputChange('height', e.target.value)}
-                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -124,7 +116,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
                       placeholder="70"
                       value={formData.weight}
                       onChange={(e) => handleInputChange('weight', e.target.value)}
-                      required
                     />
                   </div>
                 </div>
@@ -133,10 +124,11 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="Create a password (min 6 characters)"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
                 <div className="space-y-2">
@@ -150,8 +142,13 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creating Account...' : 'Create Customer Account'}
+                {error && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                    {error}
+                  </div>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Creating Account...' : 'Create Customer Account'}
                 </Button>
               </form>
             </TabsContent>
@@ -193,7 +190,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
                     placeholder="Describe your restaurant"
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -212,10 +208,11 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
                   <Input
                     id="password-restaurant"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="Create a password (min 6 characters)"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
                 <div className="space-y-2">
@@ -229,8 +226,13 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onLogin }) => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creating Account...' : 'Create Restaurant Account'}
+                {error && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                    {error}
+                  </div>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Creating Account...' : 'Create Restaurant Account'}
                 </Button>
               </form>
             </TabsContent>

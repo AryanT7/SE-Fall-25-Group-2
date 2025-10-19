@@ -127,8 +127,9 @@ export function useAuth(): AuthState & AuthActions {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
+      console.log('Registering user:', userData);
       const response = await apiClient.post<User>('/users/register', userData, false);
-      
+      console.log('Registration response:', response);
       if (response.data) {
         // Registration successful, now login
         return await login({ email: userData.email, password: userData.password });

@@ -4,14 +4,13 @@ import { Button } from '../ui/button';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { User, LogOut, Settings, ShoppingCart, FileImage } from 'lucide-react';
-import { User as UserType } from '../../App';
+import { useAuth } from '../../hooks/useAuth';
 
-interface HeaderProps {
-  user: UserType;
-  onLogout: () => void;
-}
 
-const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+
+const Header: React.FC = () => {
+  const { user, logout } = useAuth();
+  if (!user) return null;
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -29,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
         </div>
 
         <div className="flex items-center space-x-4">
-          {user.type === 'customer' && (
+          {user.role === 'USER' && (
             <Link to="/cart">
               <Button variant="ghost" size="sm" className="relative">
                 <ShoppingCart className="h-5 w-5" />
@@ -57,12 +56,12 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                     {user.email}
                   </p>
                   <p className="text-xs text-muted-foreground capitalize">
-                    {user.type.replace('_', ' ')}
+                    {user.role.replace('_', ' ')}
                   </p>
                 </div>
               </div>
               <DropdownMenuSeparator />
-              {user.type === 'customer' && (
+              {user.role === 'USER' && (
                 <>
                   <DropdownMenuItem asChild>
                     <Link to="/dashboard" className="flex items-center">
@@ -78,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                   </DropdownMenuItem>
                 </>
               )}
-              {(user.type === 'restaurant_owner' || user.type === 'staff') && (
+              {(user.role === 'OWNER' || user.role === 'STAFF') && (
                 <DropdownMenuItem asChild>
                   <Link to="/restaurant/dashboard" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
@@ -95,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                onClick={onLogout}
+                onClick={logout}
                 className="cursor-pointer focus:bg-destructive/10 focus:text-destructive"
               >
                 <LogOut className="mr-2 h-4 w-4" />

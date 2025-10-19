@@ -2,16 +2,12 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Home, Store, ShoppingCart, Clock, Target, Sparkles, Brain } from 'lucide-react';
-import { User } from '../../App';
+import { useAuth } from '../../hooks/useAuth';
 
-interface NavigationProps {
-  user: User;
-}
-
-const Navigation: React.FC<NavigationProps> = ({ user }) => {
+const Navigation: React.FC = () => {
   const location = useLocation();
-
-  if (user.type !== 'customer') return null;
+  const { user } = useAuth();
+  if (!user || user.role !== 'USER') return null;
 
   const navItems = [
     { path: '/dashboard', label: 'Home', icon: Home },
