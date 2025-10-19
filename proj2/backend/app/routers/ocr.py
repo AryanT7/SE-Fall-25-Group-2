@@ -133,20 +133,17 @@ async def ocr_health_check():
         # Simple test to verify API key is working
         headers = {
             "Authorization": f"Bearer {ocr_service.api_key}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:8000",
-            "X-Title": "Cafe Calories OCR Health Check"
+            "Content-Type": "application/json"
         }
         
         payload = {
-            "model": "mistralai/mistral-small-latest",
+            "model": "mistral-small-latest",
             "messages": [{"role": "user", "content": "Hello"}],
-            "max_tokens": 10,
-            "stream": False
+            "max_tokens": 10
         }
         
         import requests
-        test_response = requests.post(ocr_service.openrouter_url, headers=headers, json=payload)
+        test_response = requests.post(ocr_service.mistral_url, headers=headers, json=payload)
         test_response.raise_for_status()
         
         return {
