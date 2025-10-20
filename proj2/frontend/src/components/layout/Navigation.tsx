@@ -2,11 +2,20 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Home, Store, ShoppingCart, Clock, Target, Sparkles, Brain } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+// import { useAuth } from '../../hooks/useAuth';
 
-const Navigation: React.FC = () => {
+
+interface NavigationProps {
+  user: {
+    name: string;
+    role: 'USER' | 'OWNER' | 'STAFF' | 'ADMIN';
+  };
+}
+
+const Navigation: React.FC<NavigationProps> = ({ user }) => {
+  // if (!user || user.role !== 'USER') return null;
   const location = useLocation();
-  const { user } = useAuth();
+  // const { user } = useAuth();
   if (!user || user.role !== 'USER') return null;
 
   const navItems = [

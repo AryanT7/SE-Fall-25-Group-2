@@ -1,13 +1,11 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { useAuth } from './hooks/useAuth';
-
+import { useAuth } from './contexts/AuthContext';
 
 // Components
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
-
 import UserDashboard from './components/user/UserDashboard';
 import RestaurantList from './components/user/RestaurantList';
 import MenuPage from './components/user/MenuPage';
@@ -28,90 +26,100 @@ import Header from './components/layout/Header';
 import Navigation from './components/layout/Navigation';
 import ApplicationPoster from './components/poster/ApplicationPoster';
 
+export default function App() {
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
 
-function App() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // // redirect users after login
+  // useEffect(() => {
+  //   if (isAuthenticated && user) {
+  //     const roleRedirects: Record<string, string> = {
+  //       USER: '/dashboard',
+  //       OWNER: '/restaurant/dashboard',
+  //       STAFF: '/restaurant/dashboard',
+  //       ADMIN: '/admin/dashboard',
+  //     };
+  //     navigate(roleRedirects[user.role] || '/dashboard', { replace: true });
+  //   }
+  // }, [isAuthenticated, user, navigate]);
 
   return (
-    <Router>
-      <div className="min-h-screen bg-background">
-        {/* Pass user explicitly to Header */}
-        {isAuthenticated && user && <Header user={user} logout={logout} />}
-        <Toaster position="top-center" />
+    <main className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-background">
+      {/* Header appears for all logged-in users */}
+      {isAuthenticated && user && <Header user={user} logout={logout} />}
 
-        {isAuthenticated && user?.role === 'USER' && <Navigation user={user} />}
+      {/* Navigation only for USER role */}
+      {isAuthenticated && user?.role === 'USER' && <Navigation user={user} />}
 
-        <main className="container mx-auto px-4 py-6">
-        <Routes>
-          {/* ---------------- PUBLIC ROUTES ---------------- */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+      <Toaster position="top-center" />
 
-          {/* ---------------- USER ROUTES ---------------- */}
-          {isAuthenticated && user?.role === 'USER' && (
-            <>
-              {/* <Route path="/dashboard" element=<UserDashboard /> /> */}
-              <Route path="/restaurants" element={<RestaurantList />} />
-              <Route path="/menu/:restaurantId" element={<MenuPage />} />
-              <Route path="/restaurant/:restaurantId/reviews" element={<RestaurantReviews />} />
-              <Route path="/orders/:orderId/track" element={<OrderTracking />} />
-              <Route path="/poster" element={<ApplicationPoster />} />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </>
-          )}
+      <Routes>
+        {/* PUBLIC ROUTES */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-          {/* ---------------- OWNER/STAFF ROUTES ---------------- */}
-          {isAuthenticated && ['OWNER', 'STAFF'].includes(user?.role || '') && (
-            <>
-              <Route path="/restaurant/dashboard" element={<div>{/* <RestaurantDashboard /> */}</div>} />
-              <Route path="/restaurant/menu" element={<MenuManagement />} />
-              <Route path="/poster" element={<ApplicationPoster />} />
-              <Route path="/" element={<Navigate to="/restaurant/dashboard" replace />} />
-              <Route path="*" element={<Navigate to="/restaurant/dashboard" replace />} />
-            </>
-          )}
+        {/* USER ROUTES */}
+        {isAuthenticated && user?.role === 'USER' && (
+          <>
+            <Route path="/dashboard" element={<UserDashboard user={user} />} />
+            <Route path="/restaurants" element={<RestaurantList />} />
+            <Route path="/menu/:restaurantId" element={<MenuPage />} />
+            {/* <Route path="/cart" element={<CartPage />} /> */}
+            {/* <Route path="/orders" element={<OrderHistory />} /> */}
+            <Route path="/orders/:orderId/track" element={<OrderTracking />} />
+            {/* <Route path="/calories" element={<CalorieSettings />} />
+            <Route path="/ai" element={<AIFoodRecommendations />} />
+            <Route path="/emotions" element={<EmotionalInsights />} /> */}
+            <Route path="/reviews" element={<RestaurantReviews />} />
+            <Route path="/poster" element={<ApplicationPoster />} />
+          </>
+        )}
 
-          {/* ---------------- ADMIN ROUTES ---------------- */}
-          {isAuthenticated && user?.role === 'ADMIN' && (
-            <>
-              <Route path="/admin/dashboard" element={<div>{/* <AdminDashboard /> */}</div>} />
-              <Route path="/poster" element={<ApplicationPoster />} />
-              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-            </>
-          )}
+        {/* OWNER/STAFF ROUTES */}
+        {isAuthenticated && ['OWNER', 'STAFF'].includes(user?.role || '') && (
+          <>
+            <Route path="/restaurant/dashboard" element={<RestaurantDashboard user={user} />} />
+            <Route path="/restaurant/menu" element={<MenuManagement />} />
+            {/* <Route path="/restaurant/orders" element={<OrderManagement />} />
+            <Route path="/restaurant/staff" element={<StaffManagement />} />
+            <Route path="/restaurant/reviews" element={<ReviewInsights />} />
+            <Route path="/restaurant/analytics" element={<Analytics />} /> */}
+          </>
+        )}
 
-          {/* ---------------- UNAUTHORIZED / FALLBACK ---------------- */}
-          {!isAuthenticated && <Route path="*" element={<Navigate to="/login" replace />} />}
+        {/* ADMIN ROUTES */}
+        {isAuthenticated && user?.role === 'ADMIN' && (
+          <>
+            <Route path="/admin/dashboard" element={<div>Admin Dashboard</div>} />
+          </>
+        )}
 
-          {/* Unsupported role */}
-          {isAuthenticated && !['USER', 'OWNER', 'STAFF', 'ADMIN'].includes(user?.role || '') && (
-            <Route
-              path="*"
-              element={
-                <main className="container mx-auto px-4 py-6">
-                  <h2>Unauthorized or unsupported role: {user?.role}</h2>
-                  <button onClick={logout} className="mt-4 text-blue-600 underline">
-                    Log out
-                  </button>
-                </main>
-              }
-            />
-          )}
-        </Routes>
-        </main>
-      </div>
-    </Router>
+        {/* DEFAULT / FALLBACK */}
+        <Route
+          path="*"
+          element={
+            isAuthenticated ? (
+              <Navigate
+                to={
+                  user?.role === 'USER'
+                    ? '/dashboard'
+                    : user?.role === 'ADMIN'
+                    ? '/admin/dashboard'
+                    : '/restaurant/dashboard'
+                }
+                replace
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+      </Routes>
+      
+    </div>
+    </main>
   );
 }
 
-export default App;
+

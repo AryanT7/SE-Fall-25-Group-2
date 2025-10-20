@@ -5,7 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 
 const LoginPage: React.FC = () => {
@@ -15,30 +15,37 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   // Redirect if already authenticated
-  useEffect(() => {
-    console.log('🔄 LoginPage useEffect triggered', { isAuthenticated, user });
-    if (isAuthenticated && user) {
+  // useEffect(() => {
+  //   console.log('🔄 LoginPage useEffect triggered', { isAuthenticated, user });
+  //   if (isAuthenticated && user) {
+  //     const redirects: Record<string, string> = {
+  //       USER: '/dashboard',
+  //       OWNER: '/restaurant/dashboard',
+  //       STAFF: '/restaurant/dashboard',
+  //       ADMIN: '/admin/dashboard',
+  //     };
+  //     const redirectPath = redirects[user.role] || '/dashboard';
+  //     console.log('🚀 Redirecting to:', redirectPath);
+  //     navigate(redirectPath, { replace: true });
+  //   }
+  // }, [isAuthenticated, user, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    
+    const loggedInUser = await login({ email, password });
+    
+    if (loggedInUser) {
+      toast.success('Login successful!');
+      // ✅ Redirect after login
       const redirects: Record<string, string> = {
         USER: '/dashboard',
         OWNER: '/restaurant/dashboard',
         STAFF: '/restaurant/dashboard',
         ADMIN: '/admin/dashboard',
       };
-      const redirectPath = redirects[user.role] || '/dashboard';
-      console.log('🚀 Redirecting to:', redirectPath);
-      navigate(redirectPath, { replace: true });
-    }
-  }, [isAuthenticated, user, navigate]);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearError();
-    
-    const success = await login({ email, password });
-    
-    if (success) {
-      toast.success('Login successful!');
-      // Navigation will happen via useEffect above
+      navigate(redirects[loggedInUser.role] || '/dashboard', { replace: true });
     } else {
       toast.error(error || 'Login failed');
     }
@@ -49,9 +56,9 @@ const LoginPage: React.FC = () => {
     setPassword(demoPassword);
     clearError();
     
-    const success = await login({ email: demoEmail, password: demoPassword });
+    const loggedInUser = await login({ email: demoEmail, password: demoPassword });
     
-    if (success) {
+    if (loggedInUser) {
       toast.success('Demo login successful!');
       // Navigation will happen via useEffect above
     } else {
