@@ -1,16 +1,34 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { User, LogOut, Settings, ShoppingCart, FileImage } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+// import { useAuth } from '../../hooks/useAuth';
 
 
+interface HeaderProps {
+  user: {
+    name: string;
+    email: string;
+    role: 'USER' | 'OWNER' | 'STAFF' | 'ADMIN';
+  };
+  logout: () => void;
+}
 
-const Header: React.FC = () => {
-  const { user, logout } = useAuth();
+const Header: React.FC<HeaderProps> = ({ user, logout }) => {
+
+  // const { user, logout } = useAuth();
+  // const navigate = useNavigate();
+
   if (!user) return null;
+
+  const handleLogout = () => {
+    logout();
+    // navigate('/login', {replace:true})
+ 
+  }
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -94,7 +112,7 @@ const Header: React.FC = () => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                onClick={logout}
+                onClick={handleLogout}
                 className="cursor-pointer focus:bg-destructive/10 focus:text-destructive"
               >
                 <LogOut className="mr-2 h-4 w-4" />

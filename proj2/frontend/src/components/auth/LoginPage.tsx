@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -6,32 +6,39 @@ import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useAuth } from '../../hooks/useAuth';
-
-
 import { toast } from 'sonner';
-
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const {user,  login, isLoading, error, clearError , } = useAuth();
+  const { user, login, isLoading, error, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearError(); // Clear any previous errors
-    
-    const success = await login({ email, password });
-    
-    if (success) {
-      toast.success('Login successful!');
+  // Redirect if already authenticated
+  useEffect(() => {
+    console.log('🔄 LoginPage useEffect triggered', { isAuthenticated, user });
+    if (isAuthenticated && user) {
       const redirects: Record<string, string> = {
         USER: '/dashboard',
         OWNER: '/restaurant/dashboard',
         STAFF: '/restaurant/dashboard',
         ADMIN: '/admin/dashboard',
       };
-      navigate(redirects[user?.role || 'USER']);
+      const redirectPath = redirects[user.role] || '/dashboard';
+      console.log('🚀 Redirecting to:', redirectPath);
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    
+    const success = await login({ email, password });
+    
+    if (success) {
+      toast.success('Login successful!');
+      // Navigation will happen via useEffect above
     } else {
       toast.error(error || 'Login failed');
     }
@@ -40,12 +47,13 @@ const LoginPage: React.FC = () => {
   const handleDemoLogin = async (demoEmail: string, demoPassword: string) => {
     setEmail(demoEmail);
     setPassword(demoPassword);
+    clearError();
     
     const success = await login({ email: demoEmail, password: demoPassword });
     
     if (success) {
       toast.success('Demo login successful!');
-      navigate('/dashboard');
+      // Navigation will happen via useEffect above
     } else {
       toast.error('Demo login failed');
     }
@@ -106,6 +114,7 @@ const LoginPage: React.FC = () => {
                   variant="outline" 
                   className="w-full" 
                   onClick={() => handleDemoLogin('customer@demo.com', 'demo123')}
+                  disabled={isLoading}
                 >
                   Try Customer Demo
                 </Button>
@@ -151,6 +160,7 @@ const LoginPage: React.FC = () => {
                   variant="outline" 
                   className="w-full" 
                   onClick={() => handleDemoLogin('restaurant@demo.com', 'demo123')}
+                  disabled={isLoading}
                 >
                   Try Restaurant Demo
                 </Button>
@@ -158,6 +168,7 @@ const LoginPage: React.FC = () => {
                   variant="outline" 
                   className="w-full" 
                   onClick={() => handleDemoLogin('staff@demo.com', 'demo123')}
+                  disabled={isLoading}
                 >
                   Try Staff Demo
                 </Button>
