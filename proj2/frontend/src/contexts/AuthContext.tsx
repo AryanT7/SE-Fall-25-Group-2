@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { apiClient, TokenManager, isTokenExpired } from '../api';
-import { User, LoginRequest, RegisterRequest } from '../api/types';
-import { log } from 'console';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { User, LoginRequest, RegisterRequest } from '../api/types'; // adjust import path
+import { apiClient } from '../api/client';
+import { TokenManager, isTokenExpired } from '../api/client'; // adjust import path
 
 interface AuthState {
   user: User | null;
@@ -10,7 +10,7 @@ interface AuthState {
   error: string | null;
 }
 
-interface AuthActions {
+interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<User | null>;
   register: (userData: RegisterRequest) => Promise<boolean>;
   logout: () => void;
@@ -18,7 +18,9 @@ interface AuthActions {
   refreshUser: () => Promise<void>;
 }
 
-export function useAuth(): AuthState & AuthActions {
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
     isAuthenticated: false,
@@ -33,7 +35,6 @@ export function useAuth(): AuthState & AuthActions {
         const token = TokenManager.getAccessToken();
         if (token) {
           if (token && !isTokenExpired(token)) {
-            // Token is valid, fetch user data
             const response = await apiClient.get<User>('/users/me');
             if (response.data) {
               setState(prev => ({
@@ -43,7 +44,6 @@ export function useAuth(): AuthState & AuthActions {
                 isLoading: false,
               }));
             } else {
-              // Token might be invalid, clear it
               TokenManager.clearTokens();
               setState(prev => ({
                 ...prev,
@@ -52,7 +52,6 @@ export function useAuth(): AuthState & AuthActions {
               }));
             }
           } else {
-            // Token is expired or invalid
             TokenManager.clearTokens();
             setState(prev => ({
               ...prev,
@@ -92,9 +91,7 @@ export function useAuth(): AuthState & AuthActions {
       );
       
       if (response.data) {
-        // store tokens
         TokenManager.setTokens(response.data.access_token, response.data.refresh_token);
-        // Login successful, fetch user data
         const userResponse = await apiClient.get<User>('/users/me');
         if (userResponse.data) {
           setState(prev => ({
@@ -131,8 +128,8 @@ export function useAuth(): AuthState & AuthActions {
       console.log('Registering user:', userData);
       const response = await apiClient.post<User>('/users/register', userData, false);
       console.log('Registration response:', response);
+      
       if (response.data) {
-        // Registration successful, now login
         const loggedInUser = await login({ email: userData.email, password: userData.password });
         return !!loggedInUser;
       }
@@ -168,9 +165,6 @@ export function useAuth(): AuthState & AuthActions {
   }, []);
 
   const refreshUser = useCallback(async () => {
-    const token = TokenManager.getAccessToken();
-    if (!token || isTokenExpired(token)) return;
-
     try {
       const response = await apiClient.get<User>('/users/me');
       if (response.data) {
@@ -180,17 +174,30 @@ export function useAuth(): AuthState & AuthActions {
         }));
       }
     } catch (error) {
-      console.error('Failed to refresh user data:', error);
+      console.error('Failed to refresh user:', error);
     }
   }, []);
 
-  return {
-    ...state,
-    login,
-    register,
-    logout,
-    clearError,
-    refreshUser,
-  };
+  return (
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        register,
+        logout,
+        clearError,
+        refreshUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
