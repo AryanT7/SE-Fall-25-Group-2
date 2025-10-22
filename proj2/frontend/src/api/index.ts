@@ -17,3 +17,6 @@ export { itemsApi } from './items';
 export { cartApi } from './cart';
 export { ordersApi } from './orders';
 export { goalsApi } from './goals';
+export {analyticsApi} from './analytics';
+export { paymentsApi } from './payments';
+export {driversApi} from './drivers';
