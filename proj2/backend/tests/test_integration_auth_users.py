@@ -6,13 +6,13 @@ def test_root_ok(client):
 
 def test_register_and_login_and_me(client):
     # register
-    payload = {"email": "alice@example.com", "name": "Alice", "password": "secret123"}
+    payload = {"email": "alice@example.com", "name": "Alice", "password": "secret123", "role": "USER"}
     r = client.post("/users/register", json=payload)
     assert r.status_code == 200, r.text
     assert r.json()["email"] == payload["email"]
 
     # login
-    r2 = client.post("/auth/login", json={"email": payload["email"], "password": payload["password"]})
+    r2 = client.post("/auth/login", json={"email": payload["email"], "password": payload["password"], "role": "USER"})
     assert r2.status_code == 200, r2.text
     token = r2.json()["access_token"]
     assert token

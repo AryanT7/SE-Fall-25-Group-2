@@ -13,10 +13,10 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
     roleMap ={
-        "User": Role.USER,
-        "Owner": Role.OWNER,
-        "Staff": Role.STAFF,
-        "Driver": Role.DRIVER
+        "USER": Role.USER,
+        "OWNER": Role.OWNER,
+        "STAFF": Role.STAFF,
+        "DRIVER": Role.DRIVER
     }
     user = User(email=data.email, name=data.name, hashed_password=hash_password(data.password), role=roleMap[data.role])
     db.add(user)
