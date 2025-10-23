@@ -12,16 +12,28 @@ import { toast } from 'sonner';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    // Common fields
     email: '',
     password: '',
     confirmPassword: '',
+  
+    // USER fields
+    name: '',
     height: '',
     weight: '',
+  
+    // OWNER fields
     restaurantName: '',
     cuisine: '',
-    description: ''
+    address: '',
+  
+    // DRIVER fields
+    driverName: '',
+    license: '',
+    vehicleType: '',
   });
+  
+  
   const { register, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
@@ -29,26 +41,66 @@ const RegisterPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleRegister = async (e: React.FormEvent, userType: 'customer' | 'restaurant') => {
+  const handleRegister = async (
+    e: React.FormEvent,
+    userType: 'USER' | 'OWNER' | 'DRIVER'
+  ) => {
     e.preventDefault();
     clearError();
-
+  
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-
+  
     if (formData.password.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
     }
-    
+  
     console.log('calling register from tsx:');
+    // const success = await register({
+    //   email: formData.email,
+    //   name:
+    //     userType === 'USER'
+    //       ? formData.name
+    //       : userType === 'OWNER'
+    //       ? formData.restaurantName
+    //       : formData.driverName, // 👈 for driver tab
+    //   password: formData.password,
+    //   role: userType,
+    // });
+
     const success = await register({
       email: formData.email,
-      name: userType === 'customer' ? formData.name : formData.restaurantName,
-      password: formData.password
+      name:
+        userType === 'USER'
+          ? formData.name
+          : userType === 'OWNER'
+          ? formData.restaurantName
+          : userType === 'DRIVER'
+          ? formData.driverName
+          : '', // ✅ explicitly handle unexpected cases
+    
+      password: formData.password,
+    
+      role:
+        userType === 'USER'
+          ? 'USER'
+          : userType === 'OWNER'
+          ? 'OWNER'
+          : userType === 'DRIVER'
+          ? 'DRIVER'
+          : 'USER', // ✅ default safe fallback
+    
+      ...(userType === 'USER' && {
+        height_cm: Number(formData.height) || null,
+        weight_kg: Number(formData.weight) || null,
+      }),
     });
+    
+    
+  
     console.log('Registration successful:', success);
     if (success) {
       toast.success('Registration successful!');
@@ -57,6 +109,7 @@ const RegisterPage: React.FC = () => {
       toast.error(error || 'Registration failed');
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -69,13 +122,15 @@ const RegisterPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="customer" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="customer">Customer</TabsTrigger>
-              <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
-            </TabsList>
+          <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="customer">Customer</TabsTrigger>
+          <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
+          <TabsTrigger value="driver">Driver</TabsTrigger> 
+        </TabsList>
+
             
             <TabsContent value="customer" className="space-y-4">
-              <form onSubmit={(e) => handleRegister(e, 'customer')} className="space-y-4">
+              <form onSubmit={(e) => handleRegister(e, 'USER')} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input
@@ -154,7 +209,7 @@ const RegisterPage: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="restaurant" className="space-y-4">
-              <form onSubmit={(e) => handleRegister(e, 'restaurant')} className="space-y-4">
+              <form onSubmit={(e) => handleRegister(e, 'OWNER')} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="restaurantName">Restaurant Name</Label>
                   <Input
@@ -183,7 +238,7 @@ const RegisterPage: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
@@ -191,7 +246,7 @@ const RegisterPage: React.FC = () => {
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                   />
-                </div>
+                </div> */}
                 <div className="space-y-2">
                   <Label htmlFor="email-restaurant">Email</Label>
                   <Input
@@ -236,6 +291,79 @@ const RegisterPage: React.FC = () => {
                 </Button>
               </form>
             </TabsContent>
+            <TabsContent value="driver" className="space-y-4">
+              <form onSubmit={(e) => handleRegister(e, 'DRIVER')} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="driverName">Full Name</Label>
+                  <Input
+                    id="driverName"
+                    placeholder="Enter your full name"
+                    value={formData.driverName}
+                    onChange={(e) => handleInputChange('driverName', e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email-driver">Email</Label>
+                  <Input
+                    id="email-driver"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    required
+                  />
+                </div>
+
+                {/* Optional: license number or vehicle info */}
+                <div className="space-y-2">
+                  <Label htmlFor="license">License Number</Label>
+                  <Input
+                    id="license"
+                    placeholder="Enter your driver license number"
+                    value={formData.license}
+                    onChange={(e) => handleInputChange('license', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password-driver">Password</Label>
+                  <Input
+                    id="password-driver"
+                    type="password"
+                    placeholder="Create a password (min 6 characters)"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword-driver">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword-driver"
+                    type="password"
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    required
+                  />
+                </div>
+
+                {error && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                    {error}
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Creating Account...' : 'Create Driver Account'}
+                </Button>
+              </form>
+            </TabsContent>
+
           </Tabs>
           
           <div className="mt-6 text-center">

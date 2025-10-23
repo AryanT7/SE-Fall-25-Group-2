@@ -20,7 +20,7 @@ export interface LoginResponse {
 export interface TokenPayload {
   sub: string;
   uid: number;
-  role: 'USER' | 'OWNER' | 'STAFF' | 'ADMIN';
+  role: 'USER' | 'OWNER' | 'DRIVER' | 'STAFF'; // ✅ added DRIVER
   exp: number;
 }
 
@@ -28,7 +28,7 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  role: 'USER' | 'OWNER' | 'STAFF' | 'ADMIN';
+  role: 'USER' | 'OWNER' | 'DRIVER' | 'STAFF'; // ✅ added DRIVER
   is_active: boolean;
   height_cm?: number;
   weight_kg?: number;
@@ -40,6 +40,7 @@ export interface RegisterRequest {
   email: string;
   name: string;
   password: string;
+  role: 'USER' | 'OWNER' | 'DRIVER'; // ✅ added role here for registration
 }
 
 // Cafe Types
@@ -49,6 +50,7 @@ export interface Cafe {
   address?: string;
   active: boolean;
 }
+
 
 export interface CafeCreateRequest {
   name: string;
