@@ -19,7 +19,10 @@ class UserBase(BaseModel):
     name: str
 
 class UserCreate(UserBase):
+    email: EmailStr
+    name: str
     password: str
+    role: str = "User"  # Default role is User
 
 class UserOut(UserBase):
     id: int

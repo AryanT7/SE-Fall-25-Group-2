@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas import UserCreate, UserOut
-from ..models import User
+from ..models import User, Role
 from ..auth import hash_password
 from ..deps import get_current_user
 
@@ -12,7 +12,13 @@ router = APIRouter(prefix="/users", tags=["users"])
 def register(data: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
-    user = User(email=data.email, name=data.name, hashed_password=hash_password(data.password))
+    roleMap ={
+        "User": Role.USER,
+        "Owner": Role.OWNER,
+        "Staff": Role.STAFF,
+        "Driver": Role.DRIVER
+    }
+    user = User(email=data.email, name=data.name, hashed_password=hash_password(data.password), role=roleMap[data.role])
     db.add(user)
     db.commit()
     db.refresh(user)

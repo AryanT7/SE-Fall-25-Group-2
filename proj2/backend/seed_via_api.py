@@ -15,7 +15,7 @@ API_BASE = f"{BASE_URL}/api/v1" if "/api/v1" in BASE_URL else BASE_URL
 
 # Test data
 USERS = [
-    {"email": f"user{i+1}@example.com", "name": f"User {i+1}", "password": "Password123!"}
+    {"email": f"user{i+1}@example.com", "name": f"User {i+1}", "password": "Password123!", "role": "User"}
     for i in range(10)
 ]
 
@@ -125,6 +125,9 @@ def seed_users():
         if response:
             users.append(response)
             print(f"✓ Created user: {user_data['email']}")
+            print("------------ Response -----------")
+            print(f"{response}")
+            print("------------ Response -----------")
         else:
             # If registration failed, try to login (user might already exist)
             print(f"User {user_data['email']} might already exist, trying to login...")
