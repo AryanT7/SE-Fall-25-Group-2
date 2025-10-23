@@ -49,12 +49,16 @@ export interface Cafe {
   name: string;
   address?: string;
   active: boolean;
+  lat: number;
+  lng: number;
 }
 
 
 export interface CafeCreateRequest {
   name: string;
   address?: string;
+  lat: number;
+  lng: number;
 }
 
 // Item Types

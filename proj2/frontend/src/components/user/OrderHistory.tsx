@@ -5,8 +5,24 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Clock, MapPin, Star, RotateCcw, Package } from 'lucide-react';
-import { User, Order } from '../../App';
+import { User } from '../../api/types';
 import { toast } from 'sonner';
+import { getMyOrders, cancelOrder as cancelOrderApi } from '../../api/orders';
+
+// Local Order interface for the component
+interface Order {
+  id: string;
+  userId: string;
+  restaurantId: string;
+  items: any[];
+  totalAmount: number;
+  totalCalories: number;
+  status: string;
+  createdAt: Date;
+  pickupTime?: Date;
+  paymentMethod: string;
+  canCancelUntil?: Date;
+}
 
 interface OrderHistoryProps {
   user: User;
@@ -18,53 +34,36 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
-    // Load orders from localStorage (in real app, this would be an API call)
-    const savedOrders = localStorage.getItem('orders');
-    if (savedOrders) {
-      const orderData = JSON.parse(savedOrders);
-      setOrders(orderData);
-      setFilteredOrders(orderData);
-    } else {
-      // Create some mock orders for demo
-      const mockOrders: Order[] = [
-        {
-          id: '1',
-          userId: user.id,
-          restaurantId: 'rest1',
-          items: [],
-          totalAmount: 25.99,
-          totalCalories: 850,
-          status: 'completed',
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          pickupTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
-          paymentMethod: 'credit_card'
-        },
-        {
-          id: '2',
-          userId: user.id,
-          restaurantId: 'rest2',
-          items: [],
-          totalAmount: 18.50,
-          totalCalories: 720,
-          status: 'ready',
-          createdAt: new Date(Date.now() - 30 * 60 * 1000),
-          paymentMethod: 'debit_card'
-        },
-        {
-          id: '3',
-          userId: user.id,
-          restaurantId: 'rest1',
-          items: [],
-          totalAmount: 32.75,
-          totalCalories: 950,
-          status: 'preparing',
-          createdAt: new Date(Date.now() - 45 * 60 * 1000),
-          paymentMethod: 'credit_card'
+    // Fetch orders from API
+    const fetchOrders = async () => {
+      try {
+        const response = await getMyOrders();
+        if (response.data) {
+          // Transform API orders to match component's expected format
+          const transformedOrders: Order[] = response.data.map((order) => ({
+            id: order.id.toString(),
+            userId: user.id.toString(),
+            restaurantId: order.cafe_id.toString(),
+            items: [], // TODO: Fetch order items separately if needed
+            totalAmount: order.total_price,
+            totalCalories: order.total_calories,
+            status: order.status.toLowerCase(),
+            createdAt: new Date(order.created_at),
+            paymentMethod: 'credit_card', // TODO: Get payment method from API
+            canCancelUntil: new Date(order.can_cancel_until)
+          }));
+          setOrders(transformedOrders);
+          setFilteredOrders(transformedOrders);
+        } else if (response.error) {
+          toast.error(`Failed to load orders: ${response.error}`);
         }
-      ];
-      setOrders(mockOrders);
-      setFilteredOrders(mockOrders);
-    }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        toast.error('Failed to load orders');
+      }
+    };
+
+    fetchOrders();
   }, [user.id]);
 
   useEffect(() => {
@@ -121,18 +120,29 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
   };
 
   const canCancelOrder = (order: Order) => {
-    const timeDiff = Date.now() - new Date(order.createdAt).getTime();
-    const tenMinutes = 10 * 60 * 1000;
-    return timeDiff < tenMinutes && ['pending', 'accepted'].includes(order.status);
+    if (!order.canCancelUntil) return false;
+    const now = Date.now();
+    const cancelUntil = new Date(order.canCancelUntil).getTime();
+    return now < cancelUntil && ['pending', 'accepted'].includes(order.status.toLowerCase());
   };
 
-  const cancelOrder = (orderId: string) => {
-    const updatedOrders = orders.map(order => 
-      order.id === orderId ? { ...order, status: 'cancelled' as const } : order
-    );
-    setOrders(updatedOrders);
-    localStorage.setItem('orders', JSON.stringify(updatedOrders));
-    toast.success('Order cancelled successfully');
+  const cancelOrder = async (orderId: string) => {
+    try {
+      const response = await cancelOrderApi(parseInt(orderId));
+      if (response.data) {
+        // Update the order in the list
+        const updatedOrders = orders.map(order => 
+          order.id === orderId ? { ...order, status: 'cancelled' } : order
+        );
+        setOrders(updatedOrders);
+        toast.success('Order cancelled successfully');
+      } else if (response.error) {
+        toast.error(`Failed to cancel order: ${response.error}`);
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      toast.error('Failed to cancel order');
+    }
   };
 
   const reorderItems = (order: Order) => {
