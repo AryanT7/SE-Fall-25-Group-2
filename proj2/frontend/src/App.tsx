@@ -99,7 +99,7 @@ export default function App() {
         <Route
           path="*"
           element={
-            isAuthenticated ? (
+            isAuthenticated && user? (
               <Navigate
                 to={
                   user?.role === 'USER'
@@ -111,7 +111,7 @@ export default function App() {
                 replace
               />
             ) : (
-              <Navigate to="/login" replace />
+              <LoginPage/>
             )
           }
         />
