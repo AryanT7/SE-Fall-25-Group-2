@@ -33,7 +33,8 @@ class Cafe(Base):
     address = Column(String, nullable=True)
     active = Column(Boolean, default=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
-
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
     owner = relationship("User", back_populates="owned_cafes")
     items = relationship("Item", back_populates="cafe")
 

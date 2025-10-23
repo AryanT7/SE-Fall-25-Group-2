@@ -13,6 +13,7 @@ from .routers import goals as goals_router
 from .routers import admin as admin_router
 from .routers import analytics as analytics_router
 from .routers import drivers as drivers_router
+from .routers import ocr as ocr_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -42,6 +43,7 @@ app.include_router(goals_router.router)
 app.include_router(admin_router.router)
 app.include_router(analytics_router.router)
 app.include_router(drivers_router.router)
+app.include_router(ocr_router.router)
 
 @app.get("/")
 def root():
