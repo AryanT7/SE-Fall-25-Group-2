@@ -4,6 +4,10 @@ __pycache__/
 
 *app.db
 
+*test.db*
+
+*.zip
+
 .env
 
 # Python virtualenvs
