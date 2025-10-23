@@ -16,6 +16,14 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
     print(user)
     print(user.hashed_password)
+    roleMap ={
+        Role.USER: "USER",
+        Role.OWNER: "OWNER",
+        Role.STAFF: "STAFF",
+        Role.DRIVER: "DRIVER"
+    }
+    if roleMap[user.role] != data.role:
+        raise HTTPException(status_code=401, detail="Invalid role for user")
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     access = create_token(user.id, user.email, user.role, timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))

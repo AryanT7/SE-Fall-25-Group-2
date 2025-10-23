@@ -34,6 +34,7 @@ class UserOut(UserBase):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    role: str
 
 class CafeCreate(BaseModel):
     name: str
