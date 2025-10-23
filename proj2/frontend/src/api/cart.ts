@@ -1,20 +1,34 @@
 import { apiClient } from './client';
-import { CartAddRequest, CartSummary } from './types';
+import { CartAddRequest, CartSummary, CartOut, CartAddItem } from './types';
 
 // Cart API Functions
 export const cartApi = {
+    /**
+   * Get cart details
+   */
+  async getCart(): Promise<{ data?: CartOut; error?: string }> {
+    return apiClient.get('/cart');
+  },
+
+
   /**
    * Add an item to the cart
    */
-  async addToCart(itemData: CartAddRequest): Promise<{ data?: any; error?: string }> {
-    return apiClient.post('/cart/add', itemData);
+//   async addToCart(itemData: CartAddRequest): Promise<{ data?: any; error?: string }> {
+//     return apiClient.post('/cart/add', itemData);
+//   },
+  async addToCart(data: CartAddItem): Promise<{ data?: { status: string }; error?: string }> {
+    return apiClient.post('/cart/add', data);
   },
 
   /**
    * Get cart summary with calories and prices
    */
+//   async getSummary(): Promise<{ data?: CartSummary; error?: string }> {
+//     return apiClient.get<CartSummary>('/cart/summary');
+//   },
   async getSummary(): Promise<{ data?: CartSummary; error?: string }> {
-    return apiClient.get<CartSummary>('/cart/summary');
+    return apiClient.get('/cart/summary');
   },
 
   /**
@@ -34,7 +48,10 @@ export const cartApi = {
   /**
    * Clear all items from cart
    */
-  async clearCart(): Promise<{ data?: { message: string }; error?: string }> {
+//   async clearCart(): Promise<{ data?: { message: string }; error?: string }> {
+//     return apiClient.delete('/cart/clear');
+//   },
+  async clearCart(): Promise<{ data?: { status: string }; error?: string }> {
     return apiClient.delete('/cart/clear');
   },
 

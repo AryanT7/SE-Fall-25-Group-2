@@ -36,6 +36,34 @@ export interface User {
   weight_kg?: number;
   sex?: string;
   dob?: string;
+  daily_calorie_goal?: number;
+}
+
+export interface DashboardStats {
+  total_orders: number;
+  total_spent: number;
+  total_calories: number;
+  favorite_restaurants: Array<{
+    id: string;
+    name: string;
+    visits: number;
+  }>;
+  recent_orders: Array<{
+    id: string;
+    restaurant_name: string;
+    total_amount: number;
+    status: string;
+    created_at: string;
+    items: Array<{
+      name: string;
+      quantity: number;
+      calories: number;
+    }>;
+  }>;
+  calorie_history: Array<{
+    date: string;
+    calories: number;
+  }>;
 }
 
 export interface RegisterRequest {
@@ -106,8 +134,31 @@ export interface CartAddRequest {
   assignee_email?: string;
 }
 
+// export interface CartSummary {
+//   by_person: Record<string, Record<string, number>>;
+//   total_calories: number;
+//   total_price: number;
+// }
+
+export interface CartAddItem {
+  item_id: number;
+  quantity: number;
+  assignee_email?: string;
+}
+
+export interface CartOut {
+  id: number;
+  user_id: number;
+  created_at: string;
+}
+
 export interface CartSummary {
-  by_person: Record<string, Record<string, number>>;
+  by_person: {
+    [email: string]: {
+      calories: number;
+      price: number;
+    };
+  };
   total_calories: number;
   total_price: number;
 }

@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
-import { CalendarDays, Target, TrendingUp, Utensils, Sparkles } from 'lucide-react';
-import { User, MenuItem } from '../../App';
+import { CalendarDays, Target, TrendingUp, Utensils } from 'lucide-react';
+
+import { User, CartSummary } from '../../api/types';
 import FoodSuggestions from './FoodSuggestions';
+import { cartApi } from '../../api/cart';
 
 interface UserDashboardProps {
   user: User;
@@ -20,169 +22,131 @@ interface CalorieData {
 
 const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
   const [calorieData, setCalorieData] = useState<CalorieData[]>([]);
-  const [todayCalories, setTodayCalories] = useState(0);
+  const [todayCalories, setTodayCalories] = useState<number>(0);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [sampleMenuItems, setSampleMenuItems] = useState<MenuItem[]>([]);
+  const [sampleMenuItems, setSampleMenuItems] = useState<any[]>([]); // keep empty until you have a menu items API
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Normalize goal & body stats based on your types
+  const goal = useMemo(
+    () => Number(user?.daily_calorie_goal ?? 2200),
+    [user?.daily_calorie_goal]
+  );
+  const heightCm = user?.height_cm;
+  const weightKg = user?.weight_kg;
+
+  // --- Fetch live cart summary for today's calories / price ---
   useEffect(() => {
-    // Mock calorie data for the past week
-    const mockCalorieData: CalorieData[] = [];
-    const today = new Date();
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const consumed = Math.floor(Math.random() * 800) + 1200; // Random calories between 1200-2000
-      
-      mockCalorieData.push({
-        date: date.toISOString().split('T')[0],
-        consumed,
-        goal: user.calorieGoal || 2200
-      });
-    }
-    
-    setCalorieData(mockCalorieData);
-    setTodayCalories(mockCalorieData[mockCalorieData.length - 1]?.consumed || 0);
+    let mounted = true;
 
-    // Mock recent orders
-    setRecentOrders([
-      {
-        id: '1',
-        restaurantName: 'Pizza Palace',
-        totalAmount: 25.99,
-        status: 'delivered',
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        totalCalories: 850
-      },
-      {
-        id: '2',
-        restaurantName: 'Burger Hub',
-        totalAmount: 18.50,
-        status: 'preparing',
-        createdAt: new Date(Date.now() - 30 * 60 * 1000),
-        totalCalories: 720
-      }
-    ]);
+    const fetchSummary = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    // Sample menu items for AI suggestions
-    setSampleMenuItems([
-      {
-        id: 'sample1',
-        restaurantId: 'rest1',
-        name: 'Greek Salad',
-        description: 'Fresh vegetables with feta cheese and olives',
-        price: 11.99,
-        calories: 280,
-        ingredients: ['Lettuce', 'Tomatoes', 'Cucumber', 'Feta', 'Olives', 'Olive Oil'],
-        category: 'Salads',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'sample2',
-        restaurantId: 'rest2',
-        name: 'Grilled Chicken Breast',
-        description: 'Lean protein with herbs and spices',
-        price: 14.99,
-        calories: 350,
-        ingredients: ['Chicken', 'Herbs', 'Spices', 'Olive Oil'],
-        category: 'Mains',
-        isVegetarian: false,
-        isNonVeg: true,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'sample3',
-        restaurantId: 'rest3',
-        name: 'Veggie Bowl',
-        description: 'Quinoa with roasted vegetables',
-        price: 13.99,
-        calories: 420,
-        ingredients: ['Quinoa', 'Broccoli', 'Carrots', 'Bell Peppers', 'Chickpeas'],
-        category: 'Bowls',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'sample4',
-        restaurantId: 'rest1',
-        name: 'Fruit Smoothie',
-        description: 'Fresh fruits blended with yogurt',
-        price: 7.99,
-        calories: 220,
-        ingredients: ['Banana', 'Berries', 'Yogurt', 'Honey'],
-        category: 'Beverages',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'sample5',
-        restaurantId: 'rest2',
-        name: 'Turkey Sandwich',
-        description: 'Whole wheat bread with turkey and vegetables',
-        price: 9.99,
-        calories: 380,
-        ingredients: ['Whole Wheat Bread', 'Turkey', 'Lettuce', 'Tomato', 'Mustard'],
-        category: 'Sandwiches',
-        isVegetarian: false,
-        isNonVeg: true,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'sample6',
-        restaurantId: 'rest3',
-        name: 'Protein Bar',
-        description: 'High-protein energy bar',
-        price: 4.99,
-        calories: 180,
-        ingredients: ['Oats', 'Protein Powder', 'Nuts', 'Honey'],
-        category: 'Snacks',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
+        const res = await cartApi.getSummary(); // -> { data?: CartSummary }
+        if (res.error) throw new Error(res.error);
+
+        const summary = res.data as CartSummary | undefined;
+        const caloriesToday = Number(summary?.total_calories ?? 0);
+
+        if (!mounted) return;
+
+        setTodayCalories(caloriesToday);
+
+        // Seed a 7-day chart: today = live value, previous 6 days = 0 (until you add a history endpoint)
+        const today = new Date();
+        const sevenDays: CalorieData[] = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          sevenDays.push({
+            date: d.toISOString().split('T')[0],
+            consumed: i === 0 ? caloriesToday : 0,
+            goal,
+          });
+        }
+        setCalorieData(sevenDays);
+
+        // Recent orders placeholder (backend provided doesn't expose orders yet)
+        setRecentOrders([]); // When you add /orders endpoint, populate here.
+        setSampleMenuItems([]); // When you add a menu items endpoint, populate and show FoodSuggestions.
+      } catch (e: any) {
+        if (!mounted) return;
+        setError(e?.message || 'Failed to load dashboard');
+      } finally {
+        if (mounted) setLoading(false);
       }
-    ]);
-  }, [user.calorieGoal]);
+    };
+
+    fetchSummary();
+    return () => {
+      mounted = false;
+    };
+  }, [goal]);
 
   const getCalorieProgress = () => {
-    if (!user.calorieGoal) return 0;
-    return Math.min((todayCalories / user.calorieGoal) * 100, 100);
+    if (!goal) return 0;
+    return Math.min((todayCalories / goal) * 100, 100);
   };
 
   const getCalorieStatus = () => {
-    if (!user.calorieGoal) return 'Set your calorie goal';
-    const remaining = user.calorieGoal - todayCalories;
-    if (remaining > 0) {
-      return `${remaining} calories remaining`;
-    } else {
-      return `${Math.abs(remaining)} calories over goal`;
-    }
+    if (!goal) return 'Set your calorie goal';
+    const remaining = goal - todayCalories;
+    return remaining > 0
+      ? `${remaining} calories remaining`
+      : `${Math.abs(remaining)} calories over goal`;
   };
 
   const getRecommendedCalories = () => {
-    if (!user.height || !user.weight) return 2200;
-    // Simple BMR calculation (Harris-Benedict for men)
-    const bmr = 88.362 + (13.397 * user.weight) + (4.799 * user.height) - (5.677 * 30); // Assuming age 30
-    return Math.round(bmr * 1.5); // Moderate activity level
+    // Simple BMR (Harris-Benedict, male) with a moderate activity factor
+    if (!heightCm || !weightKg) return 2200;
+    const bmr = 88.362 + 13.397 * weightKg + 4.799 * heightCm - 5.677 * 30; // assume age=30
+    return Math.round(bmr * 1.5);
   };
 
-  const averageWeeklyCalories = calorieData.length > 0 
-    ? Math.round(calorieData.reduce((sum, day) => sum + day.consumed, 0) / calorieData.length)
-    : 0;
+  const averageWeeklyCalories =
+    calorieData.length > 0
+      ? Math.round(calorieData.reduce((sum, day) => sum + day.consumed, 0) / calorieData.length)
+      : 0;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col space-y-2">
+          <h1 className="text-3xl font-bold">Welcome back{user?.name ? `, ${user.name.split(' ')[0]}!` : '!'}</h1>
+          <p className="text-muted-foreground">Loading your dashboard…</p>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Calorie Overview</CardTitle>
+            <CardDescription>Fetching your live data</CardDescription>
+          </CardHeader>
+          <CardContent>…</CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col space-y-2">
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">We couldn’t load your data.</p>
+        </div>
+        <Card>
+          <CardContent className="text-red-600 py-6">{error}</CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold">Welcome back, {user.name.split(' ')[0]}!</h1>
+        <h1 className="text-3xl font-bold">Welcome back, {user.name?.split(' ')[0] || 'there'}!</h1>
         <p className="text-muted-foreground">Track your calories and manage your food orders</p>
       </div>
 
@@ -190,7 +154,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Calories</CardTitle>
+            <CardTitle className="text-sm font-medium">Today's Calories (from Cart)</CardTitle>
             <Utensils className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -217,10 +181,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{user.calorieGoal || 'Not set'}</div>
-            <p className="text-xs text-muted-foreground capitalize">
-              {user.goalType || 'daily'} target
-            </p>
+            <div className="text-2xl font-bold">{goal || 'Not set'}</div>
+            <p className="text-xs text-muted-foreground capitalize">daily target</p>
           </CardContent>
         </Card>
 
@@ -236,16 +198,16 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         </Card>
       </div>
 
-      {/* AI Food Suggestions */}
-      {user.calorieGoal && sampleMenuItems.length > 0 && (
+      {/* AI Food Suggestions (kept hidden until you have real menu items) */}
+      {goal && sampleMenuItems.length > 0 && (
         <FoodSuggestions
-          user={user}
+          user={user as any}
           menuItems={sampleMenuItems}
           currentCaloriesToday={todayCalories}
         />
       )}
 
-      {/* Recent Orders */}
+      {/* Recent Orders (placeholder until you expose orders endpoint) */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -294,33 +256,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Find Food</CardTitle>
-            <CardDescription>Discover restaurants and healthy options</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link to="/restaurants">
-              <Button className="w-full">Browse Restaurants</Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Calorie Goals</CardTitle>
-            <CardDescription>Set and track your daily calorie targets</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link to="/settings/calories">
-              <Button variant="outline" className="w-full">Manage Goals</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Weekly Calorie Chart */}
       <Card>
         <CardHeader>
@@ -329,11 +264,10 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {calorieData.map((day, index) => {
-              const percentage = user.calorieGoal ? (day.consumed / user.calorieGoal) * 100 : 0;
+            {calorieData.map((day) => {
+              const percentage = goal ? (day.consumed / goal) * 100 : 0;
               const date = new Date(day.date);
               const isToday = date.toDateString() === new Date().toDateString();
-              
               return (
                 <div key={day.date} className="space-y-2">
                   <div className="flex justify-between text-sm">

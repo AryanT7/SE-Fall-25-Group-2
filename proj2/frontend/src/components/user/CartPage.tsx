@@ -7,13 +7,13 @@ import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Separator } from '../ui/separator';
 import { Plus, Minus, Trash2, Users, CreditCard, Clock, ArrowLeft } from 'lucide-react';
-import { User, CartItem, Restaurant, EmotionalData, Order } from '../../App';
+// import { User, CartItem, Restaurant, EmotionalData, Order } from '../../App';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { toast } from 'sonner';
 import EmotionalStateDialog from './EmotionalStateDialog';
 import { RegretPredictionEngine } from './RegretPredictionEngine';
 import RegretWarning from './RegretWarning';
-
+import { cartApi } from '../../api/cart';
 interface CartPageProps {
   user: User;
 }
