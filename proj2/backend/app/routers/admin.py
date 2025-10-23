@@ -17,8 +17,8 @@ def block_user(user_id: int, db: Session = Depends(get_db), admin: User = Depend
     return {"status": "blocked"}
 
 @router.post("/cafes", response_model=dict)
-def create_cafe_admin(name: str, address: str | None = None, owner_id: int | None = None, db: Session = Depends(get_db), admin: User = Depends(require_roles(Role.ADMIN))):
-    c = Cafe(name=name, address=address, owner_id=owner_id)
+def create_cafe_admin(name: str, address: str | None = None, owner_id: int | None = None, lat: float = 0.0, lng: float = 0.0, db: Session = Depends(get_db), admin: User = Depends(require_roles(Role.ADMIN))):
+    c = Cafe(name=name, address=address, owner_id=owner_id, lat=lat, lng=lng)
     db.add(c)
     db.commit()
     db.refresh(c)

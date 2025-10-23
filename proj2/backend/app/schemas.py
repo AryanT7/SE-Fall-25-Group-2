@@ -38,12 +38,16 @@ class LoginRequest(BaseModel):
 class CafeCreate(BaseModel):
     name: str
     address: Optional[str] = None
+    lat: float
+    lng: float
 
 class CafeOut(BaseModel):
     id: int
     name: str
     address: Optional[str]
     active: bool
+    lat: float
+    lng: float
     class Config:
         from_attributes = True
 
