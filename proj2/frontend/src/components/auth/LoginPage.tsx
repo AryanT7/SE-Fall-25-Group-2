@@ -11,30 +11,19 @@ import { toast } from 'sonner';
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'USER' | 'OWNER' | 'DRIVER'>('USER');
   const { user, login, isLoading, error, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-
-  // Redirect if already authenticated
-  // useEffect(() => {
-  //   console.log('🔄 LoginPage useEffect triggered', { isAuthenticated, user });
-  //   if (isAuthenticated && user) {
-  //     const redirects: Record<string, string> = {
-  //       USER: '/dashboard',
-  //       OWNER: '/restaurant/dashboard',
-  //       STAFF: '/restaurant/dashboard',
-  //       ADMIN: '/admin/dashboard',
-  //     };
-  //     const redirectPath = redirects[user.role] || '/dashboard';
-  //     console.log('🚀 Redirecting to:', redirectPath);
-  //     navigate(redirectPath, { replace: true });
-  //   }
-  // }, [isAuthenticated, user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
     
-    const loggedInUser = await login({ email, password });
+    const loggedInUser = await login({ 
+      email, 
+      password, 
+      role: selectedRole 
+    });
     
     if (loggedInUser) {
       toast.success('Login successful!');
@@ -42,10 +31,11 @@ const LoginPage: React.FC = () => {
       const redirects: Record<string, string> = {
         USER: '/dashboard',
         OWNER: '/restaurant/dashboard',
-        STAFF: '/restaurant/dashboard',
-        ADMIN: '/admin/dashboard',
+        DRIVER: '/driver/dashboard',
+        // ADMIN: '/admin/dashboard',
       };
       navigate(redirects[loggedInUser.role] || '/dashboard', { replace: true });
+      // navigate(redirects[loggedInUser.role]);
     } else {
       toast.error(error || 'Login failed');
     }
@@ -76,11 +66,19 @@ const LoginPage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="customer" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="customer">Customer</TabsTrigger>
-              <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue="customer" className="w-full" onValueChange={(value) => {
+            const roleMap = {
+              'customer': 'USER' as const,
+              'restaurant': 'OWNER' as const,
+              'driver': 'DRIVER' as const,
+            };
+            setSelectedRole(roleMap[value as keyof typeof roleMap]);
+          }}>
+          <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="customer">Customer</TabsTrigger>
+          <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
+          <TabsTrigger value="driver">Driver</TabsTrigger> 
+        </TabsList>
             
             <TabsContent value="customer" className="space-y-4">
               <form onSubmit={handleLogin} className="space-y-4">
@@ -116,7 +114,7 @@ const LoginPage: React.FC = () => {
                 </Button>
               </form>
               
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Button 
                   variant="outline" 
                   className="w-full" 
@@ -125,7 +123,7 @@ const LoginPage: React.FC = () => {
                 >
                   Try Customer Demo
                 </Button>
-              </div>
+              </div> */}
             </TabsContent>
             
             <TabsContent value="restaurant" className="space-y-4">
@@ -162,7 +160,7 @@ const LoginPage: React.FC = () => {
                 </Button>
               </form>
               
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Button 
                   variant="outline" 
                   className="w-full" 
@@ -179,8 +177,55 @@ const LoginPage: React.FC = () => {
                 >
                   Try Staff Demo
                 </Button>
-              </div>
+              </div> */}
             </TabsContent>
+            <TabsContent value="driver" className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="driver-email">Email</Label>
+                  <Input
+                    id="driver-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="driver-password">Password</Label>
+                  <Input
+                    id="driver-password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                {error && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                    {error}
+                  </div>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </form>
+
+              {/* <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleDemoLogin('driver@demo.com', 'demo123')}
+                  disabled={isLoading}
+                >
+                  Try Driver Demo
+                </Button>
+              </div> */}
+          </TabsContent>
+
+            
           </Tabs>
           
           <div className="mt-6 text-center">
@@ -192,7 +237,7 @@ const LoginPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="mt-4 p-4 bg-muted rounded-lg">
+          {/* <div className="mt-4 p-4 bg-muted rounded-lg">
             <p className="text-sm">Demo Credentials:</p>
             <p className="text-xs text-muted-foreground">
               Customer: customer@demo.com<br/>
@@ -200,7 +245,7 @@ const LoginPage: React.FC = () => {
               Staff: staff@demo.com<br/>
               Password: demo123
             </p>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>
