@@ -20,7 +20,7 @@ export interface LoginResponse {
 export interface TokenPayload {
   sub: string;
   uid: number;
-  role: 'USER' | 'OWNER' | 'DRIVER' | 'STAFF'; // ✅ added DRIVER
+  role: 'USER' | 'OWNER' | 'DRIVER'; // ✅ added DRIVER
   exp: number;
 }
 
@@ -28,7 +28,7 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  role: 'USER' | 'OWNER' | 'DRIVER' | 'STAFF'; // ✅ added DRIVER
+  role: 'USER' | 'OWNER' | 'DRIVER'; // ✅ added DRIVER
   is_active: boolean;
   height_cm?: number;
   weight_kg?: number;
