@@ -1,8 +1,8 @@
 def auth_header(client, email, password, name="Bob"):
     # ensure user exists
-    client.post("/users/register", json={"email": email, "name": name, "password": password})
+    client.post("/users/register", json={"email": email, "name": name, "password": password, "role": "USER"})
     # login
-    r = client.post("/auth/login", json={"email": email, "password": password})
+    r = client.post("/auth/login", json={"email": email, "password": password, "role": "USER"})
     token = r.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 

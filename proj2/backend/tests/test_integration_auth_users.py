@@ -6,7 +6,7 @@ def test_root_ok(client):
 
 def test_register_and_login_and_me(client):
     # register
-    payload = {"email": "alice@example.com", "name": "Alice", "password": "secret123"}
+    payload = {"email": "alice@example.com", "name": "Alice", "password": "secret123", "role": "USER"}
     r = client.post("/users/register", json=payload)
     assert r.status_code == 200, r.text
     assert r.json()["email"] == payload["email"]
