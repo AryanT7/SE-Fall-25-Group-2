@@ -53,7 +53,7 @@ export default function App() {
             <Route path="/restaurants" element={<RestaurantList />} />
             <Route path="/menu/:restaurantId" element={<MenuPage />} />
             {/* <Route path="/cart" element={<CartPage />} /> */}
-            {/* <Route path="/orders" element={<OrderHistory />} /> */}
+            <Route path="/orders" element={<OrderHistory user={user} />} />
             <Route path="/orders/:orderId/track" element={<OrderTracking />} />
             {/* <Route path="/calories" element={<CalorieSettings />} />
             <Route path="/ai" element={<AIFoodRecommendations />} />

@@ -19,8 +19,17 @@ USERS = [
     for i in range(10)
 ]
 
+# Sample coordinates around a city center (e.g., Raleigh, NC)
+BASE_LAT = 35.7796
+BASE_LNG = -78.6382
+
 CAFES = [
-    {"name": f"Cafe {i+1}", "address": f"{100 + i} Main St"}
+    {
+        "name": f"Cafe {i+1}", 
+        "address": f"{100 + i} Main St",
+        "lat": BASE_LAT + (random.random() - 0.5) * 0.05,  # ~5km spread
+        "lng": BASE_LNG + (random.random() - 0.5) * 0.05
+    }
     for i in range(10)
 ]
 
@@ -162,7 +171,9 @@ def seed_cafes(admin_token):
         params = {
             "name": cafe_data["name"],
             "address": cafe_data["address"],
-            "owner_id": None
+            "owner_id": None,
+            "lat": cafe_data["lat"],
+            "lng": cafe_data["lng"]
         }
         # Build query string
         query_string = "&".join([f"{k}={v}" for k, v in params.items() if v is not None])

@@ -11,7 +11,7 @@ router = APIRouter(prefix="/cafes", tags=["cafes"])
 
 @router.post("/", response_model=CafeOut)
 def create_cafe(data: CafeCreate, db: Session = Depends(get_db), owner: User = Depends(require_roles(Role.OWNER, Role.ADMIN))):
-    cafe = Cafe(name=data.name, address=data.address, owner_id=owner.id if owner.role == Role.OWNER else None)
+    cafe = Cafe(name=data.name, address=data.address, lat=data.lat, lng=data.lng, owner_id=owner.id if owner.role == Role.OWNER else None)
     db.add(cafe)
     db.commit()
     db.refresh(cafe)

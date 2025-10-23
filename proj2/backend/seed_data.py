@@ -35,12 +35,18 @@ def seed_users(db, num_users: int = 10):
 
 def seed_cafes(db, owner: models.User | None, num_cafes: int = 10):
     cafes = []
+    # Sample coordinates around a city center (e.g., Raleigh, NC)
+    BASE_LAT = 35.7796
+    BASE_LNG = -78.6382
+    
     for i in range(num_cafes):
         cafe = models.Cafe(
             name=f"Cafe {i+1}",
             address=f"{100 + i} Main St",
             active=True,
             owner_id=owner.id if owner else None,
+            lat=BASE_LAT + (random.random() - 0.5) * 0.05,  # ~5km spread
+            lng=BASE_LNG + (random.random() - 0.5) * 0.05
         )
         db.add(cafe)
         cafes.append(cafe)
