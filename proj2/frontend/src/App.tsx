@@ -25,6 +25,7 @@ import Analytics from './components/restaurant/Analytics';
 import Header from './components/layout/Header';
 import Navigation from './components/layout/Navigation';
 import ApplicationPoster from './components/poster/ApplicationPoster';
+import DriverDashboard from './components/driver/DriverDashboard';
 
 export default function App() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -78,7 +79,7 @@ export default function App() {
         {/* DRIVER ROUTES */}
         {isAuthenticated && user?.role === 'DRIVER' && (
           <>
-            <Route path="/driver/dashboard" element={<div>Driver Dashboard</div>} />
+            <Route path="/driver/dashboard" element={<DriverDashboard user={user} />} />
             {/* Add other driver-specific routes here if needed */}
           </>
         )}

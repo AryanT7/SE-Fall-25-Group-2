@@ -7,6 +7,7 @@ Creates 10 users, 10 cafes, and 100 orders (10 per user).
 import requests
 import json
 import random
+import time
 from datetime import datetime, timedelta
 
 # Configuration
@@ -15,7 +16,7 @@ API_BASE = f"{BASE_URL}/api/v1" if "/api/v1" in BASE_URL else BASE_URL
 
 # Test data
 USERS = [
-    {"email": f"user{i+1}@example.com", "name": f"User {i+1}", "password": "Password123!", "role": "User"}
+    {"email": f"user{i+1}@example.com", "name": f"User {i+1}", "password": "Password123!", "role": "USER"}
     for i in range(10)
 ]
 
@@ -29,6 +30,16 @@ CAFES = [
         "address": f"{100 + i} Main St",
         "lat": BASE_LAT + (random.random() - 0.5) * 0.05,  # ~5km spread
         "lng": BASE_LNG + (random.random() - 0.5) * 0.05
+    }
+    for i in range(10)
+]
+
+# Driver test data
+DRIVERS = [
+    {
+        "email": f"driver{i+1}@deliveryapp.com",
+        "name": f"Driver {i+1}",
+        "password": "Password123!",
     }
     for i in range(10)
 ]
@@ -58,11 +69,15 @@ def make_request(method, endpoint, data=None, headers=None):
 
 def register_user(user_data):
     """Register a new user."""
-    return make_request("POST", "/users/register", user_data)
+    # Ensure role is provided and normalized to API expectations
+    payload = dict(user_data)
+    payload.setdefault('role', 'USER')
+    payload['role'] = str(payload['role']).upper()
+    return make_request("POST", "/users/register", payload)
 
-def login_user(email, password):
-    """Login user and return token."""
-    login_data = {"email": email, "password": password}
+def login_user(email, password, role: str = 'USER'):
+    """Login user and return token. Include role string required by /auth/login."""
+    login_data = {"email": email, "password": password, "role": str(role).upper()}
     response = make_request("POST", "/auth/login", login_data)
     if response and "access_token" in response:
         return response["access_token"]
@@ -108,6 +123,18 @@ def get_current_user(token):
         response = make_request("GET", endpoint, headers=headers)
         if response:
             return response
+    return None
+
+def register_driver(driver_data):
+    """Register a new driver via drivers register endpoint."""
+    return make_request("POST", "/drivers/register", driver_data)
+
+def login_driver(email, password):
+    """Login driver and return token (drivers login endpoint)."""
+    login_data = {"email": email, "password": password}
+    response = make_request("POST", "/drivers/login", login_data)
+    if response and "access_token" in response:
+        return response["access_token"]
     return None
 
 def seed_admin_user():
@@ -159,6 +186,30 @@ def seed_users():
             else:
                 print(f"✗ Failed to create or login user: {user_data['email']}")
     return users
+
+def seed_drivers():
+    """Register all drivers or login if they already exist."""
+    print("Creating/checking drivers...")
+    drivers = []
+    for driver_data in DRIVERS:
+        response = register_driver(driver_data)
+        if response:
+            drivers.append(response)
+            print(f"✓ Created driver: {driver_data['email']}")
+        else:
+            print(f"Driver {driver_data['email']} might already exist, trying to login...")
+            token = login_driver(driver_data['email'], driver_data['password'])
+            if token:
+                driver_info = get_current_user(token)
+                if driver_info:
+                    drivers.append(driver_info)
+                    print(f"✓ Logged in existing driver: {driver_data['email']}")
+                else:
+                    drivers.append({"email": driver_data['email'], "name": driver_data['name']})
+                    print(f"✓ Logged in existing driver (fallback): {driver_data['email']}")
+            else:
+                print(f"✗ Failed to create or login driver: {driver_data['email']}")
+    return drivers
 
 def seed_cafes(admin_token):
     """Create cafes using admin token."""
@@ -291,6 +342,11 @@ def main():
     if not users:
         print("❌ No users created, aborting")
         return
+
+    # Step 1b: Create drivers
+    drivers = seed_drivers()
+    if not drivers:
+        print("⚠️ No drivers created")
     
     # Step 2: Login as first user and promote to OWNER if needed
     owner_email = users[0]["email"]
@@ -307,13 +363,17 @@ def main():
     else:
         print("⚠️ Admin user might already exist")
     
-    # Login as admin
-    admin_token = login_user("admin@example.com", "admin123")
+    # Login as admin with retries, fall back to owner token if admin unavailable
+    admin_token = None
+    for attempt in range(3):
+        admin_token = login_user("admin@example.com", "admin123", role='ADMIN')
+        if admin_token:
+            print("✓ Logged in as admin")
+            break
+        print(f"⚠️ Admin login attempt {attempt+1} failed")
+        time.sleep(1)
     if not admin_token:
-        print("❌ Failed to login as admin, aborting")
-        return
-    else:
-        print("✓ Logged in as admin")
+        print("⚠️ Failed to login as admin after retries — will attempt owner fallback for cafe creation")
     
     # Try to create cafes with admin token, fallback to regular user
     cafes = []
@@ -358,15 +418,27 @@ def main():
     print(f"✓ Cafes created: {len(cafes)}")
     print(f"✓ Items created: {len(items)}")
     print(f"✓ Orders created: {len(orders)}")
+    print(f"✓ Drivers created: {len(drivers)}")
     
     # Test login for a few users
     print("\n🔐 Testing user logins:")
     for i, user in enumerate(users[:3]):
-        token = login_user(user["email"], "Password123!")
+        token = login_user(user["email"], "Password123!", "USER")
         if token:
             print(f"✓ {user['email']} - Login successful")
         else:
             print(f"✗ {user['email']} - Login failed")
+
+    # Test login for a few drivers
+    print("\n🔐 Testing driver logins:")
+    for i, driver in enumerate(drivers[:3]):
+        # driver may be a dict with email
+        email = driver.get('email') if isinstance(driver, dict) else driver['email']
+        token = login_driver(email, "Password123!")
+        if token:
+            print(f"✓ {email} - Driver login successful")
+        else:
+            print(f"✗ {email} - Driver login failed")
 
 if __name__ == "__main__":
     main()
