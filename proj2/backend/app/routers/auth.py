@@ -20,7 +20,8 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         Role.USER: "USER",
         Role.OWNER: "OWNER",
         Role.STAFF: "STAFF",
-        Role.DRIVER: "DRIVER"
+        Role.DRIVER: "DRIVER",
+        Role.ADMIN: "ADMIN"
     }
     if roleMap[user.role] != data.role:
         raise HTTPException(status_code=401, detail="Invalid role for user")

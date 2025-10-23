@@ -11,6 +11,10 @@ router = APIRouter(prefix="/cafes", tags=["cafes"])
 
 @router.post("/", response_model=CafeOut)
 def create_cafe(data: CafeCreate, db: Session = Depends(get_db), owner: User = Depends(require_roles(Role.OWNER, Role.ADMIN))):
+    """Create a cafe. Only OWNER or ADMIN may call this endpoint.
+
+    For seeding, prefer `/admin/cafes` which accepts query params and is intended for administrative creation.
+    """
     cafe = Cafe(name=data.name, address=data.address, lat=data.lat, lng=data.lng, owner_id=owner.id if owner.role == Role.OWNER else None)
     db.add(cafe)
     db.commit()
