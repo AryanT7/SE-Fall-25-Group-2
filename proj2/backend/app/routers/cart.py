@@ -2,11 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from collections import defaultdict
 from ..database import get_db
-from ..schemas import CartAddItem, CartSummary
+from ..schemas import CartAddItem, CartSummary, CartOut
 from ..models import Cart, CartItem, Item, User
 from ..deps import get_current_user
 
 router = APIRouter(prefix="/cart", tags=["cart"])
+
+
+@router.get("/", response_model=CartOut)
+def get_cart(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    cart = get_or_create_cart(db, current.id)
+    return CartOut(id=cart.id, user_id=cart.user_id, created_at=cart.created_at)
+
 
 def get_or_create_cart(db: Session, user_id: int) -> Cart:
     cart = db.query(Cart).filter(Cart.user_id == user_id).first()
