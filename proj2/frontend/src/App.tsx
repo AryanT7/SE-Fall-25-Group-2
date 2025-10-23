@@ -30,19 +30,6 @@ export default function App() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  // // redirect users after login
-  // useEffect(() => {
-  //   if (isAuthenticated && user) {
-  //     const roleRedirects: Record<string, string> = {
-  //       USER: '/dashboard',
-  //       OWNER: '/restaurant/dashboard',
-  //       STAFF: '/restaurant/dashboard',
-  //       ADMIN: '/admin/dashboard',
-  //     };
-  //     navigate(roleRedirects[user.role] || '/dashboard', { replace: true });
-  //   }
-  // }, [isAuthenticated, user, navigate]);
-
   return (
     <main className="container mx-auto px-4 py-6">
     <div className="min-h-screen bg-background">
@@ -53,7 +40,7 @@ export default function App() {
       {isAuthenticated && user?.role === 'USER' && <Navigation user={user} />}
 
       <Toaster position="top-center" />
-
+      
       <Routes>
         {/* PUBLIC ROUTES */}
         <Route path="/login" element={<LoginPage />} />
@@ -89,7 +76,7 @@ export default function App() {
         )}
 
         {/* ADMIN ROUTES */}
-        {isAuthenticated && user?.role === 'ADMIN' && (
+        {isAuthenticated && user?.role === 'OWNER' && (
           <>
             <Route path="/admin/dashboard" element={<div>Admin Dashboard</div>} />
           </>
@@ -104,7 +91,7 @@ export default function App() {
                 to={
                   user?.role === 'USER'
                     ? '/dashboard'
-                    : user?.role === 'ADMIN'
+                    : user?.role === 'OWNER'
                     ? '/admin/dashboard'
                     : '/restaurant/dashboard'
                 }

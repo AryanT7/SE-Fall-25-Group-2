@@ -8,7 +8,7 @@ import { Home, Store, ShoppingCart, Clock, Target, Sparkles, Brain } from 'lucid
 interface NavigationProps {
   user: {
     name: string;
-    role: 'USER' | 'OWNER' | 'STAFF' | 'ADMIN';
+    role: 'USER' | 'OWNER' | 'DRIVER';
   };
 }
 

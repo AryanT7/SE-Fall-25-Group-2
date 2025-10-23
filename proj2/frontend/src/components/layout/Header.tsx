@@ -11,7 +11,7 @@ interface HeaderProps {
   user: {
     name: string;
     email: string;
-    role: 'USER' | 'OWNER' | 'STAFF' | 'ADMIN';
+    role: 'USER' | 'OWNER' | 'DRIVER';
   };
   logout: () => void;
 }
@@ -95,7 +95,7 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
                   </DropdownMenuItem>
                 </>
               )}
-              {(user.role === 'OWNER' || user.role === 'STAFF') && (
+              {(user.role === 'OWNER') && (
                 <DropdownMenuItem asChild>
                   <Link to="/restaurant/dashboard" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />

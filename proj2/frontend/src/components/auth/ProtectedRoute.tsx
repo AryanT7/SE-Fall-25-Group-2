@@ -4,7 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'USER' | 'OWNER' | 'STAFF' | 'ADMIN';
+  requiredRole?: 'USER' | 'OWNER' | 'DRIVER';
   fallbackPath?: string;
 }
 
@@ -57,17 +57,17 @@ export const OwnerRoute: React.FC<{ children: React.ReactNode }> = ({ children }
 );
 
 export const StaffRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute requiredRole="STAFF">{children}</ProtectedRoute>
+  <ProtectedRoute requiredRole="OWNER">{children}</ProtectedRoute>
 );
 
 export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute requiredRole="ADMIN">{children}</ProtectedRoute>
+  <ProtectedRoute requiredRole="OWNER">{children}</ProtectedRoute>
 );
 
 // Component for role-based conditional rendering
 interface RoleGuardProps {
   children: React.ReactNode;
-  allowedRoles: ('USER' | 'OWNER' | 'STAFF' | 'ADMIN')[];
+  allowedRoles: ('USER' | 'OWNER' | 'DRIVER')[];
   fallback?: React.ReactNode;
 }
 
