@@ -75,6 +75,16 @@ export default function App() {
           </>
         )}
 
+        {/* DRIVER ROUTES */}
+        {isAuthenticated && user?.role === 'DRIVER' && (
+          <>
+            <Route path="/driver/dashboard" element={<div>Driver Dashboard</div>} />
+            {/* Add other driver-specific routes here if needed */}
+          </>
+        )}
+        
+
+
         {/* ADMIN ROUTES */}
         {isAuthenticated && user?.role === 'OWNER' && (
           <>
@@ -86,22 +96,25 @@ export default function App() {
         <Route
           path="*"
           element={
-            isAuthenticated && user? (
+            isAuthenticated && user ? (
               <Navigate
                 to={
-                  user?.role === 'USER'
+                  user.role === 'USER'
                     ? '/dashboard'
-                    : user?.role === 'OWNER'
-                    ? '/admin/dashboard'
-                    : '/restaurant/dashboard'
+                    : user.role === 'OWNER'
+                    ? '/restaurant/dashboard'
+                    : user.role === 'DRIVER'
+                    ? '/driver/dashboard'
+                    : '/login' // fallback if role is somehow unknown
                 }
                 replace
               />
             ) : (
-              <LoginPage/>
+              <LoginPage />
             )
           }
         />
+
       </Routes>
       
     </div>

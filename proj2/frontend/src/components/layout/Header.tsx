@@ -6,7 +6,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { User, LogOut, Settings, ShoppingCart, FileImage } from 'lucide-react';
 // import { useAuth } from '../../hooks/useAuth';
 
-
 interface HeaderProps {
   user: {
     name: string;
@@ -100,6 +99,14 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
                   <Link to="/restaurant/dashboard" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
                     <span>Restaurant Dashboard</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {user.role === 'DRIVER' && (
+                <DropdownMenuItem asChild>
+                  <Link to="/driver/dashboard" className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Driver Dashboard</span>
                   </Link>
                 </DropdownMenuItem>
               )}

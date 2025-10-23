@@ -36,8 +36,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const roleRedirects: Record<string, string> = {
       USER: '/dashboard',
       OWNER: '/restaurant/dashboard',
-      STAFF: '/restaurant/dashboard',
-      ADMIN: '/admin/dashboard',
+      DRIVER: '/driver/dashboard',
+      // ADMIN: '/admin/dashboard',
     };
     
     const redirectPath = roleRedirects[user?.role || 'USER'] || '/dashboard';

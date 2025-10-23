@@ -9,7 +9,9 @@ export interface ApiResponse<T = any> {
 export interface LoginRequest {
   email: string;
   password: string;
+  role?: 'USER' | 'OWNER' | 'DRIVER' | 'ADMIN';
 }
+
 
 export interface LoginResponse {
   access_token: string;
