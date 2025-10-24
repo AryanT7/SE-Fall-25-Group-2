@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS carts CASCADE;
 DROP TABLE IF EXISTS items CASCADE;
 DROP TABLE IF EXISTS staff_assignments CASCADE;
 DROP TABLE IF EXISTS calorie_goals CASCADE;
+DROP TABLE IF EXISTS driver_locations CASCADE;
 DROP TABLE IF EXISTS cafes CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
@@ -18,11 +19,13 @@ DROP TABLE IF EXISTS users CASCADE;
 DROP TYPE IF EXISTS paymentstatus CASCADE;
 DROP TYPE IF EXISTS orderstatus CASCADE;
 DROP TYPE IF EXISTS role CASCADE;
+DROP TYPE IF EXISTS driverstatus CASCADE;
 
 -- Create enum types
-CREATE TYPE role AS ENUM ('USER', 'OWNER', 'STAFF', 'ADMIN');
-CREATE TYPE orderstatus AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED', 'READY', 'PICKED_UP', 'CANCELLED', 'REFUNDED');
+CREATE TYPE role AS ENUM ('USER', 'OWNER', 'STAFF', 'ADMIN', 'DRIVER');
+CREATE TYPE orderstatus AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED', 'READY', 'PICKED_UP', 'CANCELLED', 'REFUNDED', 'DELIVERED');
 CREATE TYPE paymentstatus AS ENUM ('CREATED', 'PAID', 'FAILED', 'REFUNDED');
+CREATE TYPE driverstatus AS ENUM ('IDLE', 'OCCUPIED');
 
 -- Create tables
 
@@ -49,11 +52,27 @@ CREATE TABLE cafes (
     name VARCHAR NOT NULL,
     address VARCHAR,
     active BOOLEAN DEFAULT TRUE,
-    owner_id INTEGER REFERENCES users(id)
+    owner_id INTEGER REFERENCES users(id),
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL
 );
 
 -- Create index on name
 CREATE INDEX ix_cafes_name ON cafes (name);
+
+-- Driver locations table
+CREATE TABLE driver_locations (
+    id SERIAL PRIMARY KEY,
+    driver_id INTEGER REFERENCES users(id),
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status driverstatus DEFAULT 'IDLE' NOT NULL
+);
+
+-- Create indexes
+CREATE INDEX ix_driver_locations_driver_id ON driver_locations (driver_id);
+CREATE INDEX ix_driver_locations_status ON driver_locations (status);
 
 -- Staff assignments table
 CREATE TABLE staff_assignments (
@@ -111,6 +130,7 @@ CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     cafe_id INTEGER REFERENCES cafes(id),
+    driver_id INTEGER REFERENCES users(id),
     status orderstatus DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     can_cancel_until TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '15 minutes'),
@@ -122,6 +142,7 @@ CREATE TABLE orders (
 -- Create indexes
 CREATE INDEX ix_orders_user_id ON orders (user_id);
 CREATE INDEX ix_orders_cafe_id ON orders (cafe_id);
+CREATE INDEX ix_orders_driver_id ON orders (driver_id);
 
 -- Order items table
 CREATE TABLE order_items (
@@ -177,6 +198,7 @@ CREATE INDEX ix_refund_requests_order_id ON refund_requests (order_id);
 COMMENT ON TABLE users IS 'User accounts and profiles';
 COMMENT ON TABLE cafes IS 'Restaurant/cafe information';
 COMMENT ON TABLE staff_assignments IS 'Staff assignments to cafes';
+COMMENT ON TABLE driver_locations IS 'Driver location tracking and status';
 COMMENT ON TABLE items IS 'Menu items';
 COMMENT ON TABLE carts IS 'Shopping carts';
 COMMENT ON TABLE cart_items IS 'Items in carts';
