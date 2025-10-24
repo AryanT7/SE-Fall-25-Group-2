@@ -14,6 +14,9 @@ from .routers import admin as admin_router
 from .routers import analytics as analytics_router
 from .routers import drivers as drivers_router
 from .routers import ocr as ocr_router
+from app.routers import reviews
+
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -31,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+app.include_router(reviews.router)
 app.include_router(auth_router.router)
 app.include_router(users_router.router)
 app.include_router(cafes_router.router)

@@ -157,3 +157,22 @@ class CartOut(BaseModel):
     created_at: datetime
     class Config:
         from_attributes = True
+
+# CAFE REVIEW SUMMARIZER
+class ReviewBase(BaseModel):
+    rating: Optional[float] = None
+    text: str
+
+class ReviewCreate(ReviewBase):
+    cafe_id: int
+    user_id: int
+
+class ReviewOut(ReviewBase):
+    id: int
+    cafe_id: int
+    user_id: int
+    created_at: datetime  # ✅ timezone-aware datetime expected
+
+    class Config:
+        from_attributes = True
+

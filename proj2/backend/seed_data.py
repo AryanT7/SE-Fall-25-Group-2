@@ -129,18 +129,65 @@ def seed_orders(db, users: list[models.User], cafes: list[models.Cafe], items: l
         db.commit()
 
 
+def seed_reviews(db, cafe: models.Cafe, num_reviews: int = 10, user_ids: list[int] | None = None):
+    """
+    Seed random reviews for a given cafe.
+
+    Args:
+        db: SQLAlchemy session
+        cafe: Cafe object to attach reviews to
+        num_reviews: Number of reviews to generate
+        user_ids: Optional list of user IDs to assign as authors
+    """
+    sample_texts = [
+        "Great coffee and cozy ambiance!",
+        "Loved the pastries and friendly staff!",
+        "Good coffee but a bit noisy.",
+        "Excellent service, will come again.",
+        "Food quality was average.",
+        "Amazing desserts and drinks!",
+        "A bit overpriced but worth it.",
+        "Staff were not very attentive.",
+        "Perfect spot for a quick coffee.",
+        "Loved the interior and vibe!"
+    ]
+
+    reviews = []
+    for i in range(num_reviews):
+        review = models.Review(
+            cafe_id=cafe.id,
+            user_id=random.choice(user_ids) if user_ids else None,
+            rating=round(random.uniform(3.0, 5.0), 1),
+            text=random.choice(sample_texts),
+        )
+        db.add(review)
+        reviews.append(review)
+
+    db.commit()
+    for r in reviews:
+        db.refresh(r)
+    return reviews
+
+
+
 def main():
     ensure_schema()
     db = SessionLocal()
     try:
-        # Choose first user as owner for cafes after creation
+        # Seed users, cafes, items, orders
         users = seed_users(db, 10)
         cafes = seed_cafes(db, owner=users[0] if users else None, num_cafes=10)
         items = seed_items(db, cafes, items_per_cafe=8)
         seed_orders(db, users, cafes, items, orders_per_user=10)
-        print("Seed completed: 10 users, 10 cafes, ~80 items, 100 orders.")
+
+        # ✅ Seed reviews for each cafe
+        for cafe in cafes:
+            seed_reviews(db, cafe, num_reviews=5, user_ids=[u.id for u in users])
+
+        print("Seed completed: 10 users, 10 cafes, ~80 items, 100 orders, 50 reviews (~5 per cafe).")
     finally:
         db.close()
+
 
 
 if __name__ == "__main__":
