@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Float, DateTime, Enum, Text, Date, UniqueConstraint
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from datetime import datetime, timedelta
 from .database import Base
@@ -37,6 +38,34 @@ class Cafe(Base):
     lng = Column(Float, nullable=False)
     owner = relationship("User", back_populates="owned_cafes")
     items = relationship("Item", back_populates="cafe")
+    reviews = relationship("Review", back_populates="cafe", cascade="all, delete-orphan")
+    review_summary = relationship("ReviewSummary", back_populates="cafe", uselist=False)
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    cafe_id = Column(Integer, ForeignKey("cafes.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    rating = Column(Float, nullable=True)
+    text = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    cafe = relationship("Cafe", back_populates="reviews")
+    user = relationship("User")
+
+class ReviewSummary(Base):
+    __tablename__ = "review_summaries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    cafe_id = Column(Integer, ForeignKey("cafes.id"), unique=True, nullable=False)
+    summary_text = Column(Text, nullable=False)
+    review_count = Column(Integer, default=0)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    cafe = relationship("Cafe", back_populates="review_summary")
+
 
 class StaffAssignment(Base):
     __tablename__ = "staff_assignments"
