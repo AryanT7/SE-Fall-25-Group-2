@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Dict
 from datetime import datetime, date
-from .models import Role, OrderStatus, PaymentStatus
+from .models import Role, OrderStatus, PaymentStatus, DriverStatus
 
 class Token(BaseModel):
     access_token: str
@@ -145,6 +145,28 @@ class DriverLocationOut(BaseModel):
     lat: float
     lng: float
     timestamp: datetime
+    status: DriverStatus
+
+class DriverStatusUpdate(BaseModel):
+    status: DriverStatus
+
+class DriverLocationWithStatus(BaseModel):
+    lat: float
+    lng: float
+    status: DriverStatus
+    timestamp: Optional[datetime] = None
+
+class AssignDriverRequest(BaseModel):
+    driver_id: Optional[int] = None  # If None, auto-assign nearest driver
+
+class IdleDriverInfo(BaseModel):
+    driver_id: int
+    driver_name: str
+    driver_email: str
+    lat: float
+    lng: float
+    status: str
+    last_update: datetime
 
 class DriverLoginRequest(BaseModel):
     email: EmailStr
