@@ -35,8 +35,10 @@ export interface User {
   height_cm?: number;
   weight_kg?: number;
   sex?: string;
-  dob?: string;
+  age: number;
+  activity?: string;
   daily_calorie_goal?: number;
+  //goalType?: 'daily' | 'weekly' | 'monthly';
 }
 
 export interface DashboardStats {
@@ -200,6 +202,10 @@ export interface GoalRecommendationRequest {
   sex?: string;
   age_years?: number;
   activity?: string;
+}
+
+export interface GoalRecommendationResponse {
+  daily_calorie_goal: number;
 }
 
 // API Error Types

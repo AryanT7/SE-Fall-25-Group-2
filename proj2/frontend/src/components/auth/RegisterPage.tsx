@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
@@ -9,24 +10,23 @@ import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
-
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     // Common fields
     email: '',
     password: '',
     confirmPassword: '',
-  
     // USER fields
     name: '',
     height: '',
     weight: '',
-  
+    age: '',
+    gender: '',
+  activityLevel: '',
     // OWNER fields
     restaurantName: '',
     cuisine: '',
     address: '',
-  
     // DRIVER fields
     driverName: '',
     license: '',
@@ -34,13 +34,12 @@ const RegisterPage: React.FC = () => {
   });
   
   
-  const { register, isLoading, error, clearError } = useAuth();
+  const { register, login, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
-
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
+  
   const handleRegister = async (
     e: React.FormEvent,
     userType: 'USER' | 'OWNER' | 'DRIVER'
@@ -70,7 +69,6 @@ const RegisterPage: React.FC = () => {
     //   password: formData.password,
     //   role: userType,
     // });
-
     const success = await register({
       email: formData.email,
       name:
@@ -81,9 +79,7 @@ const RegisterPage: React.FC = () => {
           : userType === 'DRIVER'
           ? formData.driverName
           : '', // ✅ explicitly handle unexpected cases
-    
       password: formData.password,
-    
       role:
         userType === 'USER'
           ? 'USER'
@@ -92,15 +88,36 @@ const RegisterPage: React.FC = () => {
           : userType === 'DRIVER'
           ? 'DRIVER'
           : 'USER', // ✅ default safe fallback
-    
       ...(userType === 'USER' && {
         height_cm: Number(formData.height) || null,
         weight_kg: Number(formData.weight) || null,
+        age: formData.age ? Number(formData.age) : null,
+        gender: formData.gender || null,
+        activityLevel: formData.activityLevel,
       }),
     });
     
     
   
+     console.log('Registration successful:', success);
+    if (success) {
+      // Auto-login, then navigate
+      try {
+        const loggedIn = await login({ email: formData.email, password: formData.password });
+        if (loggedIn) {
+          navigate(userType === 'OWNER' ? '/restaurant/dashboard' : '/dashboard', { replace: true });
+        } else {
+          navigate('/login', { replace: true });
+        }
+      } catch {
+        navigate('/login', { replace: true });
+      }
+    } else {
+      toast.error(error || 'Registration failed');
+    }
+  };
+
+  /**
     console.log('Registration successful:', success);
     if (success) {
       toast.success('Registration successful!');
@@ -109,8 +126,7 @@ const RegisterPage: React.FC = () => {
       toast.error(error || 'Registration failed');
     }
   };
-  
-
+  */
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -127,7 +143,6 @@ const RegisterPage: React.FC = () => {
           <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
           <TabsTrigger value="driver">Driver</TabsTrigger> 
         </TabsList>
-
             
             <TabsContent value="customer" className="space-y-4">
               <form onSubmit={(e) => handleRegister(e, 'USER')} className="space-y-4">
@@ -173,6 +188,47 @@ const RegisterPage: React.FC = () => {
                       onChange={(e) => handleInputChange('weight', e.target.value)}
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="age">Age</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      placeholder="18"
+                      value={formData.age}
+                      onChange={(e) => handleInputChange('age', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select onValueChange={(value:string) => handleInputChange('gender', value)} value={formData.gender}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">M</SelectItem>
+                        <SelectItem value="F">F</SelectItem>
+                        {/* <SelectItem value="other">Other</SelectItem> */}
+                        {/* <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem> */}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="activity">Activity Level</Label>
+                  <Select onValueChange={(value:string) => handleInputChange('activityLevel', value)} value={formData.activityLevel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select activity level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sedentary">sedentary</SelectItem>
+                      <SelectItem value="light">light</SelectItem>
+                      <SelectItem value="moderate">moderate</SelectItem>
+                      <SelectItem value="active">active</SelectItem>
+                      <SelectItem value="very_active">very active</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
@@ -222,7 +278,7 @@ const RegisterPage: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cuisine">Cuisine Type</Label>
-                  <Select onValueChange={(value) => handleInputChange('cuisine', value)}>
+                  <Select onValueChange={(value:string) => handleInputChange('cuisine', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select cuisine type" />
                     </SelectTrigger>
@@ -303,7 +359,6 @@ const RegisterPage: React.FC = () => {
                     required
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="email-driver">Email</Label>
                   <Input
@@ -315,7 +370,6 @@ const RegisterPage: React.FC = () => {
                     required
                   />
                 </div>
-
                 {/* Optional: license number or vehicle info */}
                 <div className="space-y-2">
                   <Label htmlFor="license">License Number</Label>
@@ -326,7 +380,6 @@ const RegisterPage: React.FC = () => {
                     onChange={(e) => handleInputChange('license', e.target.value)}
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="password-driver">Password</Label>
                   <Input
@@ -339,7 +392,6 @@ const RegisterPage: React.FC = () => {
                     minLength={6}
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword-driver">Confirm Password</Label>
                   <Input
@@ -351,19 +403,16 @@ const RegisterPage: React.FC = () => {
                     required
                   />
                 </div>
-
                 {error && (
                   <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                     {error}
                   </div>
                 )}
-
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Creating Account...' : 'Create Driver Account'}
                 </Button>
               </form>
             </TabsContent>
-
           </Tabs>
           
           <div className="mt-6 text-center">
@@ -379,5 +428,4 @@ const RegisterPage: React.FC = () => {
     </div>
   );
 };
-
 export default RegisterPage;

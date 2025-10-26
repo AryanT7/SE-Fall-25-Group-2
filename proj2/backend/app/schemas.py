@@ -23,11 +23,23 @@ class UserCreate(UserBase):
     name: str
     password: str
     role: str = "User"  # Default role is User
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    activity_level: Optional[str] = None
+    daily_calorie_goal: Optional[int] = None
 
 class UserOut(UserBase):
     id: int
     role: Role
     is_active: bool
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    activity_level: Optional[str] = None
+    daily_calorie_goal: Optional[int] = None
     class Config:
         from_attributes = True
 

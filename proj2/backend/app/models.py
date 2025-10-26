@@ -23,8 +23,9 @@ class User(Base):
     height_cm = Column(Float, nullable=True)
     weight_kg = Column(Float, nullable=True)
     sex = Column(String, nullable=True)  # "M"/"F"/"X"
-    dob = Column(Date, nullable=True)
-
+    # dob = Column(Date, nullable=True)
+    #age = Column(Integer, nullable=True)
+    #activity_level = Column(String, nullable=True)  # sedentary/light/moderate/active/very_active
     owned_cafes = relationship("Cafe", back_populates="owner")
 
 class Cafe(Base):

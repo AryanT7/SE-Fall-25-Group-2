@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from '../ui/separator';
 import { Badge } from '../ui/badge';
 import { Target, TrendingUp, Calculator, Info } from 'lucide-react';
-import { User } from '../../App';
+import { User } from '../../api/types';
+import { goalsApi } from '../../api/goals';
 import { toast } from 'sonner';
 
 interface CalorieSettingsProps {
@@ -16,14 +17,13 @@ interface CalorieSettingsProps {
 
 const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
   const [formData, setFormData] = useState({
-    height: user.height?.toString() || '',
-    weight: user.weight?.toString() || '',
-    age: '30',
-    gender: 'male',
-    activityLevel: 'moderate',
-    goalType: user.goalType || 'daily',
-    customGoal: user.calorieGoal?.toString() || ''
-  });
+  height: user.height_cm?.toString() || '',
+  weight: user.weight_kg?.toString() || '',
+  age: '30',
+  gender: 'F', // <-- or 'M' if you prefer; key is: use M/F going forward
+  activityLevel: 'moderate',
+  customGoal: user.daily_calorie_goal?.toString() || ''
+});
   
   const [recommendedCalories, setRecommendedCalories] = useState(0);
 
@@ -43,7 +43,7 @@ const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
 
     // Harris-Benedict Formula
     let bmr;
-    if (formData.gender === 'male') {
+    if (formData.gender === 'M') {
       bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
     } else {
       bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
@@ -67,7 +67,7 @@ const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const height = parseInt(formData.height);
     const weight = parseInt(formData.weight);
     const goal = parseInt(formData.customGoal) || recommendedCalories;
@@ -77,14 +77,39 @@ const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
       return;
     }
 
+    // Request backend recommendation (fallback to local calc if needed)
+    const sex = formData.gender;
+    const ageYears = parseInt(formData.age) || undefined;
+    const activity = formData.activityLevel;
+
+    let dailyRecommended = recommendedCalories;
+    try {
+      if (height && weight && sex && ageYears) {
+        const res = await goalsApi.getRecommendation({
+          height_cm: height,
+          weight_kg: weight,
+          sex,
+          age_years: ageYears,
+          activity,
+        });
+        if (res.data?.daily_calorie_goal) {
+          dailyRecommended = Math.round(res.data.daily_calorie_goal);
+        }
+      }
+    } catch {
+      // ignore errors, keep local recommendation
+    }
+
     // Update user data (in real app, this would be an API call)
     const updatedUser = {
       ...user,
       height,
       weight,
-      calorieGoal: goal,
-      goalType: formData.goalType as 'daily' | 'weekly' | 'monthly'
-    };
+      daily_calorie_goal: goal || dailyRecommended,
+      gender: formData.gender,
+      age: formData.age,
+      activityLevel: formData.activityLevel,
+    } as any;
 
     localStorage.setItem('user', JSON.stringify(updatedUser));
     toast.success('Settings saved successfully!');
@@ -174,13 +199,13 @@ const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
-                <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                <Select value={formData.gender} onValueChange={(value:string) => handleInputChange('gender', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="M">M</SelectItem>
+                    <SelectItem value="F">F</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -188,7 +213,7 @@ const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
 
             <div className="space-y-2">
               <Label htmlFor="activity">Activity Level</Label>
-              <Select value={formData.activityLevel} onValueChange={(value) => handleInputChange('activityLevel', value)}>
+              <Select value={formData.activityLevel} onValueChange={(value:string) => handleInputChange('activityLevel', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -235,7 +260,7 @@ const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="goalType">Goal Period</Label>
-              <Select value={formData.goalType} onValueChange={(value) => handleInputChange('goalType', value)}>
+              {/* <Select value={formData.goalType} onValueChange={(value) => handleInputChange('goalType', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -244,7 +269,7 @@ const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
                   <SelectItem value="weekly">Weekly Goal</SelectItem>
                   <SelectItem value="monthly">Monthly Goal</SelectItem>
                 </SelectContent>
-              </Select>
+              </Select> */}
             </div>
 
             {recommendedCalories > 0 && (
@@ -296,14 +321,14 @@ const CalorieSettings: React.FC<CalorieSettingsProps> = ({ user }) => {
                 <div className="flex justify-between">
                   <span>Current Goal:</span>
                   <span className="font-medium">
-                    {user.calorieGoal || 'Not set'} {user.calorieGoal && 'calories'}
+                    {user.daily_calorie_goal || 'Not set'} {user.daily_calorie_goal && 'calories'}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Goal Type:</span>
-                  <span className="font-medium capitalize">
+                  {/* <span className="font-medium capitalize">
                     {user.goalType || 'Not set'}
-                  </span>
+                  </span> */}
                 </div>
               </div>
             </div>

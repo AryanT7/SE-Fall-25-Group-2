@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { CalorieGoal, GoalSetRequest, GoalRecommendationRequest } from './types';
+import { CalorieGoal, GoalSetRequest, GoalRecommendationRequest, GoalRecommendationResponse } from './types';
 
 // Goals API Functions
 export const goalsApi = {
@@ -27,8 +27,8 @@ export const goalsApi = {
   /**
    * Get calorie recommendation based on user profile
    */
-  async getRecommendation(profile: GoalRecommendationRequest): Promise<{ data?: { recommended_calories: number; breakdown?: any }; error?: string }> {
-    return apiClient.post('/goals/recommend', profile, false); // Public endpoint
+  async getRecommendation(profile: GoalRecommendationRequest): Promise<{ data?: GoalRecommendationResponse; error?: string }> {
+    return apiClient.post<GoalRecommendationResponse>('/goals/recommend', profile, false); // Public endpoint
   },
 
   /**
