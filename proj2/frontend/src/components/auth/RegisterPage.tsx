@@ -21,6 +21,9 @@ const RegisterPage: React.FC = () => {
     name: '',
     height: '',
     weight: '',
+    dob: '',
+    gender: '',
+    activityLevel: '',
   
     // OWNER fields
     restaurantName: '',
@@ -59,19 +62,8 @@ const RegisterPage: React.FC = () => {
     }
   
     console.log('calling register from tsx:');
-    // const success = await register({
-    //   email: formData.email,
-    //   name:
-    //     userType === 'USER'
-    //       ? formData.name
-    //       : userType === 'OWNER'
-    //       ? formData.restaurantName
-    //       : formData.driverName, // 👈 for driver tab
-    //   password: formData.password,
-    //   role: userType,
-    // });
-
-    const success = await register({
+    
+    const registeredUser = await register({
       email: formData.email,
       name:
         userType === 'USER'
@@ -80,10 +72,10 @@ const RegisterPage: React.FC = () => {
           ? formData.restaurantName
           : userType === 'DRIVER'
           ? formData.driverName
-          : '', // ✅ explicitly handle unexpected cases
-    
+          : '',
+  
       password: formData.password,
-    
+  
       role:
         userType === 'USER'
           ? 'USER'
@@ -91,20 +83,31 @@ const RegisterPage: React.FC = () => {
           ? 'OWNER'
           : userType === 'DRIVER'
           ? 'DRIVER'
-          : 'USER', // ✅ default safe fallback
-    
+          : 'USER',
+  
       ...(userType === 'USER' && {
         height_cm: Number(formData.height) || null,
         weight_kg: Number(formData.weight) || null,
+        // date_of_birth: formData.dob || null,
+        // gender: formData.gender || null,
+        // activity_level: formData.activityLevel || null,
+
       }),
     });
-    
-    
   
-    console.log('Registration successful:', success);
-    if (success) {
+    console.log('Registration successful:', !!registeredUser);
+    
+    if (registeredUser) {
       toast.success('Registration successful!');
-      navigate('/dashboard');
+      
+      // ✅ Role-based redirect after registration (same as login)
+      const redirects: Record<string, string> = {
+        USER: '/dashboard',
+        OWNER: '/restaurant/dashboard',
+        DRIVER: '/driver/dashboard',
+      };
+      
+      navigate(redirects[registeredUser.role] || '/dashboard', { replace: true });
     } else {
       toast.error(error || 'Registration failed');
     }
@@ -127,7 +130,6 @@ const RegisterPage: React.FC = () => {
           <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
           <TabsTrigger value="driver">Driver</TabsTrigger> 
         </TabsList>
-
             
             <TabsContent value="customer" className="space-y-4">
               <form onSubmit={(e) => handleRegister(e, 'USER')} className="space-y-4">
@@ -173,6 +175,46 @@ const RegisterPage: React.FC = () => {
                       onChange={(e) => handleInputChange('weight', e.target.value)}
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dob">Date of Birth</Label>
+                    <Input
+                      id="dob"
+                      type="date"
+                      value={formData.dob}
+                      onChange={(e) => handleInputChange('dob', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select onValueChange={(value:string) => handleInputChange('gender', value)} value={formData.gender}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">M</SelectItem>
+                        <SelectItem value="F">F</SelectItem>
+                        {/* <SelectItem value="other">Other</SelectItem> */}
+                        {/* <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem> */}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="activity">Activity Level</Label>
+                  <Select onValueChange={(value:string) => handleInputChange('activityLevel', value)} value={formData.activityLevel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select activity level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sedentary">sedentary</SelectItem>
+                      <SelectItem value="light">light</SelectItem>
+                      <SelectItem value="moderate">moderate</SelectItem>
+                      <SelectItem value="active">active</SelectItem>
+                      <SelectItem value="very_active">very active</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
@@ -222,7 +264,7 @@ const RegisterPage: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cuisine">Cuisine Type</Label>
-                  <Select onValueChange={(value) => handleInputChange('cuisine', value)}>
+                  <Select onValueChange={(value:string) => handleInputChange('cuisine', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select cuisine type" />
                     </SelectTrigger>
@@ -303,7 +345,6 @@ const RegisterPage: React.FC = () => {
                     required
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="email-driver">Email</Label>
                   <Input
@@ -315,7 +356,6 @@ const RegisterPage: React.FC = () => {
                     required
                   />
                 </div>
-
                 {/* Optional: license number or vehicle info */}
                 <div className="space-y-2">
                   <Label htmlFor="license">License Number</Label>
@@ -326,7 +366,6 @@ const RegisterPage: React.FC = () => {
                     onChange={(e) => handleInputChange('license', e.target.value)}
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="password-driver">Password</Label>
                   <Input
@@ -339,7 +378,6 @@ const RegisterPage: React.FC = () => {
                     minLength={6}
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword-driver">Confirm Password</Label>
                   <Input
@@ -351,19 +389,16 @@ const RegisterPage: React.FC = () => {
                     required
                   />
                 </div>
-
                 {error && (
                   <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                     {error}
                   </div>
                 )}
-
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Creating Account...' : 'Create Driver Account'}
                 </Button>
               </form>
             </TabsContent>
-
           </Tabs>
           
           <div className="mt-6 text-center">
@@ -379,5 +414,4 @@ const RegisterPage: React.FC = () => {
     </div>
   );
 };
-
 export default RegisterPage;

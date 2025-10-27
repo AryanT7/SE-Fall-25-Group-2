@@ -12,7 +12,7 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<User | null>;
-  register: (userData: RegisterRequest) => Promise<boolean>;
+  register: (userData: RegisterRequest) => Promise<User | null>;
   logout: () => void;
   clearError: () => void;
   refreshUser: () => Promise<void>;
@@ -121,17 +121,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (userData: RegisterRequest): Promise<boolean> => {
+  const register = useCallback(async (userData: RegisterRequest): Promise<User | null> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+  
     try {
       console.log('Registering user:', userData);
       const response = await apiClient.post<User>('/users/register', userData, false);
       console.log('Registration response:', response);
       
       if (response.data) {
-        const loggedInUser = await login({ email: userData.email, password: userData.password });
-        return !!loggedInUser;
+        // ✅ login() already calls /users/me and returns the User object
+        const loggedInUser = await login({ 
+          email: userData.email, 
+          password: userData.password,
+          role: userData.role
+        });
+        return loggedInUser; 
       }
       
       setState(prev => ({
@@ -139,14 +144,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         error: response.error || 'Registration failed',
       }));
-      return false;
+      return null;
     } catch (error) {
       setState(prev => ({
         ...prev,
         isLoading: false,
         error: error instanceof Error ? error.message : 'Registration failed',
       }));
-      return false;
+      return null;
     }
   }, [login]);
 
