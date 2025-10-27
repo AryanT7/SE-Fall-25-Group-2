@@ -37,6 +37,7 @@ export interface User {
   sex?: string;
   dob?: string;
   daily_calorie_goal?: number;
+  cafe?: Cafe;
 }
 
 export interface DashboardStats {
@@ -105,6 +106,29 @@ export interface MenuItem {
   veg_flag: boolean;
   kind?: string;
   active: boolean;
+}
+
+// REVIEWS
+export interface Review {
+  id: number;
+  cafe_id: number;
+  user_id: number;
+  rating: number;
+  text: string;
+  created_at: string; // ISO timestamp
+}
+
+export interface ReviewSummary {
+  summary: string;
+  review_count: number;
+  cached: boolean;
+}
+
+export interface CreateReviewInput {
+  cafe_id: number;
+  user_id: number;
+  rating: number;
+  text: string;
 }
 
 export interface ItemCreateRequest {

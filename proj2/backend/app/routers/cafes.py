@@ -9,6 +9,18 @@ from ..services.ocr import parse_menu_pdf
 
 router = APIRouter(prefix="/cafes", tags=["cafes"])
 
+@router.get("/mine", response_model=CafeOut)
+def get_my_cafe(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(Role.OWNER))
+):
+    """Return the cafe owned by the logged-in owner."""
+    cafe = db.query(Cafe).filter(Cafe.owner_id == user.id, Cafe.active == True).first()
+    if not cafe:
+        raise HTTPException(status_code=404, detail="You have no cafe registered yet.")
+    return cafe
+
+
 @router.post("/", response_model=CafeOut)
 def create_cafe(data: CafeCreate, db: Session = Depends(get_db), owner: User = Depends(require_roles(Role.OWNER, Role.ADMIN))):
     """Create a cafe. Only OWNER or ADMIN may call this endpoint.
