@@ -42,7 +42,8 @@ export const driversApi = {
   },
 
   async deliverOrder(driverId: number, orderId: number) {
-    return apiClient.post<AssignedOrderOut>(`/drivers/${driverId}/orders/${orderId}/deliver`);
+  // Use the dedicated deliver endpoint (no body) to match backend pickup flow
+  return apiClient.post<AssignedOrderOut>(`/drivers/${driverId}/orders/${orderId}/deliver`);
   },
 
   // Location

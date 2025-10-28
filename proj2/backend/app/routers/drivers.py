@@ -163,6 +163,40 @@ def deliver_order(driver_id: int, order_id: int, db: Session = Depends(get_db), 
     return order
 
 
+@router.post("/{driver_id}/orders/{order_id}/status", response_model=AssignedOrderOut)
+def driver_update_order_status(driver_id: int, order_id: int, new_status: OrderStatus, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Allow a driver to update the status of an order assigned to them.
+    This endpoint is driver-scoped and will validate assignment and valid transitions.
+    """
+    if current.role != Role.DRIVER and current.role != Role.ADMIN:
+        raise HTTPException(status_code=403, detail="Insufficient role")
+    if current.role == Role.DRIVER and current.id != driver_id:
+        raise HTTPException(status_code=403, detail="Can only update own orders")
+
+    order = db.query(Order).filter(Order.id == order_id, Order.driver_id == driver_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found or not assigned to this driver")
+
+    # Allowed transitions for driver actions
+    if new_status == OrderStatus.PICKED_UP:
+        if order.status not in [OrderStatus.READY, OrderStatus.ACCEPTED]:
+            raise HTTPException(status_code=400, detail="Order not ready for pickup")
+        order.status = OrderStatus.PICKED_UP
+    elif new_status == OrderStatus.DELIVERED:
+        if order.status != OrderStatus.PICKED_UP:
+            raise HTTPException(status_code=400, detail="Order must be picked up before delivery")
+        order.status = OrderStatus.DELIVERED
+        # set driver idle after delivery
+        update_driver_status_to_idle(driver_id, db)
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported status update from driver")
+
+    db.add(order)
+    db.commit()
+    db.refresh(order)
+    return order
+
+
 @router.websocket("/driver/{driver_id}/ws")
 async def driver_ws(websocket: WebSocket, driver_id: int):
     # Minimal illustrative websocket endpoint. In production, use auth and proper connection tracking.

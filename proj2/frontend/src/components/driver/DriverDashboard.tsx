@@ -14,6 +14,7 @@ interface DriverDashboardProps {
 
 const DriverDashboard: React.FC<DriverDashboardProps> = ({ user }) => {
   const [orders, setOrders] = useState<any[]>([]);
+  const [tab, setTab] = useState<'assigned' | 'previous'>('assigned');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +64,7 @@ const DriverDashboard: React.FC<DriverDashboardProps> = ({ user }) => {
   const handleDeliver = async (orderId: number) => {
     try {
       setLoading(true);
-      const res = await driversApi.deliverOrder(user.id, orderId);
+  const res = await driversApi.deliverOrder(user.id, orderId);
       if (res.error) setError(res.error);
       await fetchAssigned();
     } catch (e: any) {
@@ -72,6 +73,20 @@ const DriverDashboard: React.FC<DriverDashboardProps> = ({ user }) => {
       setLoading(false);
     }
   };
+
+  // derive lists for tabs
+  const normalizeStatus = (order: any) => (order?.status ?? '').toString().toUpperCase().replace(/\s+/g, '_').replace(/-/g, '_');
+  const isFinalStatus = (statusNorm: string) => statusNorm.includes('DELIVER') || statusNorm.includes('CANCEL') || statusNorm.includes('COMPLETE') || statusNorm.includes('DONE');
+  const activeOrders = orders.filter((o) => {
+    const s = normalizeStatus(o);
+    return !isFinalStatus(s);
+  });
+  const previousOrders = orders.filter((o) => {
+    const s = normalizeStatus(o);
+    return isFinalStatus(s);
+  });
+
+  const ordersToShow = tab === 'assigned' ? activeOrders : previousOrders;
 
   return (
     <div className="space-y-6">
@@ -86,11 +101,21 @@ const DriverDashboard: React.FC<DriverDashboardProps> = ({ user }) => {
             <CardTitle>Assigned Orders</CardTitle>
             <CardDescription>Orders assigned to you for pickup and delivery</CardDescription>
           </div>
-          <div className="flex items-center space-x-2">
-            <Truck className="h-5 w-5 text-muted-foreground" />
-            <Link to="/driver/dashboard">
-              <Button variant="outline" size="sm">Refresh</Button>
-            </Link>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Button variant={tab === 'assigned' ? 'default' : 'ghost'} size="sm" onClick={() => setTab('assigned')}>
+                Assigned ({activeOrders.length})
+              </Button>
+              <Button variant={tab === 'previous' ? 'default' : 'ghost'} size="sm" onClick={() => setTab('previous')}>
+                Previous ({previousOrders.length})
+              </Button>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Truck className="h-5 w-5 text-muted-foreground" />
+              <Link to="/driver/dashboard">
+                <Button variant="outline" size="sm">Refresh</Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -104,36 +129,46 @@ const DriverDashboard: React.FC<DriverDashboardProps> = ({ user }) => {
             </div>
           ) : (
             <div className="space-y-4">
-              {orders.map((order: any) => (
-                <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-medium">Order #{order.id}</h4>
-                      <Badge variant={order.status === 'DELIVERED' || order.status === 'PICKED_UP' ? 'default' : 'secondary'}>
-                        {order.status}
-                      </Badge>
+              {ordersToShow.map((order: any) => {
+                const statusStr = (order.status ?? '').toString();
+                const statusNorm = statusStr.toUpperCase().replace(/\s+/g, '_').replace(/-/g, '_');
+                // Accept a variety of server-side status formats (enum, spaced, camelCase)
+                const isPickedUp = statusNorm.includes('PICK') || statusNorm.includes('IN_TRANSIT') || statusNorm.includes('OUT_FOR_DELIVERY') || statusNorm.includes('ON_ROUTE') || statusNorm === 'PICKED_UP' || statusNorm.includes('PICKED');
+                // Consider ACCEPTED also as ready-for-pickup for drivers (backend allows pickup from ACCEPTED)
+                const isReady = statusNorm === 'READY' || statusNorm.includes('READY') || statusNorm === 'ACCEPTED' || statusNorm.includes('ACCEPT');
+                const isDelivered = statusNorm === 'DELIVERED' || statusNorm.includes('DELIVERED');
+                return (
+                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <h4 className="font-medium">Order #{order.id}</h4>
+                        <Badge variant={isDelivered || isPickedUp ? 'default' : 'secondary'}>
+                          {statusStr}
+                        </Badge>
+                        <div className="text-xs text-muted-foreground">raw: {statusStr}</div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Cafe: {order.cafe_name || order.cafe_id}</p>
+                      {order.created_at && (
+                        <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">Cafe: {order.cafe_name || order.cafe_id}</p>
-                    {order.created_at && (
-                      <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
-                    )}
-                  </div>
 
-                  <div className="flex space-x-2">
-                    {order.status === 'READY' && (
-                      <Button onClick={() => handlePickup(order.id)} size="sm">Pickup</Button>
-                    )}
-                    {order.status === 'PICKED_UP' && (
-                      <Button onClick={() => handleDeliver(order.id)} size="sm">Deliver</Button>
-                    )}
-                    {order.status !== 'READY' && order.status !== 'PICKED_UP' && (
-                      <Button variant="ghost" size="sm" disabled>
-                        <MapPin className="mr-2" /> Track
-                      </Button>
-                    )}
+                    <div className="flex space-x-2">
+                      {isReady && tab === 'assigned' && (
+                        <Button onClick={() => handlePickup(order.id)} size="sm">Pickup</Button>
+                      )}
+                      {isPickedUp && tab === 'assigned' && (
+                        <Button onClick={() => handleDeliver(order.id)} size="sm">DELIVER</Button>
+                      )}
+                      {!isReady && !isPickedUp && (
+                        <Button variant="ghost" size="sm" disabled>
+                          <MapPin className="mr-2" /> Track
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
