@@ -26,6 +26,7 @@ import Header from './components/layout/Header';
 import Navigation from './components/layout/Navigation';
 import ApplicationPoster from './components/poster/ApplicationPoster';
 import DriverDashboard from './components/driver/DriverDashboard';
+import {User} from './api/types';
 
 export default function App() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -65,14 +66,14 @@ export default function App() {
         )}
 
         {/* OWNER/STAFF ROUTES */}
-        {isAuthenticated && ['OWNER', 'STAFF'].includes(user?.role || '') && (
+        {isAuthenticated && user?.role === 'OWNER' && (
           <>
             <Route path="/restaurant/dashboard" element={<RestaurantDashboard user={user} />} />
             <Route path="/restaurant/menu" element={<MenuManagement />} />
-            {/* <Route path="/restaurant/orders" element={<OrderManagement />} />
-            <Route path="/restaurant/staff" element={<StaffManagement />} />
-            <Route path="/restaurant/reviews" element={<ReviewInsights />} />
-            <Route path="/restaurant/analytics" element={<Analytics />} /> */}
+            {/* <Route path="/restaurant/orders" element={<OrderManagement />} /> */}
+            {/* <Route path="/restaurant/staff" element={<StaffManagement />} /> */}
+            <Route path="/restaurant/reviews" element={<ReviewInsights cafeId={user?.cafe?.id!} />} />
+            {/* <Route path="/restaurant/analytics" element={<Analytics />} />  */}
           </>
         )}
 

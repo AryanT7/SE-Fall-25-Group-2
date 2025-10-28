@@ -28,6 +28,7 @@ class UserOut(UserBase):
     id: int
     role: Role
     is_active: bool
+    cafe_id: int | None = None  
     class Config:
         from_attributes = True
 
