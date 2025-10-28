@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
 from ..database import get_db
-from ..schemas import PlaceOrderRequest, OrderOut
-from ..models import Cart, CartItem, Item, Order, OrderItem, OrderStatus, User
+from ..schemas import PlaceOrderRequest, OrderOut, AssignDriverRequest
+from ..models import Cart, CartItem, Item, Order, OrderItem, OrderStatus, User, Cafe
 from ..deps import get_current_user, require_cafe_staff_or_owner
+from ..services.driver import find_nearest_idle_driver, update_driver_status_to_occupied
 import secrets
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -82,5 +83,77 @@ def update_status(order_id: int, new_status: OrderStatus, db: Session = Depends(
         db.add(order)
         db.commit()
         db.refresh(order)
+        
+        # If order is delivered, set driver back to IDLE
+        if new_status == OrderStatus.DELIVERED and order.driver_id:
+            from ..services.driver import update_driver_status_to_idle
+            update_driver_status_to_idle(order.driver_id, db)
+        
         return order
     raise HTTPException(status_code=400, detail="Invalid status transition")
+
+
+@router.post("/{order_id}/assign-driver", response_model=OrderOut)
+def assign_driver(order_id: int, assignment: AssignDriverRequest = None, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """
+    Assign a driver to an order.
+    If driver_id is not provided, automatically selects the nearest idle driver.
+    Only cafe staff/owners and admins can assign drivers.
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check permissions
+    require_cafe_staff_or_owner(order.cafe_id, db, current)
+    
+    # Check if order already has a driver
+    if order.driver_id:
+        raise HTTPException(status_code=400, detail="Order already has a driver assigned")
+    
+    # Check if order status allows driver assignment
+    if order.status not in [OrderStatus.ACCEPTED, OrderStatus.READY]:
+        raise HTTPException(status_code=400, detail="Order must be ACCEPTED or READY to assign a driver")
+    
+    driver_id = None
+    distance = None
+    
+    if assignment and assignment.driver_id:
+        # Manually assign specific driver
+        driver_id = assignment.driver_id
+        
+        # Check if driver exists and is actually a driver
+        driver = db.query(User).filter(User.id == driver_id).first()
+        if not driver:
+            raise HTTPException(status_code=404, detail="Driver not found")
+        
+        # Verify driver is idle
+        from ..services.driver import get_latest_driver_location
+        from ..models import DriverStatus
+        latest_location = get_latest_driver_location(driver_id, db)
+        if not latest_location or latest_location.status != DriverStatus.IDLE:
+            raise HTTPException(status_code=400, detail="Driver is not available (not idle)")
+    else:
+        # Auto-assign nearest idle driver
+        cafe = db.query(Cafe).filter(Cafe.id == order.cafe_id).first()
+        if not cafe:
+            raise HTTPException(status_code=404, detail="Cafe not found")
+        
+        result = find_nearest_idle_driver(cafe.lat, cafe.lng, db)
+        if not result:
+            raise HTTPException(status_code=404, detail="No idle drivers available")
+        
+        driver, distance = result
+        driver_id = driver.id
+    
+    # Assign driver to order
+    order.driver_id = driver_id
+    db.add(order)
+    db.commit()
+    
+    # Update driver status to OCCUPIED
+    update_driver_status_to_occupied(driver_id, db)
+    
+    db.refresh(order)
+    
+    return order

@@ -145,6 +145,10 @@ class PaymentStatus(str, enum.Enum):
     FAILED = "FAILED"
     REFUNDED = "REFUNDED"
 
+class DriverStatus(str, enum.Enum):
+    IDLE = "IDLE"
+    OCCUPIED = "OCCUPIED"
+
 class Payment(Base):
     __tablename__ = "payments"
     id = Column(Integer, primary_key=True)
@@ -176,3 +180,4 @@ class DriverLocation(Base):
     lat = Column(Float, nullable=False)
     lng = Column(Float, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
+    status = Column(Enum(DriverStatus), default=DriverStatus.IDLE, nullable=False)
