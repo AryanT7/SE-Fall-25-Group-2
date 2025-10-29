@@ -79,7 +79,7 @@ const FoodSuggestions: React.FC<FoodSuggestionsProps> = ({
   return (
     <div className="space-y-4">
       {/* --- Header summary --- */}
-      <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+      {/* <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-green-800">
             <Utensils className="h-5 w-5 text-green-600" />
@@ -99,7 +99,7 @@ const FoodSuggestions: React.FC<FoodSuggestionsProps> = ({
             </span>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* --- Suggestions Grid --- */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
