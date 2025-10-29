@@ -21,6 +21,16 @@ def add_item(cafe_id: int, data: ItemCreate, db: Session = Depends(get_db), user
     db.refresh(item)
     return item
 
+# NEW: Get all items across all cafes (for AI recommendations)
+@router.get("", response_model=List[ItemOut])
+def list_all_items(q: str | None = None, db: Session = Depends(get_db)):
+    """List all active menu items across all cafes (for AI recommendations)"""
+    query = db.query(Item).filter(Item.active == True)
+    if q:
+        like = f"%{q}%"
+        query = query.filter(Item.name.ilike(like))
+    return query.order_by(Item.name).all()
+
 @router.get("/{cafe_id}", response_model=List[ItemOut])
 def list_items(cafe_id: int, q: str | None = None, db: Session = Depends(get_db)):
     query = db.query(Item).filter(Item.cafe_id == cafe_id, Item.active == True)

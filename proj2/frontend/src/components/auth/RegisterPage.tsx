@@ -19,8 +19,8 @@ const RegisterPage: React.FC = () => {
   
     // USER fields
     name: '',
-    height: '',
-    weight: '',
+    height_cm: '',
+    weight_kg: '',
     dob: '',
     gender: '',
     activityLevel: '',
@@ -86,11 +86,11 @@ const RegisterPage: React.FC = () => {
           : 'USER',
   
       ...(userType === 'USER' && {
-        height_cm: Number(formData.height) || null,
-        weight_kg: Number(formData.weight) || null,
-        // date_of_birth: formData.dob || null,
-        // gender: formData.gender || null,
-        // activity_level: formData.activityLevel || null,
+        height_cm: Number(formData.height_cm) || null,
+        weight_kg: Number(formData.weight_kg) || null,
+        dob: formData.dob || null,
+        gender: formData.gender || null,
+        activity_level: formData.activityLevel || null,
 
       }),
     });
@@ -161,8 +161,8 @@ const RegisterPage: React.FC = () => {
                       id="height"
                       type="number"
                       placeholder="180"
-                      value={formData.height}
-                      onChange={(e) => handleInputChange('height', e.target.value)}
+                      value={formData.height_cm}
+                      onChange={(e) => handleInputChange('height_cm', e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -171,8 +171,8 @@ const RegisterPage: React.FC = () => {
                       id="weight"
                       type="number"
                       placeholder="70"
-                      value={formData.weight}
-                      onChange={(e) => handleInputChange('weight', e.target.value)}
+                      value={formData.weight_kg}
+                      onChange={(e) => handleInputChange('weight_kg', e.target.value)}
                     />
                   </div>
                 </div>

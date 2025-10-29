@@ -3,6 +3,9 @@ import { MenuItem, ItemCreateRequest } from './types';
 
 // Items API Functions
 export const itemsApi = {
+    async listAll(): Promise<{ data?: MenuItem[]; error?: string }> {
+        return apiClient.get<MenuItem[]>(`/items`, false); // Public endpoint
+  },
   /**
    * Get all menu items from a specific cafe
    */
@@ -51,6 +54,7 @@ export const itemsApi = {
 
 // Export individual functions for convenience
 export const {
+  listAll,
   getCafeItems,
   getItem,
   addMenuItem,      // was addItem
