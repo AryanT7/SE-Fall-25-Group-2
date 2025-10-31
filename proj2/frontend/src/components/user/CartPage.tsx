@@ -1,446 +1,456 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Separator } from '../ui/separator';
-import { Plus, Minus, Trash2, Users, CreditCard, Clock, ArrowLeft } from 'lucide-react';
-// import { User, CartItem, Restaurant, EmotionalData, Order } from '../../App';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Plus, Minus, Search, Star, Clock, Leaf, AlertCircle, Sparkles, MessageSquare } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { toast } from 'sonner';
-import EmotionalStateDialog from './EmotionalStateDialog';
-import { RegretPredictionEngine } from './RegretPredictionEngine';
-import RegretWarning from './RegretWarning';
+import { useAuth } from '../../contexts/AuthContext';
 import { cartApi } from '../../api/cart';
-interface CartPageProps {
-  user: User;
-}
 
-const CartPage: React.FC<CartPageProps> = ({ user }) => {
-  const navigate = useNavigate();
-  const [cart, setCart] = useState<CartItem[]>([]);
+type Restaurant = {
+  id: string;
+  name: string;
+  description: string;
+  cuisine: string;
+  rating: number;
+  deliveryTime: string;
+  minimumOrder: number;
+  image: string;
+  ownerId: string;
+};
+
+type MenuItem = {
+  id: string; // if using real backend items, this should be numeric string
+  restaurantId: string;
+  name: string;
+  description: string;
+  price: number;
+  calories: number;
+  ingredients: string[];
+  category: string;
+  isVegetarian: boolean;
+  isNonVeg: boolean;
+  servings: number;
+  image: string;
+};
+
+type CartItem = {
+  menuItem: {
+    id: string;
+    restaurantId: string;
+    name: string;
+    price: number;
+    calories: number;
+    image: string;
+  };
+  quantity: number;
+  assignedTo?: string;
+};
+
+const getCartKey = (user?: { id?: string | number; email?: string | null }) =>
+  `cart_${user?.id ?? user?.email ?? 'guest'}`;
+
+const MenuPage: React.FC = () => {
+  const { restaurantId } = useParams<{ restaurantId: string }>();
+  const { user } = useAuth();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
-  const [friends, setFriends] = useState<string[]>(['']);
-  const [paymentMethod, setPaymentMethod] = useState('credit_card');
-  const [showEmotionalDialog, setShowEmotionalDialog] = useState(false);
-  const [emotionalData, setEmotionalData] = useState<EmotionalData | null>(null);
-  const [regretPrediction, setRegretPrediction] = useState<any>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [todayCalories, setTodayCalories] = useState(0);
 
+  // Migrate legacy keys and load cart for current user
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      const cartData = JSON.parse(savedCart);
-      setCart(cartData);
-      
-      // Get restaurant info from first item
-      if (cartData.length > 0) {
-        const mockRestaurant: Restaurant = {
-          id: cartData[0].menuItem.restaurantId,
-          name: 'Pizza Palace',
-          description: 'Authentic Italian pizzas',
-          cuisine: 'Italian',
-          rating: 4.8,
-          deliveryTime: '25-35 min',
-          minimumOrder: 15,
-          image: '',
-          ownerId: '2'
-        };
-        setRestaurant(mockRestaurant);
-      }
-    }
-  }, []);
+    const key = getCartKey({ id: (user as any)?.id, email: user?.email });
 
-  const updateQuantity = (itemId: string, change: number) => {
-    const newCart = cart.map(item => {
-      if (item.menuItem.id === itemId) {
-        const newQuantity = Math.max(0, item.quantity + change);
-        return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
-      }
-      return item;
-    }).filter(Boolean) as CartItem[];
+    // migrate legacy shared key
+    const legacy = localStorage.getItem('cart');
+    if (legacy && !localStorage.getItem(key)) localStorage.setItem(key, legacy);
+    if (legacy) localStorage.removeItem('cart');
 
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-  };
+    // migrate guest cart
+    const guest = localStorage.getItem('cart_guest');
+    if (user && guest && !localStorage.getItem(key)) localStorage.setItem(key, guest);
+    if (guest && user) localStorage.removeItem('cart_guest');
 
-  const removeItem = (itemId: string) => {
-    const newCart = cart.filter(item => item.menuItem.id !== itemId);
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-    toast.success('Item removed from cart');
-  };
+    const saved = localStorage.getItem(key);
+    setCart(saved ? JSON.parse(saved) : []);
+  }, [user]);
 
-  const assignToFriend = (itemId: string, friendEmail: string) => {
-    const newCart = cart.map(item => {
-      if (item.menuItem.id === itemId) {
-        return { ...item, assignedTo: friendEmail || undefined };
-      }
-      return item;
-    });
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-  };
+  // Load mock restaurant/menu (replace with real API as needed)
+  useEffect(() => {
+    if (!restaurantId) return;
 
-  const addFriendField = () => {
-    setFriends([...friends, '']);
-  };
-
-  const updateFriend = (index: number, email: string) => {
-    const newFriends = [...friends];
-    newFriends[index] = email;
-    setFriends(newFriends);
-  };
-
-  const getTotalAmount = () => {
-    return cart.reduce((total, item) => total + (item.menuItem.price * item.quantity), 0);
-  };
-
-  const getTotalCalories = () => {
-    return cart.reduce((total, item) => total + (item.menuItem.calories * item.quantity), 0);
-  };
-
-  const getCaloriesForUser = (userEmail: string) => {
-    return cart
-      .filter(item => item.assignedTo === userEmail)
-      .reduce((total, item) => total + (item.menuItem.calories * item.quantity), 0);
-  };
-
-  const getMyCalories = () => {
-    return cart
-      .filter(item => !item.assignedTo || item.assignedTo === user.email)
-      .reduce((total, item) => total + (item.menuItem.calories * item.quantity), 0);
-  };
-
-  const initiateCheckout = () => {
-    if (!restaurant) return;
-
-    if (getTotalAmount() < restaurant.minimumOrder) {
-      toast.error(`Minimum order is ${restaurant.minimumOrder}`);
-      return;
-    }
-
-    // Show emotional state dialog before checkout
-    setShowEmotionalDialog(true);
-  };
-
-  const handleEmotionalDataSubmit = (data: EmotionalData) => {
-    setEmotionalData(data);
-    setShowEmotionalDialog(false);
-
-    // Run regret prediction
-    const orders: Order[] = JSON.parse(localStorage.getItem('orders') || '[]');
-    const engine = new RegretPredictionEngine(orders, user);
-    const prediction = engine.predictRegret(
-      data.emotion,
-      data.intensity,
-      cart,
-      getTotalCalories()
-    );
-    
-    setRegretPrediction(prediction);
-  };
-
-  const handleCheckout = () => {
-    if (!restaurant) return;
-
-    // Create mock order with emotional data
-    const order: Order = {
-      id: Date.now().toString(),
-      userId: user.id,
-      restaurantId: restaurant.id,
-      items: cart,
-      totalAmount: getTotalAmount(),
-      totalCalories: getTotalCalories(),
-      status: 'pending' as const,
-      createdAt: new Date(),
-      paymentMethod,
-      emotionalData: emotionalData || undefined
+    const mockRestaurant: Restaurant = {
+      id: restaurantId,
+      name: 'Pizza Palace',
+      description: 'Authentic Italian pizzas with fresh ingredients',
+      cuisine: 'Italian',
+      rating: 4.8,
+      deliveryTime: '25-35 min',
+      minimumOrder: 15,
+      image:
+        'https://images.unsplash.com/photo-1563245738-9169ff58eccf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwaXp6YSUyMHJlc3RhdXJhbnR8ZW58MXx8fHwxNzU5MDc1NTg3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      ownerId: '2',
     };
 
-    // Save to orders (in real app, this would be API call)
-    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-    localStorage.setItem('orders', JSON.stringify([order, ...existingOrders]));
+    const mockMenuItems: MenuItem[] = [
+      {
+        id: '1',
+        restaurantId: restaurantId,
+        name: 'Margherita Pizza',
+        description: 'Classic pizza with fresh mozzarella, tomato sauce, and basil',
+        price: 16.99,
+        calories: 720,
+        ingredients: ['Mozzarella', 'Tomato Sauce', 'Basil', 'Olive Oil'],
+        category: 'Pizza',
+        isVegetarian: true,
+        isNonVeg: false,
+        servings: 1,
+        image:
+          'https://images.unsplash.com/photo-1563245738-9169ff58eccf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHhwaXp6YSUyMHJlc3RhdXJhbnR8ZW58MXx8fHwxNzU5MDc1NTg3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      },
+      {
+        id: '2',
+        restaurantId: restaurantId,
+        name: 'Pepperoni Pizza',
+        description: 'Spicy pepperoni with mozzarella cheese and tomato sauce',
+        price: 19.99,
+        calories: 890,
+        ingredients: ['Pepperoni', 'Mozzarella', 'Tomato Sauce'],
+        category: 'Pizza',
+        isVegetarian: false,
+        isNonVeg: true,
+        servings: 1,
+        image:
+          'https://images.unsplash.com/photo-1563245738-9169ff58eccf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHhwaXp6YSUyMHJlc3RhdXJhbnR8ZW58MXx8fHwxNzU5MDc1NTg3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      },
+      {
+        id: '3',
+        restaurantId: restaurantId,
+        name: 'Caesar Salad',
+        description: 'Fresh romaine lettuce with parmesan, croutons, and caesar dressing',
+        price: 12.99,
+        calories: 320,
+        ingredients: ['Romaine Lettuce', 'Parmesan', 'Croutons', 'Caesar Dressing'],
+        category: 'Salads',
+        isVegetarian: true,
+        isNonVeg: false,
+        servings: 1,
+        image:
+          'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHhzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      },
+      {
+        id: '4',
+        restaurantId: restaurantId,
+        name: 'Spaghetti Carbonara',
+        description: 'Creamy pasta with bacon, eggs, and parmesan cheese',
+        price: 18.99,
+        calories: 650,
+        ingredients: ['Spaghetti', 'Bacon', 'Eggs', 'Parmesan', 'Cream'],
+        category: 'Pasta',
+        isVegetarian: false,
+        isNonVeg: true,
+        servings: 1,
+        image:
+          'https://images.unsplash.com/photo-1749169337822-d875fd6f4c9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHhwYXN0YSUyMGl0YWxpYW4lMjBmb29kfGVufDF8fHx8MTc1OTAwNjg5M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      },
+      {
+        id: '5',
+        restaurantId: restaurantId,
+        name: 'Garlic Bread',
+        description: 'Toasted bread with garlic butter and herbs',
+        price: 6.99,
+        calories: 240,
+        ingredients: ['Bread', 'Garlic', 'Butter', 'Herbs'],
+        category: 'Appetizers',
+        isVegetarian: true,
+        isNonVeg: false,
+        servings: 4,
+        image:
+          'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      },
+      {
+        id: '6',
+        restaurantId: restaurantId,
+        name: 'Tiramisu',
+        description: 'Classic Italian dessert with coffee and mascarpone',
+        price: 8.99,
+        calories: 450,
+        ingredients: ['Mascarpone', 'Coffee', 'Ladyfingers', 'Cocoa'],
+        category: 'Desserts',
+        isVegetarian: true,
+        isNonVeg: false,
+        servings: 1,
+        image:
+          'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      },
+    ];
 
-    // Clear cart
-    setCart([]);
-    localStorage.removeItem('cart');
+    setRestaurant(mockRestaurant);
+    setMenuItems(mockMenuItems);
 
-    toast.success('Order placed successfully!');
-    navigate(`/orders/${order.id}/track`);
+    // today's calories example
+    const orders = localStorage.getItem('orders');
+    if (orders) {
+      const parsedOrders = JSON.parse(orders);
+      const today = new Date().toDateString();
+      const todayOrders = parsedOrders.filter(
+        (order: any) => new Date(order.createdAt).toDateString() === today
+      );
+      const totalCalories = todayOrders.reduce(
+        (sum: number, order: any) => sum + (order.totalCalories || 0),
+        0
+      );
+      setTodayCalories(totalCalories);
+    }
+  }, [restaurantId]);
+
+  // Filtering
+  useEffect(() => {
+    let filtered = menuItems;
+
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (item) =>
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.ingredients.some((ing) =>
+            ing.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+      );
+    }
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter((item) => item.category === selectedCategory);
+    }
+    setFilteredItems(filtered);
+  }, [menuItems, searchQuery, selectedCategory]);
+
+  const categories = useMemo(
+    () => ['all', ...Array.from(new Set(menuItems.map((i) => i.category)))],
+    [menuItems]
+  );
+
+  // Persist local cart per-user
+  const persistCart = (next: CartItem[]) => {
+    const key = getCartKey({ id: (user as any)?.id, email: user?.email });
+    localStorage.setItem(key, JSON.stringify(next));
+    setCart(next);
   };
 
-  if (cart.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Link to="/restaurants">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Restaurants
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold">Your Cart</h1>
-        </div>
+  // Best-effort sync for adds
+  const addToBackend = async (menuItem: MenuItem) => {
+    try {
+      if (!user) return;
+      // Only sync when id looks numeric and backend likely recognizes it
+      if (!/^\d+$/.test(menuItem.id)) return;
+      await cartApi.addToCart({
+        item_id: Number(menuItem.id),
+        quantity: 1,
+        assignee_email: user.email || undefined,
+      } as any);
+    } catch {
+      // ignore backend sync errors
+    }
+  };
 
-        <Card className="text-center py-12">
-          <CardContent>
-            <div className="space-y-4">
-              <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center">
-                <CreditCard className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium">Your cart is empty</h3>
-                <p className="text-muted-foreground">Add some delicious items to get started</p>
-              </div>
-              <Link to="/restaurants">
-                <Button>Start Shopping</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+  const getItemQuantityInCart = (itemId: string) => {
+    const ci = cart.find((c) => c.menuItem.id === itemId);
+    return ci ? ci.quantity : 0;
+  };
+
+  const addToCart = (menuItem: MenuItem) => {
+    const idx = cart.findIndex((c) => c.menuItem.id === menuItem.id);
+    let next: CartItem[];
+    if (idx > -1) {
+      next = [...cart];
+      next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
+    } else {
+      next = [...cart, { menuItem: { id: menuItem.id, restaurantId: restaurantId!, name: menuItem.name, price: menuItem.price, calories: menuItem.calories, image: menuItem.image }, quantity: 1 }];
+    }
+    persistCart(next);
+    addToBackend(menuItem);
+    toast.success(`${menuItem.name} added to cart`);
+  };
+
+  const removeFromCart = (itemId: string) => {
+    const idx = cart.findIndex((c) => c.menuItem.id === itemId);
+    if (idx === -1) return;
+    const next = [...cart];
+    if (next[idx].quantity > 1) {
+      next[idx] = { ...next[idx], quantity: next[idx].quantity - 1 };
+    } else {
+      next.splice(idx, 1);
+    }
+    persistCart(next);
+    // Note: backend lacks decrement/remove; we keep local-only for now
+  };
+
+  const getTotalCartItems = () => cart.reduce((t, i) => t + i.quantity, 0);
+
+  if (!restaurant) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link to="/restaurants">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Restaurants
-          </Button>
-        </Link>
-        <h1 className="text-3xl font-bold">Your Cart</h1>
+      {/* Restaurant Header */}
+      <div className="relative">
+        <div className="aspect-[3/1] relative rounded-lg overflow-hidden">
+          <ImageWithFallback src={restaurant.image} alt={restaurant.name} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute bottom-4 left-4 text-white">
+            <h1 className="text-3xl font-bold">{restaurant.name}</h1>
+            <p className="text-lg opacity-90">{restaurant.description}</p>
+            <div className="flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-1">
+                <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                <span>{restaurant.rating}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-5 w-5" />
+                <span>{restaurant.deliveryTime}</span>
+              </div>
+              <Badge variant="secondary">{restaurant.cuisine}</Badge>
+              <Link to={`/restaurant/${restaurantId}/reviews`}>
+                <Button variant="secondary" size="sm" className="gap-1">
+                  <MessageSquare className="h-4 w-4" />
+                  Reviews
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {restaurant?.name}
-                <Badge variant="secondary">{restaurant?.cuisine}</Badge>
-              </CardTitle>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1.5">
-                <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {restaurant?.deliveryTime}
-                </span>
-                <span>Min order: ${restaurant?.minimumOrder}</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {cart.map((item, index) => (
-                <div key={`${item.menuItem.id}-${index}`} className="space-y-4">
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 flex-shrink-0">
-                      <ImageWithFallback
-                        src={item.menuItem.image}
-                        alt={item.menuItem.name}
-                        className="w-full h-full object-cover rounded"
-                      />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">{item.menuItem.name}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {item.menuItem.calories} cal • ${item.menuItem.price}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeItem(item.menuItem.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateQuantity(item.menuItem.id, -1)}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="w-8 text-center">{item.quantity}</span>
-                          <Button
-                            size="sm"
-                            onClick={() => updateQuantity(item.menuItem.id, 1)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <span className="font-medium">
-                          ${(item.menuItem.price * item.quantity).toFixed(2)}
-                        </span>
-                      </div>
-
-                      {/* Assign to Friend */}
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <Select 
-                          value={item.assignedTo || 'me'} 
-                          onValueChange={(value) => assignToFriend(item.menuItem.id, value === 'me' ? '' : value)}
-                        >
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="me">For me</SelectItem>
-                            {friends.filter(f => f).map((friend, idx) => (
-                              <SelectItem key={idx} value={friend}>
-                                {friend}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                  {index < cart.length - 1 && <Separator />}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Friends Management */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Add Friends & Family
-              </CardTitle>
-              <CardDescription>
-                Add email addresses of friends/family to order for them
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {friends.map((friend, index) => (
-                <Input
-                  key={index}
-                  placeholder="Friend's email address"
-                  value={friend}
-                  onChange={(e) => updateFriend(index, e.target.value)}
-                />
-              ))}
-              <Button variant="outline" onClick={addFriendField} className="w-full">
-                Add Another Person
-              </Button>
-            </CardContent>
-          </Card>
+      {/* Search and actions */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search menu items..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
         </div>
+        <Button variant={showSuggestions ? 'default' : 'outline'} onClick={() => setShowSuggestions(!showSuggestions)} className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4" />
+          {showSuggestions ? 'Hide' : 'Show'} AI Suggestions
+        </Button>
+        {getTotalCartItems() > 0 && (
+          <Link to="/cart">
+            <Button className="flex items-center gap-2">View Cart ({getTotalCartItems()})</Button>
+          </Link>
+        )}
+      </div>
 
-        {/* Order Summary */}
-        <div className="space-y-4">
-          {/* Regret Prediction Warning */}
-          {regretPrediction && (
-            <RegretWarning prediction={regretPrediction} />
+      {/* Category Tabs */}
+      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+          {categories.map((c) => (
+            <TabsTrigger key={c} value={c} className="text-xs">
+              {c === 'all' ? 'All' : c}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value={selectedCategory} className="space-y-6">
+          {filteredItems.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No items found</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2">
+              {filteredItems.map((item) => {
+                const q = getItemQuantityInCart(item.id);
+                return (
+                  <Card key={item.id} className="overflow-hidden">
+                    <div className="flex">
+                      <div className="w-32 h-32 flex-shrink-0">
+                        <ImageWithFallback src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 p-4">
+                        <CardHeader className="p-0 space-y-2">
+                          <div className="flex items-start justify-between">
+                            <CardTitle className="text-lg leading-tight">{item.name}</CardTitle>
+                            <div className="flex gap-1">
+                              {item.isVegetarian && (
+                                <Badge variant="outline" className="text-green-600 border-green-600">
+                                  <Leaf className="h-3 w-3 mr-1" />
+                                  Veg
+                                </Badge>
+                              )}
+                              {item.isNonVeg && (
+                                <Badge variant="outline" className="text-red-600 border-red-600">
+                                  <AlertCircle className="h-3 w-3 mr-1" />
+                                  Non-Veg
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <CardDescription className="text-sm">{item.description}</CardDescription>
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                              <p className="font-semibold text-lg">${item.price}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {item.calories} cal • {item.servings} serving{item.servings > 1 ? 's' : ''}
+                              </p>
+                            </div>
+                            {q === 0 ? (
+                              <Button onClick={() => addToCart(item)} size="sm" className="ml-2">
+                                <Plus className="h-4 w-4 mr-1" />
+                                Add
+                              </Button>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm" onClick={() => removeFromCart(item.id)}>
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-8 text-center font-medium">{q}</span>
+                                <Button size="sm" onClick={() => addToCart(item)}>
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CardHeader>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
           )}
+        </TabsContent>
+      </Tabs>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>${getTotalAmount().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Delivery Fee</span>
-                  <span>$2.99</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Tax</span>
-                  <span>${(getTotalAmount() * 0.08).toFixed(2)}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between font-medium">
-                  <span>Total</span>
-                  <span>${(getTotalAmount() + 2.99 + (getTotalAmount() * 0.08)).toFixed(2)}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="font-medium">Calorie Breakdown</h4>
-                <div className="text-sm space-y-1">
-                  <div className="flex justify-between">
-                    <span>Your calories:</span>
-                    <span>{getMyCalories()} cal</span>
-                  </div>
-                  {friends.filter(f => f).map((friend, idx) => (
-                    <div key={idx} className="flex justify-between">
-                      <span>{friend}:</span>
-                      <span>{getCaloriesForUser(friend)} cal</span>
-                    </div>
-                  ))}
-                  <Separator />
-                  <div className="flex justify-between font-medium">
-                    <span>Total calories:</span>
-                    <span>{getTotalCalories()} cal</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Payment Method</label>
-                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="credit_card">Credit Card</SelectItem>
-                    <SelectItem value="debit_card">Debit Card</SelectItem>
-                    <SelectItem value="cash">Cash on Pickup</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {!emotionalData ? (
-                <Button 
-                  className="w-full" 
-                  onClick={initiateCheckout}
-                  disabled={restaurant && getTotalAmount() < restaurant.minimumOrder}
-                >
-                  {restaurant && getTotalAmount() < restaurant.minimumOrder 
-                    ? `Add ${(restaurant.minimumOrder - getTotalAmount()).toFixed(2)} more`
-                    : 'Continue to Checkout'
-                  }
-                </Button>
-              ) : (
-                <Button 
-                  className="w-full" 
-                  onClick={handleCheckout}
-                >
-                  Confirm Order
-                </Button>
-              )}
-
-              <p className="text-xs text-muted-foreground text-center">
-                You'll need to pick up your order from the restaurant
+      {/* Minimum Order Warning */}
+      {cart.length > 0 && restaurant && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-600" />
+              <p className="text-sm">
+                Minimum order: ${restaurant.minimumOrder}
+                {cart.reduce((t, i) => t + i.menuItem.price * i.quantity, 0) < restaurant.minimumOrder && (
+                  <span className="text-amber-700 ml-1">
+                    - Add ${(restaurant.minimumOrder - cart.reduce((t, i) => t + i.menuItem.price * i.quantity, 0)).toFixed(2)} more
+                  </span>
+                )}
               </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Emotional State Dialog */}
-      <EmotionalStateDialog
-        open={showEmotionalDialog}
-        onClose={() => setShowEmotionalDialog(false)}
-        onSubmit={handleEmotionalDataSubmit}
-      />
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
 
-export default CartPage;
+export default MenuPage;

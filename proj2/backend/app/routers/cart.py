@@ -5,7 +5,7 @@ from ..database import get_db
 from ..schemas import CartAddItem, CartSummary, CartOut
 from ..models import Cart, CartItem, Item, User
 from ..deps import get_current_user
-
+from typing import List
 router = APIRouter(prefix="/cart", tags=["cart"])
 
 
@@ -64,3 +64,29 @@ def clear_cart(db: Session = Depends(get_db), current: User = Depends(get_curren
     db.query(CartItem).filter(CartItem.cart_id == cart.id).delete()
     db.commit()
     return {"status": "cleared"}
+
+@router.get("/items", response_model=List[dict])
+def get_cart_items(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    cart = get_or_create_cart(db, current.id)
+    items = db.query(CartItem, Item, User).join(
+        Item, CartItem.item_id == Item.id
+    ).outerjoin(
+        User, CartItem.assignee_user_id == User.id
+    ).filter(CartItem.cart_id == cart.id).all()
+    
+    result = []
+    for ci, it, assignee in items:
+        result.append({
+            "id": ci.id,
+            "item": {
+                "id": it.id,
+                "name": it.name,
+                "price": it.price,
+                "calories": it.calories,
+                "image": it.image,
+                "cafe_id": it.cafe_id,
+            },
+            "quantity": ci.quantity,
+            "assignee_email": assignee.email if assignee else None,
+        })
+    return result
