@@ -14,13 +14,39 @@ import EmotionalStateDialog from './EmotionalStateDialog';
 import { RegretPredictionEngine } from './RegretPredictionEngine';
 import RegretWarning from './RegretWarning';
 import { cartApi } from '../../api/cart';
+import { User, Order } from '../../api/types';
+
+interface Restaurant {
+  id: string | number;
+  name: string;
+  description?: string;
+  cuisine?: string;
+  rating?: number;
+  deliveryTime?: string;
+  minimumOrder?: number;
+  image?: string;
+  ownerId?: string;
+}
+
+interface EmotionalData {
+  emotion: string;
+  intensity: number;
+}
+
+interface UICartItem {
+  id: number | string | null;
+  menuItem: any;
+  quantity: number;
+  assignedTo?: string | null;
+}
+
 interface CartPageProps {
   user: User;
 }
 
 const CartPage: React.FC<CartPageProps> = ({ user }) => {
   const navigate = useNavigate();
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<UICartItem[]>([]);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [friends, setFriends] = useState<string[]>(['']);
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
@@ -29,58 +55,117 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
   const [regretPrediction, setRegretPrediction] = useState<any>(null);
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      const cartData = JSON.parse(savedCart);
-      setCart(cartData);
-      
-      // Get restaurant info from first item
-      if (cartData.length > 0) {
-        const mockRestaurant: Restaurant = {
-          id: cartData[0].menuItem.restaurantId,
-          name: 'Pizza Palace',
-          description: 'Authentic Italian pizzas',
-          cuisine: 'Italian',
-          rating: 4.8,
-          deliveryTime: '25-35 min',
-          minimumOrder: 15,
-          image: '',
-          ownerId: '2'
-        };
-        setRestaurant(mockRestaurant);
+    const loadCart = async () => {
+      try {
+        const res = await cartApi.getCartItems();
+        if (res.error) {
+          console.warn('Failed to load cart items:', res.error);
+          setCart([]);
+          return;
+        }
+
+        const rows = res.data || [];
+        // Normalize items into { id: cartItemId, menuItem: {...}, quantity, assignedTo }
+        const normalized = rows.map((r: any) => {
+          const cartItemId = r.id ?? r.cart_item_id ?? r.cartId ?? null;
+          const quantity = r.quantity ?? r.qty ?? 1;
+          const assignedTo = r.assignee_email ?? r.assignee_email_address ?? null;
+
+          // item metadata may be nested under 'item', 'menu_item', or provided flat
+          const it = r.item ?? r.menu_item ?? r.menuItem ?? r;
+          const menuItem = {
+            id: it.id ?? it.item_id ?? it.menu_item_id,
+            restaurantId: it.cafe_id ?? it.restaurantId ?? it.cafeId ?? String(it.cafe_id ?? ''),
+            name: it.name ?? it.title ?? 'Item',
+            description: it.description ?? '',
+            price: it.price ?? 0,
+            calories: it.calories ?? 0,
+            ingredients: it.ingredients ?? [],
+            category: it.category ?? 'Misc',
+            isVegetarian: it.veg_flag ?? it.isVegetarian ?? false,
+            isNonVeg: !!(it.isNonVeg ?? it.non_veg),
+            servings: it.servings ?? 1,
+            image: it.image ?? ''
+          };
+
+          return { id: cartItemId, menuItem, quantity, assignedTo };
+        });
+
+        setCart(normalized);
+
+        if (normalized.length > 0) {
+          const first = normalized[0].menuItem;
+          setRestaurant({
+            id: String(first.restaurantId),
+            name: `Cafe ${first.restaurantId}`,
+            description: '',
+            cuisine: first.category || 'Various',
+            rating: 4.5,
+            deliveryTime: '30-45 min',
+            minimumOrder: 10,
+            image: first.image || '',
+            ownerId: '1'
+          });
+        }
+      } catch (err) {
+        console.error('Error loading cart items', err);
+        setCart([]);
       }
-    }
+    };
+
+    loadCart();
   }, []);
 
-  const updateQuantity = (itemId: string, change: number) => {
-    const newCart = cart.map(item => {
-      if (item.menuItem.id === itemId) {
-        const newQuantity = Math.max(0, item.quantity + change);
-        return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
-      }
-      return item;
-    }).filter(Boolean) as CartItem[];
+  const updateQuantity = async (cartItemId: number | string | null, change: number) => {
+    try {
+      // cartItemId should be the cart-item id provided by backend
+      const existing = cart.find((c) => c.id === cartItemId);
+      if (!existing) return;
+      const newQuantity = Math.max(0, existing.quantity + change);
 
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
+      if (newQuantity <= 0) {
+        // remove
+        const res = await cartApi.removeItem(Number(cartItemId));
+        if (res.error) {
+          toast.error(res.error);
+          return;
+        }
+        setCart((c) => c.filter((it) => it.id !== cartItemId));
+        toast.success('Item removed from cart');
+        return;
+      }
+
+      const res = await cartApi.updateItemQuantity(Number(cartItemId), newQuantity);
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+
+      setCart((c) => c.map((it) => it.id === cartItemId ? { ...it, quantity: newQuantity } : it));
+    } catch (err) {
+      console.error('Failed to update quantity', err);
+      toast.error('Failed to update quantity');
+    }
   };
 
-  const removeItem = (itemId: string) => {
-    const newCart = cart.filter(item => item.menuItem.id !== itemId);
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-    toast.success('Item removed from cart');
+  const removeItem = async (cartItemId: number | string | null) => {
+    try {
+      const res = await cartApi.removeItem(Number(cartItemId));
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      setCart((c) => c.filter(it => it.id !== cartItemId));
+      toast.success('Item removed from cart');
+    } catch (err) {
+      console.error('Failed to remove item', err);
+      toast.error('Failed to remove item');
+    }
   };
 
-  const assignToFriend = (itemId: string, friendEmail: string) => {
-    const newCart = cart.map(item => {
-      if (item.menuItem.id === itemId) {
-        return { ...item, assignedTo: friendEmail || undefined };
-      }
-      return item;
-    });
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
+  const assignToFriend = (cartItemId: number | string | null, friendEmail: string) => {
+    // Local-only assignment for now; backend support can be added later
+    setCart((c) => c.map((item) => (item.id === cartItemId ? { ...item, assignedTo: friendEmail || undefined } : item)));
   };
 
   const addFriendField = () => {
@@ -116,8 +201,8 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
   const initiateCheckout = () => {
     if (!restaurant) return;
 
-    if (getTotalAmount() < restaurant.minimumOrder) {
-      toast.error(`Minimum order is ${restaurant.minimumOrder}`);
+    if (getTotalAmount() < (restaurant.minimumOrder ?? 0)) {
+      toast.error(`Minimum order is ${restaurant.minimumOrder ?? 0}`);
       return;
     }
 
@@ -145,27 +230,25 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
   const handleCheckout = () => {
     if (!restaurant) return;
 
-    // Create mock order with emotional data
-    const order: Order = {
-      id: Date.now().toString(),
-      userId: user.id,
-      restaurantId: restaurant.id,
+    // In this demo we keep local orders; real app should POST to orders API
+    const order = {
+      id: Date.now(),
+      user_id: user.id,
+      cafe_id: Number(restaurant.id),
       items: cart,
-      totalAmount: getTotalAmount(),
-      totalCalories: getTotalCalories(),
-      status: 'pending' as const,
-      createdAt: new Date(),
-      paymentMethod,
-      emotionalData: emotionalData || undefined
+      total_price: getTotalAmount(),
+      total_calories: getTotalCalories(),
+      status: 'PENDING',
+      created_at: new Date().toISOString(),
+      can_cancel_until: new Date(Date.now() + 1000 * 60 * 5).toISOString(),
     };
 
-    // Save to orders (in real app, this would be API call)
     const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
     localStorage.setItem('orders', JSON.stringify([order, ...existingOrders]));
 
-    // Clear cart
+    // Clear cart locally and via API
     setCart([]);
-    localStorage.removeItem('cart');
+    try { cartApi.clearCart(); } catch (e) { /* ignore */ }
 
     toast.success('Order placed successfully!');
     navigate(`/orders/${order.id}/track`);
@@ -235,7 +318,7 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
             </CardHeader>
             <CardContent className="space-y-4">
               {cart.map((item, index) => (
-                <div key={`${item.menuItem.id}-${index}`} className="space-y-4">
+                <div key={`${item.id ?? item.menuItem.id}-${index}`} className="space-y-4">
                   <div className="flex gap-4">
                     <div className="w-20 h-20 flex-shrink-0">
                       <ImageWithFallback
@@ -255,7 +338,7 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeItem(item.menuItem.id)}
+                          onClick={() => removeItem(item.id ?? item.menuItem.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -266,14 +349,14 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateQuantity(item.menuItem.id, -1)}
+                            onClick={() => updateQuantity(item.id ?? item.menuItem.id, -1)}
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
                           <span className="w-8 text-center">{item.quantity}</span>
                           <Button
                             size="sm"
-                            onClick={() => updateQuantity(item.menuItem.id, 1)}
+                            onClick={() => updateQuantity(item.id ?? item.menuItem.id, 1)}
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -288,7 +371,7 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <Select 
                           value={item.assignedTo || 'me'} 
-                          onValueChange={(value) => assignToFriend(item.menuItem.id, value === 'me' ? '' : value)}
+                          onValueChange={(value) => assignToFriend(item.id ?? item.menuItem.id, value === 'me' ? '' : value)}
                         >
                           <SelectTrigger className="w-40">
                             <SelectValue />
@@ -409,10 +492,10 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
                 <Button 
                   className="w-full" 
                   onClick={initiateCheckout}
-                  disabled={restaurant && getTotalAmount() < restaurant.minimumOrder}
+                  disabled={!restaurant || getTotalAmount() < (restaurant.minimumOrder ?? 0)}
                 >
-                  {restaurant && getTotalAmount() < restaurant.minimumOrder 
-                    ? `Add ${(restaurant.minimumOrder - getTotalAmount()).toFixed(2)} more`
+                  {!restaurant || getTotalAmount() < (restaurant.minimumOrder ?? 0) 
+                    ? `Add ${(Math.max(0, (restaurant?.minimumOrder ?? 0) - getTotalAmount())).toFixed(2)} more`
                     : 'Continue to Checkout'
                   }
                 </Button>

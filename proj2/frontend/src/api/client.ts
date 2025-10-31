@@ -69,6 +69,9 @@ class ApiClient {
     }
 
     try {
+      // debug log request
+      // eslint-disable-next-line no-console
+      console.debug('[api] Request:', method, url, { headers: requestHeaders, body });
       const response = await fetch(url, {
         method,
         headers: requestHeaders,
@@ -77,16 +80,24 @@ class ApiClient {
 
       const data = await response.json();
 
+      // debug log response
+      // eslint-disable-next-line no-console
+      console.debug('[api] Response:', method, url, response.status, data);
+
       if (!response.ok) {
         const error: ApiError = {
           detail: data.detail || `HTTP ${response.status}: ${response.statusText}`,
           status_code: response.status,
         };
+        // eslint-disable-next-line no-console
+        console.error('[api] Error:', method, url, error);
         return { error: error.detail };
       }
 
       return { data };
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[api] Network error:', method, url, error);
       const errorMessage = error instanceof Error ? error.message : 'Network error';
       return { error: errorMessage };
     }

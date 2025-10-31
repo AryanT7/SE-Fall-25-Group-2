@@ -7,6 +7,8 @@ import { Input } from '../ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Plus, Minus, Search, Star, Clock, Leaf, AlertCircle, Sparkles, MessageSquare } from 'lucide-react';
 import { Restaurant, MenuItem, CartItem, User } from '../../App';
+import { itemsApi } from '../../api/items';
+import { cartApi } from '../../api/cart';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { toast } from 'sonner';
 import FoodSuggestions from './FoodSuggestions';
@@ -24,11 +26,23 @@ const MenuPage: React.FC = () => {
   const [todayCalories, setTodayCalories] = useState(0);
 
   useEffect(() => {
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
+    // Load cart from server
+    (async () => {
+      try {
+        const cartRes = await cartApi.getCartItems();
+        if (!cartRes.error && cartRes.data) {
+          const normalized = cartRes.data.map((r: any) => ({
+            id: r.id,
+            menuItem: r.item || r.menu_item || r.menuItem || r,
+            quantity: r.quantity || 1,
+            assignedTo: r.assignee_email || r.assignee_email_address || null
+          }));
+          setCart(normalized);
+        }
+      } catch (err) {
+        console.debug('Failed to load cart from server', err);
+      }
+    })();
 
     // Load user data
     const storedUser = localStorage.getItem('user');
@@ -54,108 +68,49 @@ const MenuPage: React.FC = () => {
   useEffect(() => {
     if (!restaurantId) return;
 
-    // Mock restaurant data
-    const mockRestaurant: Restaurant = {
-      id: restaurantId,
-      name: restaurantId === 'rest1' ? 'Pizza Palace' : 'Restaurant',
-      description: 'Authentic Italian pizzas with fresh ingredients',
-      cuisine: 'Italian',
-      rating: 4.8,
-      deliveryTime: '25-35 min',
-      minimumOrder: 15,
-      image: 'https://images.unsplash.com/photo-1563245738-9169ff58eccf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwaXp6YSUyMHJlc3RhdXJhbnR8ZW58MXx8fHwxNzU5MDc1NTg3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-      ownerId: '2'
+    const load = async () => {
+      try {
+        // Fetch items for the cafe (public endpoint)
+        const res = await itemsApi.getCafeItems(Number(restaurantId));
+        if (res.error) {
+          console.warn('Failed to load menu items:', res.error);
+          setMenuItems([]);
+          setRestaurant({
+            id: restaurantId,
+            name: `Cafe ${restaurantId}`,
+            description: '',
+            cuisine: 'Various',
+            rating: 4.5,
+            deliveryTime: '30-45 min',
+            minimumOrder: 10,
+            image: '',
+            ownerId: '1'
+          });
+        } else {
+          const items = res.data || [];
+          // map to MenuItem shape used by UI if necessary
+          setMenuItems(items as MenuItem[]);
+
+          // Optionally derive restaurant metadata from items
+          setRestaurant({
+            id: restaurantId,
+            name: `Cafe ${restaurantId}`,
+            description: '',
+            cuisine: items && items.length > 0 ? (items[0].category || 'Various') : 'Various',
+            rating: 4.5,
+            deliveryTime: '30-45 min',
+            minimumOrder: 10,
+            image: items && items.length > 0 ? (items[0].image || '') : '',
+            ownerId: '1'
+          });
+        }
+      } catch (err) {
+        console.error('Error loading cafe items', err);
+        setMenuItems([]);
+      }
     };
 
-    const mockMenuItems: MenuItem[] = [
-      {
-        id: 'item1',
-        restaurantId: restaurantId,
-        name: 'Margherita Pizza',
-        description: 'Classic pizza with fresh mozzarella, tomato sauce, and basil',
-        price: 16.99,
-        calories: 720,
-        ingredients: ['Mozzarella', 'Tomato Sauce', 'Basil', 'Olive Oil'],
-        category: 'Pizza',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1563245738-9169ff58eccf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHhwaXp6YSUyMHJlc3RhdXJhbnR8ZW58MXx8fHwxNzU5MDc1NTg3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      },
-      {
-        id: 'item2',
-        restaurantId: restaurantId,
-        name: 'Pepperoni Pizza',
-        description: 'Spicy pepperoni with mozzarella cheese and tomato sauce',
-        price: 19.99,
-        calories: 890,
-        ingredients: ['Pepperoni', 'Mozzarella', 'Tomato Sauce'],
-        category: 'Pizza',
-        isVegetarian: false,
-        isNonVeg: true,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1563245738-9169ff58eccf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHhwaXp6YSUyMHJlc3RhdXJhbnR8ZW58MXx8fHwxNzU5MDc1NTg3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      },
-      {
-        id: 'item3',
-        restaurantId: restaurantId,
-        name: 'Caesar Salad',
-        description: 'Fresh romaine lettuce with parmesan, croutons, and caesar dressing',
-        price: 12.99,
-        calories: 320,
-        ingredients: ['Romaine Lettuce', 'Parmesan', 'Croutons', 'Caesar Dressing'],
-        category: 'Salads',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHhzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      },
-      {
-        id: 'item4',
-        restaurantId: restaurantId,
-        name: 'Spaghetti Carbonara',
-        description: 'Creamy pasta with bacon, eggs, and parmesan cheese',
-        price: 18.99,
-        calories: 650,
-        ingredients: ['Spaghetti', 'Bacon', 'Eggs', 'Parmesan', 'Cream'],
-        category: 'Pasta',
-        isVegetarian: false,
-        isNonVeg: true,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1749169337822-d875fd6f4c9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHhwYXN0YSUyMGl0YWxpYW4lMjBmb29kfGVufDF8fHx8MTc1OTAwNjg5M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      },
-      {
-        id: 'item5',
-        restaurantId: restaurantId,
-        name: 'Garlic Bread',
-        description: 'Toasted bread with garlic butter and herbs',
-        price: 6.99,
-        calories: 240,
-        ingredients: ['Bread', 'Garlic', 'Butter', 'Herbs'],
-        category: 'Appetizers',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 4,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      },
-      {
-        id: 'item6',
-        restaurantId: restaurantId,
-        name: 'Tiramisu',
-        description: 'Classic Italian dessert with coffee and mascarpone',
-        price: 8.99,
-        calories: 450,
-        ingredients: ['Mascarpone', 'Coffee', 'Ladyfingers', 'Cocoa'],
-        category: 'Desserts',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      }
-    ];
-
-    setRestaurant(mockRestaurant);
-    setMenuItems(mockMenuItems);
+    load();
   }, [restaurantId]);
 
   useEffect(() => {
@@ -179,39 +134,94 @@ const MenuPage: React.FC = () => {
   const categories = ['all', ...Array.from(new Set(menuItems.map(item => item.category)))];
 
   const getItemQuantityInCart = (itemId: string): number => {
-    const cartItem = cart.find(item => item.menuItem.id === itemId);
-    return cartItem ? cartItem.quantity : 0;
+  const cartItem = cart.find(item => String(item.menuItem.id) === String(itemId));
+  return cartItem ? cartItem.quantity : 0;
   };
 
   const addToCart = (menuItem: MenuItem) => {
-    const existingItemIndex = cart.findIndex(item => item.menuItem.id === menuItem.id);
-    let newCart;
+    (async () => {
+      try {
+        // Check if cart already contains items from another restaurant
+        if (cart.length > 0) {
+          const existingRestaurantId = String(cart[0].menuItem.restaurantId ?? cart[0].menuItem.cafe_id ?? cart[0].menuItem.cafeId ?? '');
+          const newRestaurantId = String(menuItem.cafe_id ?? menuItem.cafeId ?? menuItem.restaurantId ?? '');
+          if (existingRestaurantId && newRestaurantId && existingRestaurantId !== newRestaurantId) {
+            toast.error('Your cart contains items from another restaurant. Please clear your cart before adding items from a different restaurant.');
+            return;
+          }
+        }
 
-    if (existingItemIndex > -1) {
-      newCart = [...cart];
-      newCart[existingItemIndex].quantity += 1;
-    } else {
-      newCart = [...cart, { menuItem, quantity: 1 }];
-    }
-
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-    toast.success(`${menuItem.name} added to cart`);
+        console.debug('[ui] addToCart called', menuItem);
+        const payload = { item_id: Number(menuItem.id), quantity: 1 };
+        const res = await cartApi.addToCart(payload as any);
+        if (res.error) {
+          toast.error(res.error);
+          return;
+        }
+        // refresh cart items from server and dedupe
+        const cartRes = await cartApi.getCartItems();
+        if (!cartRes.error && cartRes.data) {
+          const normalized = cartRes.data.map((r: any) => ({
+            id: r.id,
+            menuItem: r.item || r.menu_item || r.menuItem || r,
+            quantity: r.quantity || 1,
+            assignedTo: r.assignee_email || r.assignee_email_address || null
+          }));
+          setCart(normalized);
+        }
+        toast.success(`${menuItem.name} added to cart`);
+      } catch (err) {
+        console.error('addToCart failed', err);
+        toast.error('Failed to add to cart');
+      }
+    })();
   };
 
-  const removeFromCart = (itemId: string) => {
-    const existingItemIndex = cart.findIndex(item => item.menuItem.id === itemId);
-    if (existingItemIndex === -1) return;
+  const removeFromCart = async (itemId: string) => {
+    try {
+      // find server cart item id for this menu item
+      const cartEntry = cart.find((c) => String(c.menuItem.id) === String(itemId));
+      if (!cartEntry) return;
+      const cartItemId = cartEntry.id;
 
-    let newCart = [...cart];
-    if (newCart[existingItemIndex].quantity > 1) {
-      newCart[existingItemIndex].quantity -= 1;
-    } else {
-      newCart.splice(existingItemIndex, 1);
+      if (!cartItemId) {
+        // fallback to local removal
+        const existingItemIndex = cart.findIndex(item => item.menuItem.id === itemId);
+        if (existingItemIndex === -1) return;
+        let newCart = [...cart];
+        if (newCart[existingItemIndex].quantity > 1) {
+          newCart[existingItemIndex].quantity -= 1;
+        } else {
+          newCart.splice(existingItemIndex, 1);
+        }
+        setCart(newCart);
+        localStorage.setItem('cart', JSON.stringify(newCart));
+        return;
+      }
+
+      // decrement via backend
+      const newQty = Math.max(0, (cartEntry.quantity || 1) - 1);
+      if (newQty <= 0) {
+        await cartApi.removeItem(Number(cartItemId));
+      } else {
+        await cartApi.updateItemQuantity(Number(cartItemId), newQty);
+      }
+
+      // refresh cart from server
+      const cartRes = await cartApi.getCartItems();
+      if (!cartRes.error && cartRes.data) {
+        const normalized = cartRes.data.map((r: any) => ({
+          id: r.id,
+          menuItem: r.item || r.menu_item || r.menuItem || r,
+          quantity: r.quantity || 1,
+          assignedTo: r.assignee_email || r.assignee_email_address || null
+        }));
+        setCart(normalized);
+      }
+    } catch (err) {
+      console.error('Failed to remove from cart', err);
+      toast.error('Failed to update cart');
     }
-
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
   };
 
   const getTotalCartItems = () => {
@@ -295,7 +305,7 @@ const MenuPage: React.FC = () => {
           user={user}
           menuItems={menuItems}
           currentCaloriesToday={todayCalories}
-          onAddToCart={addToCart}
+          restaurantsById={{ [restaurantId || '']: restaurant }}
         />
       )}
 
