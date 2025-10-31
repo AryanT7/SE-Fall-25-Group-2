@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { CalorieGoal, GoalSetRequest, GoalRecommendationRequest } from './types';
+import { CalorieGoal, GoalSetRequest, GoalRecommendationRequest, GoalRecommendationResponse } from './types';
 
 // Goals API Functions
 export const goalsApi = {
@@ -27,8 +27,22 @@ export const goalsApi = {
   /**
    * Get calorie recommendation based on user profile
    */
-  async getRecommendation(profile: GoalRecommendationRequest): Promise<{ data?: { recommended_calories: number; breakdown?: any }; error?: string }> {
-    return apiClient.post('/goals/recommend', profile, false); // Public endpoint
+  async getRecommendation(profile: GoalRecommendationRequest): Promise<{ data?: GoalRecommendationResponse; error?: string }> {
+    // If dob is provided, derive age_years here so backend stays unchanged
+    let payload: GoalRecommendationRequest = { ...profile };
+    if (!payload.age_years && payload.dob) {
+      const dob = new Date(payload.dob);
+      if (!isNaN(dob.getTime())) {
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        if (age > 0) payload.age_years = age;
+      }
+      // do not send dob to backend; it's not required
+      delete (payload as any).dob;
+    }
+    return apiClient.post<GoalRecommendationResponse>('/goals/recommend', payload, false); // Public endpoint
   },
 
   /**
@@ -63,4 +77,3 @@ export const {
   deleteGoal,
   getIntakeHistory,
 } = goalsApi;
-

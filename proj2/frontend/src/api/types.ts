@@ -35,9 +35,10 @@ export interface User {
   height_cm?: number;
   weight_kg?: number;
   sex?: string;
-  dob?: string;
+  dob?: string; // ISO date string (YYYY-MM-DD)
+  age?: number; // kept optional for backward compatibility
+  activity?: string;
   daily_calorie_goal?: number;
-  cafe?: Cafe;
 }
 
 export interface DashboardStats {
@@ -95,7 +96,7 @@ export interface CafeCreateRequest {
 // Item Types
 export interface MenuItem {
   id: number;
-  cafe_id: number;
+  cafe_id: string;
   name: string;
   description?: string;
   ingredients?: string;
@@ -103,9 +104,12 @@ export interface MenuItem {
   price: number;
   quantity?: string;
   servings?: number;
-  veg_flag: boolean;
+  isVegetarian: boolean;
   kind?: string;
   active: boolean;
+  category: string;
+  image?: string; // Added image property
+  restaurantId: string; // Added to match usage in MenuPage.tsx
 }
 
 // REVIEWS
@@ -222,8 +226,13 @@ export interface GoalRecommendationRequest {
   height_cm: number;
   weight_kg: number;
   sex?: string;
-  age_years?: number;
+  age_years?: number; // derived from dob if provided
+  dob?: string; // optional input, client will derive age
   activity?: string;
+}
+
+export interface GoalRecommendationResponse {
+  daily_calorie_goal: number;
 }
 
 // API Error Types
@@ -242,4 +251,3 @@ export interface RequestOptions {
   body?: any;
   requiresAuth?: boolean;
 }
-

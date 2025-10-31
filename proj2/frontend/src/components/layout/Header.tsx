@@ -40,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
             <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold">F</span>
             </div>
-            <span className="text-xl font-bold">FoodApp</span>
+            <span className="text-xl font-bold">CalorieConnect</span>
           </Link>
         </div>
 
@@ -86,12 +86,12 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  {/* <DropdownMenuItem asChild>
                     <Link to="/settings/calories" className="flex items-center">
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Calorie Settings</span>
                     </Link>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                 </>
               )}
               {(user.role === 'OWNER') && (

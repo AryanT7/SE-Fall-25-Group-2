@@ -19,8 +19,8 @@ const RegisterPage: React.FC = () => {
   
     // USER fields
     name: '',
-    height: '',
-    weight: '',
+    height_cm: '',
+    weight_kg: '',
     dob: '',
     gender: '',
     activityLevel: '',
@@ -35,7 +35,6 @@ const RegisterPage: React.FC = () => {
     license: '',
     vehicleType: '',
   });
-  
   
   const { register, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
@@ -86,12 +85,11 @@ const RegisterPage: React.FC = () => {
           : 'USER',
   
       ...(userType === 'USER' && {
-        height_cm: Number(formData.height) || null,
-        weight_kg: Number(formData.weight) || null,
-        // date_of_birth: formData.dob || null,
-        // gender: formData.gender || null,
-        // activity_level: formData.activityLevel || null,
-
+        height_cm: Number(formData.height_cm) || null,
+        weight_kg: Number(formData.weight_kg) || null,
+        dob: formData.dob || null,
+        gender: formData.gender || null,
+        activity_level: formData.activityLevel || null,
       }),
     });
   
@@ -99,6 +97,26 @@ const RegisterPage: React.FC = () => {
     
     if (registeredUser) {
       toast.success('Registration successful!');
+
+      // ✅ NEW: Save the profile bits the dashboard expects to localStorage
+      if (registeredUser.role === 'USER') {
+        const profileForDashboard = {
+          height: formData.height_cm ? Number(formData.height_cm) : undefined,   // dashboard reads 'height'
+          weight: formData.weight_kg ? Number(formData.weight_kg) : undefined,   // dashboard reads 'weight'
+          dob: formData.dob || undefined,
+          gender: (formData.gender || '').toUpperCase(),                         // 'M' or 'F'
+          activityLevel: formData.activityLevel || 'moderate',
+          // daily_calorie_goal: Number(someValue) || undefined, // optional if you have one
+        };
+        try {
+          localStorage.setItem(
+            `user:${registeredUser.id}`,
+            JSON.stringify(profileForDashboard)
+          );
+        } catch {
+          // ignore storage errors
+        }
+      }
       
       // ✅ Role-based redirect after registration (same as login)
       const redirects: Record<string, string> = {
@@ -112,7 +130,6 @@ const RegisterPage: React.FC = () => {
       toast.error(error || 'Registration failed');
     }
   };
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -125,11 +142,11 @@ const RegisterPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="customer" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="customer">Customer</TabsTrigger>
-          <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
-          <TabsTrigger value="driver">Driver</TabsTrigger> 
-        </TabsList>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="customer">Customer</TabsTrigger>
+              <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
+              <TabsTrigger value="driver">Driver</TabsTrigger> 
+            </TabsList>
             
             <TabsContent value="customer" className="space-y-4">
               <form onSubmit={(e) => handleRegister(e, 'USER')} className="space-y-4">
@@ -161,8 +178,8 @@ const RegisterPage: React.FC = () => {
                       id="height"
                       type="number"
                       placeholder="180"
-                      value={formData.height}
-                      onChange={(e) => handleInputChange('height', e.target.value)}
+                      value={formData.height_cm}
+                      onChange={(e) => handleInputChange('height_cm', e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -171,8 +188,8 @@ const RegisterPage: React.FC = () => {
                       id="weight"
                       type="number"
                       placeholder="70"
-                      value={formData.weight}
-                      onChange={(e) => handleInputChange('weight', e.target.value)}
+                      value={formData.weight_kg}
+                      onChange={(e) => handleInputChange('weight_kg', e.target.value)}
                     />
                   </div>
                 </div>
@@ -333,6 +350,7 @@ const RegisterPage: React.FC = () => {
                 </Button>
               </form>
             </TabsContent>
+
             <TabsContent value="driver" className="space-y-4">
               <form onSubmit={(e) => handleRegister(e, 'DRIVER')} className="space-y-4">
                 <div className="space-y-2">
@@ -414,4 +432,5 @@ const RegisterPage: React.FC = () => {
     </div>
   );
 };
+
 export default RegisterPage;

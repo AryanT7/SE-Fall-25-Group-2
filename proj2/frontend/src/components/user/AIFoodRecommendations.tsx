@@ -1,399 +1,328 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Sparkles, Brain, TrendingUp, Apple, Zap, Info } from 'lucide-react';
-import { User, MenuItem } from '../../App';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Progress } from '../ui/progress';
+import { Button } from '../ui/button';
+import { Lightbulb, Target } from 'lucide-react';
 import FoodSuggestions from './FoodSuggestions';
-import { Link } from 'react-router-dom';
+import { MenuItem, User } from '../../api/types';
+import { goalsApi, itemsApi } from '../../api';
 
 interface AIFoodRecommendationsProps {
   user: User;
 }
 
 const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) => {
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(true);
   const [todayCalories, setTodayCalories] = useState(0);
   const [allMenuItems, setAllMenuItems] = useState<MenuItem[]>([]);
+  const [effectiveUser, setEffectiveUser] = useState<User>(user);
+  const [restaurantsById, setRestaurantsById] = useState<Record<string | number, any>>({});
 
-  useEffect(() => {
-    // Calculate today's calories
-    const orders = localStorage.getItem('orders');
-    if (orders) {
-      const parsedOrders = JSON.parse(orders);
-      const today = new Date().toDateString();
-      const todayOrders = parsedOrders.filter((order: any) => 
-        new Date(order.createdAt).toDateString() === today
-      );
-      const totalCalories = todayOrders.reduce((sum: number, order: any) => 
-        sum + (order.totalCalories || 0), 0
-      );
-      setTodayCalories(totalCalories);
+  // ---------- helpers ----------
+  const coerceNumber = (v: unknown): number | undefined => {
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    if (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v))) return Number(v);
+    return undefined;
+  };
+
+  const calcAge = (dob?: string): number | undefined => {
+    if (!dob) return undefined;
+    const birth = new Date(dob);
+    if (isNaN(birth.getTime())) return undefined;
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  };
+
+  const normalizeActivity = (raw: any):
+    | 'sedentary'
+    | 'light'
+    | 'moderate'
+    | 'active'
+    | 'very active' => {
+    const s = String(raw ?? '').toLowerCase().trim();
+    if (['sedentary', 'none', 'rest', '1'].includes(s)) return 'sedentary';
+    if (['light', 'lightly active', 'lightly_active', '2'].includes(s)) return 'light';
+    if (['moderate', 'moderately active', 'moderately_active', '3', 'avg', 'medium'].includes(s)) return 'moderate';
+    if (['active', '4', 'high'].includes(s)) return 'active';
+    if (
+      ['very active', 'very_active', 'veryactive', 'extremely active', 'extremely_active', '5', 'extreme'].includes(s)
+    )
+      return 'very active';
+    return 'moderate';
+  };
+
+  const activityMultiplier = (level?: string): number => {
+    const l = normalizeActivity(level).toLowerCase();
+    switch (l) {
+      case 'sedentary': return 1.2;
+      case 'light': return 1.375;
+      case 'moderate': return 1.55;
+      case 'active': return 1.725;
+      case 'very active': return 1.9; // ensure "very active" is highest
+      default: return 1.55;
     }
+  };
 
-    // Mock comprehensive menu items from various restaurants
-    const mockMenuItems: MenuItem[] = [
-      // Healthy Options
-      {
-        id: 'healthy1',
-        restaurantId: 'health-cafe',
-        name: 'Quinoa Power Bowl',
-        description: 'Quinoa with roasted vegetables, chickpeas, and tahini dressing',
-        price: 14.99,
-        calories: 380,
-        ingredients: ['Quinoa', 'Chickpeas', 'Broccoli', 'Sweet Potato', 'Tahini'],
-        category: 'Bowls',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'healthy2',
-        restaurantId: 'health-cafe',
-        name: 'Grilled Salmon Salad',
-        description: 'Fresh salmon with mixed greens, avocado, and lemon vinaigrette',
-        price: 17.99,
-        calories: 420,
-        ingredients: ['Salmon', 'Mixed Greens', 'Avocado', 'Cherry Tomatoes', 'Lemon'],
-        category: 'Salads',
-        isVegetarian: false,
-        isNonVeg: true,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'healthy3',
-        restaurantId: 'health-cafe',
-        name: 'Greek Yogurt Parfait',
-        description: 'Layers of Greek yogurt, granola, and fresh berries',
-        price: 8.99,
-        calories: 280,
-        ingredients: ['Greek Yogurt', 'Granola', 'Blueberries', 'Strawberries', 'Honey'],
-        category: 'Breakfast',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'healthy4',
-        restaurantId: 'health-cafe',
-        name: 'Chicken & Veggie Wrap',
-        description: 'Grilled chicken with vegetables in a whole wheat wrap',
-        price: 11.99,
-        calories: 390,
-        ingredients: ['Chicken Breast', 'Whole Wheat Wrap', 'Lettuce', 'Tomatoes', 'Hummus'],
-        category: 'Wraps',
-        isVegetarian: false,
-        isNonVeg: true,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      // Light Snacks
-      {
-        id: 'snack1',
-        restaurantId: 'snack-bar',
-        name: 'Hummus & Veggie Sticks',
-        description: 'Fresh vegetables with creamy hummus',
-        price: 6.99,
-        calories: 180,
-        ingredients: ['Hummus', 'Carrots', 'Celery', 'Bell Peppers', 'Cucumbers'],
-        category: 'Snacks',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'snack2',
-        restaurantId: 'snack-bar',
-        name: 'Protein Smoothie',
-        description: 'Banana, protein powder, almond milk, and peanut butter',
-        price: 7.99,
-        calories: 320,
-        ingredients: ['Banana', 'Protein Powder', 'Almond Milk', 'Peanut Butter', 'Ice'],
-        category: 'Beverages',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'snack3',
-        restaurantId: 'snack-bar',
-        name: 'Fruit & Nut Mix',
-        description: 'Mixed nuts with dried fruits',
-        price: 5.99,
-        calories: 220,
-        ingredients: ['Almonds', 'Cashews', 'Dried Cranberries', 'Raisins', 'Walnuts'],
-        category: 'Snacks',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      // Protein-Rich Options
-      {
-        id: 'protein1',
-        restaurantId: 'protein-kitchen',
-        name: 'Grilled Chicken Breast',
-        description: 'Lean chicken breast with herbs and a side salad',
-        price: 13.99,
-        calories: 340,
-        ingredients: ['Chicken Breast', 'Herbs', 'Olive Oil', 'Side Salad'],
-        category: 'Mains',
-        isVegetarian: false,
-        isNonVeg: true,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'protein2',
-        restaurantId: 'protein-kitchen',
-        name: 'Tofu Stir Fry',
-        description: 'Crispy tofu with mixed vegetables in teriyaki sauce',
-        price: 12.99,
-        calories: 360,
-        ingredients: ['Tofu', 'Broccoli', 'Bell Peppers', 'Snap Peas', 'Teriyaki Sauce'],
-        category: 'Mains',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'protein3',
-        restaurantId: 'protein-kitchen',
-        name: 'Turkey Meatballs',
-        description: 'Lean turkey meatballs with marinara sauce',
-        price: 14.99,
-        calories: 410,
-        ingredients: ['Ground Turkey', 'Marinara Sauce', 'Herbs', 'Parmesan'],
-        category: 'Mains',
-        isVegetarian: false,
-        isNonVeg: true,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwxfHx8fDE3NTkxMDQ1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      // Low Calorie Options
-      {
-        id: 'lowcal1',
-        restaurantId: 'light-bites',
-        name: 'Veggie Soup',
-        description: 'Hearty vegetable soup with herbs',
-        price: 7.99,
-        calories: 150,
-        ingredients: ['Tomatoes', 'Carrots', 'Celery', 'Onions', 'Vegetable Broth'],
-        category: 'Soups',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080'
-      },
-      {
-        id: 'lowcal2',
-        restaurantId: 'light-bites',
-        name: 'Zucchini Noodles',
-        description: 'Spiralized zucchini with light pesto sauce',
-        price: 10.99,
-        calories: 210,
-        ingredients: ['Zucchini', 'Pesto', 'Cherry Tomatoes', 'Parmesan'],
-        category: 'Pasta',
-        isVegetarian: true,
-        isNonVeg: false,
-        servings: 1,
-        image: 'https://images.unsplash.com/photo-1651352650142-385087834d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWxhZCUyMGhlYWx0aHklMjBmb29kfGVufDF8fHx8MTc1OTA4MDI3NHww&ixlib=rb-4.1.0&q=80&w=1080'
+  // Only used as a final fallback if no daily_calorie_goal exists
+  const computeHarrisBenedict = (u: any): number | null => {
+    const height_cm = coerceNumber(u?.height_cm ?? u?.height);
+    const weight_kg = coerceNumber(u?.weight_kg ?? u?.weight);
+    const sex = (u?.sex || u?.gender || '').toString().toUpperCase(); // 'M' or 'F'
+    const age_years = calcAge(u?.dob);
+    if (!height_cm || !weight_kg || !age_years || (sex !== 'M' && sex !== 'F')) return null;
+
+    let bmr: number;
+    if (sex === 'M') {
+      bmr = 88.362 + 13.397 * weight_kg + 4.799 * height_cm - 5.677 * age_years;
+    } else {
+      bmr = 447.593 + 9.247 * weight_kg + 3.098 * height_cm - 4.330 * age_years;
+    }
+    console.log("AI REC user.age =", age_years);
+    console.log("AI REC user.height =", height_cm);
+    console.log("AI REC user.weight =", weight_kg);
+    console.log("AI REC user.sex =", sex);
+    console.log("AI REC user.activityLevel =", activityMultiplier(u?.activityLevel));
+
+    const mult = activityMultiplier(u?.activityLevel ?? u?.activity_level ?? u?.activity);
+    return Math.max(1, Math.round(bmr * mult));
+  };
+
+  // ---------- load data ----------
+  useEffect(() => {
+    const run = async () => {
+      setLoading(true);
+
+      // 0) Hydrate user; prefer server-provided prop, use localStorage to fill in missing fields
+      try {
+        const stored = localStorage.getItem(`user:${user.id}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const level = normalizeActivity(parsed?.activityLevel ?? parsed?.activity_level ?? parsed?.activity);
+          setEffectiveUser({ ...parsed, ...user, activityLevel: level } as any);
+        } else {
+          const level = normalizeActivity((user as any)?.activityLevel ?? (user as any)?.activity_level);
+          setEffectiveUser({ ...user, activityLevel: level } as any);
+        }
+      } catch {
+        const level = normalizeActivity((user as any)?.activityLevel ?? (user as any)?.activity_level);
+        setEffectiveUser({ ...user, activityLevel: level } as any);
       }
-    ];
 
-    setAllMenuItems(mockMenuItems);
-  }, []);
+      // 1) Today's calories: backend → local fallback
+      try {
+        const res = await goalsApi.getTodayIntake();
+        if (res?.data?.calories !== undefined) {
+          setTodayCalories(res.data.calories);
+        } else {
+          throw new Error('No backend data');
+        }
+      } catch {
+        try {
+          const orders = localStorage.getItem('orders');
+          if (orders) {
+            const parsed = JSON.parse(orders);
+            const today = new Date().toDateString();
+            const todayOrders = parsed.filter(
+              (o: any) => new Date(o.createdAt).toDateString() === today
+            );
+            const total = todayOrders.reduce(
+              (sum: number, o: any) => sum + (o.totalCalories || 0),
+              0
+            );
+            setTodayCalories(total);
+          } else {
+            setTodayCalories(0);
+          }
+        } catch {
+          setTodayCalories(0);
+        }
+      }
 
-  const getLowCalorieItems = () => {
-    return allMenuItems.filter(item => item.calories < 300);
-  };
+      // 2) Menu items (map cafe_id → restaurantId, ensure defaults)
+      try {
+        const res = await itemsApi.listAll();
+        if (res?.data && Array.isArray(res.data)) {
+          const transformed = res.data.map((item: any) => ({
+            ...item,
+            restaurantId: item.cafe_id ?? item.restaurantId,
+            category: item.category || 'Main',
+            isVegetarian: item.is_vegetarian ?? item.isVegetarian ?? false,
+            isNonVeg: item.is_non_veg ?? item.isNonVeg ?? false,
+            image: item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
+            servings: item.servings || 1,
+          }));
+          setAllMenuItems(transformed);
+        } else {
+          setAllMenuItems([]);
+        }
+      } catch {
+        setAllMenuItems([]);
+      }
 
-  const getBalancedItems = () => {
-    return allMenuItems.filter(item => item.calories >= 300 && item.calories <= 500);
-  };
+      // 3) Restaurants list for name/address under each suggestion
+      try {
+        let map: Record<string | number, any> = {};
 
-  const getVegetarianItems = () => {
-    return allMenuItems.filter(item => item.isVegetarian);
-  };
+        // Try backend
+        try {
+          const rres = await fetch('/api/restaurants');
+          if (rres.ok) {
+            const data = await rres.json();
+            if (Array.isArray(data)) {
+              for (const r of data) map[r.id] = r;
+            }
+          }
+        } catch {
+          // ignore; fallback below
+        }
 
-  const getProteinRichItems = () => {
-    return allMenuItems.filter(item => 
-      item.category === 'Mains' || item.ingredients.some(ing => 
-        ing.toLowerCase().includes('chicken') || 
-        ing.toLowerCase().includes('salmon') ||
-        ing.toLowerCase().includes('tofu') ||
-        ing.toLowerCase().includes('turkey')
-      )
+        // Fallback: localStorage
+        if (Object.keys(map).length === 0) {
+          const stored = localStorage.getItem('restaurants');
+          if (stored) {
+            const arr = JSON.parse(stored);
+            if (Array.isArray(arr)) {
+              for (const r of arr) map[r.id] = r;
+            }
+          }
+        }
+
+        setRestaurantsById(map);
+      } catch {
+        setRestaurantsById({});
+      }
+
+      setLoading(false);
+    };
+
+    run();
+  }, [user.id]);
+
+  // ---------- goal resolution ----------
+  // Use daily_calorie_goal first. If missing, fallback to user.calorieGoal.
+  // As a last resort, compute via Harris–Benedict from profile; default 2000 if still missing.
+  const resolvedGoal = useMemo(() => {
+    const fromDaily = coerceNumber((effectiveUser as any).daily_calorie_goal);
+    if (typeof fromDaily === 'number') return fromDaily;
+
+    const direct = coerceNumber((effectiveUser as any).calorieGoal);
+    if (typeof direct === 'number') return direct;
+
+    const hb = computeHarrisBenedict(effectiveUser);
+    if (typeof hb === 'number' && Number.isFinite(hb) && hb > 0) return hb;
+
+    return 2000;
+  }, [effectiveUser]);
+
+  const progress = Math.min((todayCalories / resolvedGoal) * 100, 100);
+  const remaining = Math.max(0, resolvedGoal - todayCalories);
+
+  // Personalized list: closest fits to remaining cals, else lightest items
+  const personalizedMenu = useMemo(() => {
+    if (!Array.isArray(allMenuItems) || allMenuItems.length === 0) return [];
+    const fit = allMenuItems.filter((it) => typeof it.calories === 'number' && it.calories <= remaining);
+    if (fit.length > 0) {
+      return fit.sort((a, b) => {
+        const da = Math.abs((a.calories || 0) - remaining);
+        const db = Math.abs((b.calories || 0) - remaining);
+        return da - db;
+      });
+    }
+    return [...allMenuItems]
+      .filter((it) => typeof it.calories === 'number')
+      .sort((a, b) => (a.calories || 0) - (b.calories || 0));
+  }, [allMenuItems, remaining]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
     );
-  };
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col space-y-2">
-        <div className="flex items-center gap-2">
-          <Brain className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">AI Food Recommendations</h1>
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-3 bg-primary/10 rounded-lg">
+          <Lightbulb className="h-6 w-6 text-primary" />
         </div>
-        <p className="text-muted-foreground">
-          Personalized meal suggestions powered by artificial intelligence based on your calorie goals and preferences
-        </p>
+        <div>
+          <h1 className="text-3xl font-bold">AI Food Recommendations</h1>
+          <p className="text-muted-foreground">
+            Personalized suggestions based on your daily goal and today’s intake
+          </p>
+        </div>
       </div>
 
-      {/* How It Works */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+      {/* Progress Card */}
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-blue-600" />
-            How AI Suggestions Work
+            <Target className="h-5 w-5" />
+            Daily Progress
           </CardTitle>
+          <CardDescription>
+            {`We’re using your daily goal of ${resolvedGoal} cal`}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="flex items-start gap-3">
-              <div className="bg-blue-600 text-white p-2 rounded-lg">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-medium">Calorie Analysis</h4>
-                <p className="text-sm text-muted-foreground">
-                  Our AI analyzes your daily goal and remaining calories to suggest perfect portions
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-purple-600 text-white p-2 rounded-lg">
-                <Apple className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-medium">Nutritional Balance</h4>
-                <p className="text-sm text-muted-foreground">
-                  Recommendations consider proteins, vegetables, and overall nutritional value
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-green-600 text-white p-2 rounded-lg">
-                <Zap className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-medium">Meal Timing</h4>
-                <p className="text-sm text-muted-foreground">
-                  Suggestions adapt based on time of day for breakfast, lunch, dinner, or snacks
-                </p>
-              </div>
-            </div>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between text-sm">
+            <span>Today's Progress</span>
+            <span className="font-medium">
+              {todayCalories} / {resolvedGoal} cal
+            </span>
           </div>
+          <Progress value={progress} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            {remaining > 0 ? `${remaining} calories remaining for today` : 'Daily goal reached!'}
+          </p>
         </CardContent>
       </Card>
 
-      {/* Tabbed Suggestions */}
+      {/* Tabs */}
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="balanced">Balanced</TabsTrigger>
-          <TabsTrigger value="light">Light</TabsTrigger>
-          <TabsTrigger value="protein">Protein</TabsTrigger>
-          <TabsTrigger value="veggie">Veggie</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="all">All (Personalized)</TabsTrigger>
+          <TabsTrigger value="vegetarian">Vegetarian</TabsTrigger>
+          <TabsTrigger value="low-cal">Low Calorie</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
           <FoodSuggestions
-            user={user}
-            menuItems={allMenuItems}
+            user={{ ...(effectiveUser as any), calorieGoal: resolvedGoal }}
+            menuItems={personalizedMenu}
             currentCaloriesToday={todayCalories}
+            restaurantsById={restaurantsById}
           />
         </TabsContent>
 
-        <TabsContent value="balanced" className="space-y-4">
-          <Card className="border-blue-200">
-            <CardHeader>
-              <CardTitle>Balanced Meals (300-500 calories)</CardTitle>
-              <CardDescription>
-                Perfect portion sizes for main meals that keep you satisfied
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        <TabsContent value="vegetarian" className="space-y-4">
           <FoodSuggestions
-            user={user}
-            menuItems={getBalancedItems()}
+            user={{ ...(effectiveUser as any), calorieGoal: resolvedGoal }}
+            menuItems={allMenuItems.filter((it) => (it as any).isVegetarian === true)}
             currentCaloriesToday={todayCalories}
+            restaurantsById={restaurantsById}
           />
         </TabsContent>
 
-        <TabsContent value="light" className="space-y-4">
-          <Card className="border-green-200">
-            <CardHeader>
-              <CardTitle>Light Options (Under 300 calories)</CardTitle>
-              <CardDescription>
-                Perfect for snacks or when you're watching your intake
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        <TabsContent value="low-cal" className="space-y-4">
           <FoodSuggestions
-            user={user}
-            menuItems={getLowCalorieItems()}
+            user={{ ...(effectiveUser as any), calorieGoal: resolvedGoal }}
+            menuItems={allMenuItems.filter((it) => (it.calories || 0) < 300)}
             currentCaloriesToday={todayCalories}
-          />
-        </TabsContent>
-
-        <TabsContent value="protein" className="space-y-4">
-          <Card className="border-red-200">
-            <CardHeader>
-              <CardTitle>Protein-Rich Options</CardTitle>
-              <CardDescription>
-                High-protein meals to support muscle and keep you full longer
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <FoodSuggestions
-            user={user}
-            menuItems={getProteinRichItems()}
-            currentCaloriesToday={todayCalories}
-          />
-        </TabsContent>
-
-        <TabsContent value="veggie" className="space-y-4">
-          <Card className="border-green-200">
-            <CardHeader>
-              <CardTitle>Vegetarian Options</CardTitle>
-              <CardDescription>
-                Plant-based meals packed with nutrients
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <FoodSuggestions
-            user={user}
-            menuItems={getVegetarianItems()}
-            currentCaloriesToday={todayCalories}
+            restaurantsById={restaurantsById}
           />
         </TabsContent>
       </Tabs>
-
-      {/* Need to Set Goal */}
-      {!user.calorieGoal && (
-        <Card className="border-amber-200 bg-amber-50">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-amber-600 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-amber-900">Set Your Calorie Goal</h4>
-                <p className="text-sm text-amber-700 mt-1 mb-3">
-                  To get the most accurate AI recommendations, please set your daily calorie goal in settings.
-                </p>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/settings/calories">Configure Goal</Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

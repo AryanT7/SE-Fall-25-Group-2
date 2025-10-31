@@ -24,8 +24,8 @@ const Navigation: React.FC<NavigationProps> = ({ user }) => {
     { path: '/ai-recommendations', label: 'AI Suggestions', icon: Sparkles },
     { path: '/cart', label: 'Cart', icon: ShoppingCart },
     { path: '/orders', label: 'Orders', icon: Clock },
-    { path: '/emotional-insights', label: 'Insights', icon: Brain },
-    { path: '/settings/calories', label: 'Goals', icon: Target },
+    //{ path: '/emotional-insights', label: 'Insights', icon: Brain },
+    // { path: '/settings/calories', label: 'Goals', icon: Target },
   ];
 
   return (

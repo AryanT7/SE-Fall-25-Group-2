@@ -32,4 +32,6 @@ def today_intake(db: Session = Depends(get_db), current: User = Depends(get_curr
 @router.post("/recommend", response_model=dict)
 def recommend(req: GoalRecommendationRequest):
     daily = daily_calorie_recommendation(req.height_cm, req.weight_kg, req.sex, req.age_years, req.activity)
+    print("User details - Height(cm):", req.height_cm, "Weight(kg):", req.weight_kg, "Sex:", req.sex, "Age(years):", req.age_years, "Activity Level:", req.activity)
+    print("Recommended daily calorie intake:", daily)
     return {"daily_calorie_goal": daily}

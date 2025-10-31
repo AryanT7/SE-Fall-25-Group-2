@@ -1,8 +1,11 @@
 def daily_calorie_recommendation(height_cm: float, weight_kg: float, sex: str, age_years: int, activity: str) -> int:
-    if sex.upper().startswith("M"):
-        bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age_years + 5
-    else:
-        bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age_years - 161
+    sex = (sex or "").strip().upper()
+    # Harris–Benedict (revised)
+    if sex.startswith("M"):
+        bmr = 88.362 + 13.397 * weight_kg + 4.799 * height_cm - 5.677 * age_years
+    else:  # Female (default)
+        bmr = 447.593 + 9.247 * weight_kg + 3.098 * height_cm - 4.330 * age_years
+
     factors = {
         "sedentary": 1.2,
         "light": 1.375,
@@ -10,5 +13,5 @@ def daily_calorie_recommendation(height_cm: float, weight_kg: float, sex: str, a
         "active": 1.725,
         "very_active": 1.9,
     }
-    tdee = bmr * factors.get(activity, 1.55)
-    return int(round(tdee))
+    mult = factors.get((activity or "").lower(), 1.55)
+    return int(round(bmr * mult))

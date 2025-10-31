@@ -54,12 +54,12 @@ export default function App() {
             <Route path="/dashboard" element={<UserDashboard user={user} />} />
             <Route path="/restaurants" element={<RestaurantList />} />
             <Route path="/menu/:restaurantId" element={<MenuPage />} />
-            {/* <Route path="/cart" element={<CartPage />} /> */}
+            <Route path="/cart" element={<CartPage user={user} />} />
             <Route path="/orders" element={<OrderHistory user={user} />} />
             <Route path="/orders/:orderId/track" element={<OrderTracking />} />
-            {/* <Route path="/calories" element={<CalorieSettings />} />
-            <Route path="/ai" element={<AIFoodRecommendations />} />
-            <Route path="/emotions" element={<EmotionalInsights />} /> */}
+            <Route path="/calories" element={<CalorieSettings user={user} />} />
+            <Route path="/ai-recommendations" element={<AIFoodRecommendations user={user} />} />
+            {/*<Route path="/emotions" element={<EmotionalInsights />} /> */}
             <Route path="/reviews" element={<RestaurantReviews />} />
             <Route path="/poster" element={<ApplicationPoster />} />
           </>
