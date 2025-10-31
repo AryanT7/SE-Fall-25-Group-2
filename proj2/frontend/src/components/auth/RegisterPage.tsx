@@ -36,7 +36,6 @@ const RegisterPage: React.FC = () => {
     vehicleType: '',
   });
   
-  
   const { register, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
@@ -91,7 +90,6 @@ const RegisterPage: React.FC = () => {
         dob: formData.dob || null,
         gender: formData.gender || null,
         activity_level: formData.activityLevel || null,
-
       }),
     });
   
@@ -99,6 +97,26 @@ const RegisterPage: React.FC = () => {
     
     if (registeredUser) {
       toast.success('Registration successful!');
+
+      // ✅ NEW: Save the profile bits the dashboard expects to localStorage
+      if (registeredUser.role === 'USER') {
+        const profileForDashboard = {
+          height: formData.height_cm ? Number(formData.height_cm) : undefined,   // dashboard reads 'height'
+          weight: formData.weight_kg ? Number(formData.weight_kg) : undefined,   // dashboard reads 'weight'
+          dob: formData.dob || undefined,
+          gender: (formData.gender || '').toUpperCase(),                         // 'M' or 'F'
+          activityLevel: formData.activityLevel || 'moderate',
+          // daily_calorie_goal: Number(someValue) || undefined, // optional if you have one
+        };
+        try {
+          localStorage.setItem(
+            `user:${registeredUser.id}`,
+            JSON.stringify(profileForDashboard)
+          );
+        } catch {
+          // ignore storage errors
+        }
+      }
       
       // ✅ Role-based redirect after registration (same as login)
       const redirects: Record<string, string> = {
@@ -112,7 +130,6 @@ const RegisterPage: React.FC = () => {
       toast.error(error || 'Registration failed');
     }
   };
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -125,11 +142,11 @@ const RegisterPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="customer" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="customer">Customer</TabsTrigger>
-          <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
-          <TabsTrigger value="driver">Driver</TabsTrigger> 
-        </TabsList>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="customer">Customer</TabsTrigger>
+              <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
+              <TabsTrigger value="driver">Driver</TabsTrigger> 
+            </TabsList>
             
             <TabsContent value="customer" className="space-y-4">
               <form onSubmit={(e) => handleRegister(e, 'USER')} className="space-y-4">
@@ -333,6 +350,7 @@ const RegisterPage: React.FC = () => {
                 </Button>
               </form>
             </TabsContent>
+
             <TabsContent value="driver" className="space-y-4">
               <form onSubmit={(e) => handleRegister(e, 'DRIVER')} className="space-y-4">
                 <div className="space-y-2">
@@ -414,4 +432,5 @@ const RegisterPage: React.FC = () => {
     </div>
   );
 };
+
 export default RegisterPage;
