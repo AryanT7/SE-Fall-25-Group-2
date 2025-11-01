@@ -45,9 +45,10 @@ export const ordersApi = {
    * Update order status (Staff/Owner only)
    */
   async updateOrderStatus(orderId: number, status: OrderStatus): Promise<{ data?: Order; error?: string }> {
-    return apiClient.post<Order>(`/orders/${orderId}/status`, status);
+    // ✅ Send status as query parameter, not body
+    return apiClient.post<Order>(`/orders/${orderId}/status?new_status=${status}`, {});
   },
-
+  
   /**
    * Get order tracking information
    */

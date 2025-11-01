@@ -69,8 +69,8 @@ export default function App() {
         {isAuthenticated && user?.role === 'OWNER' && (
           <>
             <Route path="/restaurant/dashboard" element={<RestaurantDashboard user={user} />} />
-            <Route path="/restaurant/menu" element={<MenuManagement />} />
-            {/* <Route path="/restaurant/orders" element={<OrderManagement />} /> */}
+            {/* <Route path="/restaurant/menu" element={<MenuManagement />} /> */}
+            <Route path="/restaurant/orders" element={<OrderManagement user={user} />} />
             {/* <Route path="/restaurant/staff" element={<StaffManagement />} /> */}
             <Route path="/restaurant/reviews" element={<ReviewInsights cafeId={user?.cafe?.id!} />} />
             {/* <Route path="/restaurant/analytics" element={<Analytics />} />  */}
