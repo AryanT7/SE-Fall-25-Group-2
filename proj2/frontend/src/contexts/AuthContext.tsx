@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { User, LoginRequest, RegisterRequest } from '../api/types'; // adjust import path
+import { User, LoginRequest, RegisterRequest, Cafe, CafeCreateRequest } from '../api/types'; // adjust import path
 import { apiClient } from '../api/client';
 import { TokenManager, isTokenExpired } from '../api/client'; // adjust import path
+import { cafeApi } from '../api';
 
 interface AuthState {
   user: User | null;
@@ -21,12 +22,23 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // ✅ Try loading user and tokens from storage at initialization time
+  const storedUser = (() => {
+    try {
+      const u = localStorage.getItem('user');
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   const [state, setState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
+    user: storedUser,
+    isAuthenticated: !!storedUser,
+    isLoading: false,
     error: null,
   });
+
 
   // Check authentication status on mount
   useEffect(() => {
@@ -37,13 +49,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (token && !isTokenExpired(token)) {
             const response = await apiClient.get<User>('/users/me');
             if (response.data) {
+              let userData = response.data;
+            
+              if (userData.role === 'OWNER') {
+                try {
+                  const cafeRes = await apiClient.get<Cafe>('/cafes/mine');
+                  if (cafeRes.data) {
+                    userData = { ...userData, cafe: cafeRes.data };
+                  }
+                } catch (e) {
+                  console.error('⚠️ Failed to load owner cafe:', e);
+                }
+              }
+            
+              localStorage.setItem('user', JSON.stringify(userData));
               setState(prev => ({
                 ...prev,
-                user: response.data!,
+                user: userData,
                 isAuthenticated: true,
                 isLoading: false,
               }));
-            } else {
+            }
+             else {
               TokenManager.clearTokens();
               setState(prev => ({
                 ...prev,
@@ -82,29 +109,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (credentials: LoginRequest): Promise<User | null> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+  
     try {
       const response = await apiClient.post<{ access_token: string; refresh_token: string; token_type: string }>(
         '/auth/login',
         credentials,
         false
       );
-      
+  
       if (response.data) {
         TokenManager.setTokens(response.data.access_token, response.data.refresh_token);
         const userResponse = await apiClient.get<User>('/users/me');
+  
         if (userResponse.data) {
+          let userData = userResponse.data;
+  
+          // ✅ If owner, get their cafe
+          if (userData.role === 'OWNER') {
+            const cafeRes = await apiClient.get<Cafe>('/cafes/mine');
+            if (cafeRes.data) {
+              userData = { ...userData, cafe: cafeRes.data };
+            }
+          }
+
+          localStorage.setItem('user', JSON.stringify(userData));
+          console.log('✅ Saved user to localStorage');
+          console.log('🔍 Read back immediately:', localStorage.getItem('user'));
+
+  
           setState(prev => ({
             ...prev,
-            user: userResponse.data!,
+            user: userData,
             isAuthenticated: true,
             isLoading: false,
             error: null,
           }));
-          return userResponse.data;
+          // ✅ Persist user in localStorage for reloads
+          localStorage.setItem('user', JSON.stringify(userData));
+
+          return userData;
         }
       }
+
       
+  
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -120,25 +168,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   }, []);
+  
 
   const register = useCallback(async (userData: RegisterRequest): Promise<User | null> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
   
     try {
-      console.log('Registering user:', userData);
       const response = await apiClient.post<User>('/users/register', userData, false);
-      console.log('Registration response:', response);
-      
+  
       if (response.data) {
-        // ✅ login() already calls /users/me and returns the User object
-        const loggedInUser = await login({ 
-          email: userData.email, 
+        // ✅ Automatically login after register
+        const loggedInUser = await login({
+          email: userData.email,
           password: userData.password,
           role: userData.role
         });
-        return loggedInUser; 
+  
+        // ✅ If registered user is an OWNER, auto-create cafe
+        if (loggedInUser?.role === 'OWNER') {
+          const cafePayload: CafeCreateRequest = {
+            name: userData.name || `${loggedInUser.name}'s Cafe`,
+            address: 'Not specified', // or pass from frontend later
+            lat: 0,
+            lng: 0,
+          };
+  
+          // 🔹 call via cafesAPI, not apiClient directly
+          const { data: newCafe, error } = await cafeApi.createCafe(cafePayload);
+  
+          if (error) console.error(' Cafe creation failed:', error);
+          else if (newCafe) console.log(' Cafe created:', newCafe);
+  
+          // 🔹 now fetch the updated user (with cafe)
+          const { data: updatedUser, error: userError } = await apiClient.get<User>('/users/me');
+          if (updatedUser) {
+            setState(prev => ({
+              ...prev,
+              user: updatedUser,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            }));
+          }
+        }
+  
+        return loggedInUser;
       }
-      
+  
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -154,6 +230,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   }, [login]);
+  
 
   const logout = useCallback(() => {
     TokenManager.clearTokens();
@@ -163,7 +240,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading: false,
       error: null,
     });
+    localStorage.removeItem('user');
   }, []);
+
+ 
+
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));

@@ -10,7 +10,7 @@ import { Checkbox } from '../ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Plus, Edit, Trash2, Upload, ChefHat, Leaf, AlertCircle } from 'lucide-react';
-import { User, MenuItem } from '../../App';
+import { User, MenuItem } from '../../api/types';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ interface MenuManagementProps {
   user: User;
 }
 
-const MenuManagement: React.fc<MenuManagementProps> = ({ user }) => {
+const MenuManagement: React.FC<MenuManagementProps> = ({ user }) => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);

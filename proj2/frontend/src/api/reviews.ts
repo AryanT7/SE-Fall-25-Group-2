@@ -1,8 +1,3 @@
-// src/api/reviews.ts
-// Mirrors backend endpoints for fetching reviews and AI summaries.
-// Endpoints:
-// - GET /cafes/{cafe_id}/reviews
-// - GET /cafes/{cafe_id}/reviews/summary?force=true
 
 import { apiClient } from './client';
 import {Review, ReviewSummary, CreateReviewInput} from './types';

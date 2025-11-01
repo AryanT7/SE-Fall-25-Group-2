@@ -50,7 +50,6 @@ const LoginPage: React.FC = () => {
     
     if (loggedInUser) {
       toast.success('Demo login successful!');
-      // Navigation will happen via useEffect above
     } else {
       toast.error('Demo login failed');
     }
