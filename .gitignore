@@ -12,6 +12,10 @@ __pycache__/
 
 .env
 
+docs/
+
+proj2/backend/demo.py
+
 # Python virtualenvs
 .venv/
 venv/

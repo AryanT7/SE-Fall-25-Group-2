@@ -1,0 +1,67 @@
+name: Publish API Docs
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: proj2/backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install project (deps minimal to import app)
+        run: |
+          python -m pip install -U pip
+          pip install -e . || true
+          # If you don't have a pyproject/pipfile, install just what's needed to import app
+
+      - name: Export OpenAPI
+        run: |
+          python scripts/export_openapi.py
+          test -f docs/openapi.json
+
+      - name: Build ReDoc HTML
+        run: |
+          npm -g i redoc-cli
+          redoc-cli bundle docs/openapi.json \
+            -o docs/index.html \
+            --title "My FastAPI – OpenAPI" \
+            --options.jsonSampleExpandLevel=2
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
