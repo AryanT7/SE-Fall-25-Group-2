@@ -36,10 +36,25 @@ def add_to_cart(data: CartAddItem, db: Session = Depends(get_db), current: User 
             raise HTTPException(status_code=400, detail="Assignee must be a registered active user")
         assignee_id = assignee.id
     cart = get_or_create_cart(db, current.id)
+
+    # Enforce single-restaurant per cart: if cart already has items from a different cafe, reject
+    existing_cafe = db.query(Item.cafe_id).join(CartItem, CartItem.item_id == Item.id).filter(CartItem.cart_id == cart.id).distinct().first()
+    if existing_cafe and existing_cafe[0] != item.cafe_id:
+        raise HTTPException(status_code=400, detail="Cart contains items from another restaurant. Clear cart before adding items from a different restaurant.")
+
+    # If the same item already exists in the cart (same cart_id & item_id), increment quantity
+    existing_ci = db.query(CartItem).filter(CartItem.cart_id == cart.id, CartItem.item_id == item.id).first()
+    if existing_ci:
+        existing_ci.quantity = (existing_ci.quantity or 0) + int(data.quantity)
+        db.add(existing_ci)
+        db.commit()
+        return {"status": "updated", "cart_item_id": existing_ci.id}
+
     ci = CartItem(cart_id=cart.id, item_id=item.id, quantity=data.quantity, assignee_user_id=assignee_id)
     db.add(ci)
     db.commit()
-    return {"status": "added"}
+    db.refresh(ci)
+    return {"status": "added", "cart_item_id": ci.id}
 
 @router.get("/summary", response_model=CartSummary)
 def cart_summary(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
@@ -64,3 +79,67 @@ def clear_cart(db: Session = Depends(get_db), current: User = Depends(get_curren
     db.query(CartItem).filter(CartItem.cart_id == cart.id).delete()
     db.commit()
     return {"status": "cleared"}
+
+
+@router.get("/items", response_model=list)
+def get_cart_items(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Return detailed cart items for the current user."""
+    cart = get_or_create_cart(db, current.id)
+    rows = db.query(CartItem, Item).join(Item, CartItem.item_id == Item.id).filter(CartItem.cart_id == cart.id).all()
+    results = []
+    for ci, it in rows:
+        results.append({
+            "id": ci.id,
+            "cart_id": ci.cart_id,
+            "item": {
+                "id": it.id,
+                "cafe_id": it.cafe_id,
+                "name": it.name,
+                "description": it.description,
+                "price": float(it.price),
+                "calories": it.calories,
+                "category": it.kind or "",
+                # send empty string when no image is available to simplify frontend handling
+                "image": getattr(it, "image", None) or None,
+                "veg_flag": bool(it.veg_flag),
+            },
+            "quantity": ci.quantity,
+            "assignee_user_id": ci.assignee_user_id
+        })
+    return results
+
+
+@router.put("/item/{cart_item_id}")
+def update_cart_item(cart_item_id: int, payload: dict, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Update quantity (and optionally assignee) for a cart item belonging to the current user."""
+    cart = get_or_create_cart(db, current.id)
+    ci = db.query(CartItem).filter(CartItem.id == cart_item_id, CartItem.cart_id == cart.id).first()
+    if not ci:
+        raise HTTPException(status_code=404, detail="Cart item not found")
+    if "quantity" in payload:
+        qty = int(payload.get("quantity") or 0)
+        if qty <= 0:
+            db.delete(ci)
+            db.commit()
+            return {"status": "removed"}
+        ci.quantity = qty
+    if "assignee_email" in payload and payload.get("assignee_email"):
+        from ..models import User as UserModel
+        ass = db.query(UserModel).filter(UserModel.email == payload.get("assignee_email")).first()
+        if not ass:
+            raise HTTPException(status_code=400, detail="Assignee not found or inactive")
+        ci.assignee_user_id = ass.id
+    db.add(ci)
+    db.commit()
+    return {"status": "updated"}
+
+
+@router.delete("/item/{cart_item_id}")
+def delete_cart_item(cart_item_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    cart = get_or_create_cart(db, current.id)
+    ci = db.query(CartItem).filter(CartItem.id == cart_item_id, CartItem.cart_id == cart.id).first()
+    if not ci:
+        raise HTTPException(status_code=404, detail="Cart item not found")
+    db.delete(ci)
+    db.commit()
+    return {"status": "deleted"}
