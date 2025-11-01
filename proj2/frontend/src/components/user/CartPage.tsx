@@ -14,6 +14,7 @@ import EmotionalStateDialog from './EmotionalStateDialog';
 import { RegretPredictionEngine } from './RegretPredictionEngine';
 import RegretWarning from './RegretWarning';
 import { cartApi } from '../../api/cart';
+import { ordersApi } from '../../api/orders';
 import { User, Order } from '../../api/types';
 
 interface Restaurant {
@@ -227,31 +228,42 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
     setRegretPrediction(prediction);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!restaurant) return;
 
-    // In this demo we keep local orders; real app should POST to orders API
-    const order = {
-      id: Date.now(),
-      user_id: user.id,
-      cafe_id: Number(restaurant.id),
-      items: cart,
-      total_price: getTotalAmount(),
-      total_calories: getTotalCalories(),
-      status: 'PENDING',
-      created_at: new Date().toISOString(),
-      can_cancel_until: new Date(Date.now() + 1000 * 60 * 5).toISOString(),
-    };
+    try {
+      const payload = { cafe_id: Number(restaurant.id) };
+      const res = await ordersApi.placeOrder(payload as any);
+      if (res.error) {
+        toast.error(res.error || 'Failed to place order');
+        return;
+      }
+      const order = res.data;
 
-    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-    localStorage.setItem('orders', JSON.stringify([order, ...existingOrders]));
+      // Clear cart on successful order creation
+      try {
+        await cartApi.clearCart();
+      } catch (e) {
+        console.warn('Failed to clear cart on server', e);
+      }
+      setCart([]);
 
-    // Clear cart locally and via API
-    setCart([]);
-    try { cartApi.clearCart(); } catch (e) { /* ignore */ }
+      // Optionally keep a local copy for demo/history
+      try {
+        const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        localStorage.setItem('orders', JSON.stringify([order, ...existingOrders]));
+      } catch (e) {
+        /* ignore */
+      }
 
-    toast.success('Order placed successfully!');
-    navigate(`/orders/${order.id}/track`);
+      toast.success('Order placed successfully!');
+      if (order && order.id) {
+        navigate(`/orders/${order.id}/track`);
+      }
+    } catch (err) {
+      console.error('Checkout failed', err);
+      toast.error('Failed to place order');
+    }
   };
 
   if (cart.length === 0) {
