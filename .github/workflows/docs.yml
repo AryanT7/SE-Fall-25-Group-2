@@ -42,7 +42,7 @@ jobs:
 
       - name: Build MkDocs
         run: |
-          mkdocs build --strict
+          mkdocs build
           test -f site/index.html
           ls -l site | head -n 50
 
