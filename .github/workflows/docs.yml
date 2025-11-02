@@ -36,15 +36,15 @@ jobs:
 
       - name: Export OpenAPI
         run: |
-          mkdir -p docs
+          mkdir -p proj2/backend/docs
           python scripts/export_openapi.py
-          test -f docs/openapi.json
+          test -f proj2/backend/docs/openapi.json
 
       - name: Build MkDocs
         run: |
           mkdocs build
-          test -f site/index.html
-          ls -l site | head -n 50
+          test -f proj2/backend/site/index.html
+          ls -l proj2/backend/site | head -n 50
 
       # Always upload a standard build artifact so PR reviewers can download it
       - name: Upload build artifact (for PR review)
