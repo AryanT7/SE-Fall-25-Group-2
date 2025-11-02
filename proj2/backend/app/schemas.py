@@ -2,22 +2,18 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Dict
 from datetime import datetime, date
 from .models import Role, OrderStatus, PaymentStatus, DriverStatus
-
 class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-
 class TokenPayload(BaseModel):
     sub: str
     uid: int
     role: Role
     exp: int
-
 class UserBase(BaseModel):
     email: EmailStr
     name: str
-
 class UserCreate(UserBase):
     email: EmailStr
     name: str
@@ -29,35 +25,32 @@ class UserCreate(UserBase):
     gender: Optional[str] = None
     activity_level: Optional[str] = None
     daily_calorie_goal: Optional[int] = None
-
 class UserOut(UserBase):
     id: int
     role: Role
     is_active: bool
     class Config:
         from_attributes = True
-
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
     role: str
-
 class CafeCreate(BaseModel):
     name: str
     address: Optional[str] = None
+    cuisine: Optional[str] = None
     lat: float
     lng: float
-
 class CafeOut(BaseModel):
     id: int
     name: str
     address: Optional[str]
+    cuisine: Optional[str]
     active: bool
     lat: float
     lng: float
     class Config:
         from_attributes = True
-
 class ItemCreate(BaseModel):
     name: str
     description: Optional[str] = None
@@ -68,27 +61,22 @@ class ItemCreate(BaseModel):
     servings: Optional[float] = None
     veg_flag: bool = True
     kind: Optional[str] = None
-
 class ItemOut(ItemCreate):
     id: int
     cafe_id: int
     active: bool
     class Config:
         from_attributes = True
-
 class CartAddItem(BaseModel):
     item_id: int
     quantity: int = Field(ge=1, default=1)
     assignee_email: Optional[EmailStr] = None
-
 class CartSummary(BaseModel):
     by_person: Dict[str, Dict[str, float]]
     total_calories: int
     total_price: float
-
 class PlaceOrderRequest(BaseModel):
     cafe_id: int
-
 class OrderOut(BaseModel):
     id: int
     cafe_id: int
@@ -99,7 +87,6 @@ class OrderOut(BaseModel):
     can_cancel_until: datetime
     class Config:
         from_attributes = True
-
 class PaymentOut(BaseModel):
     id: int
     order_id: int
@@ -108,24 +95,20 @@ class PaymentOut(BaseModel):
     provider: str
     class Config:
         from_attributes = True
-
 class GoalSet(BaseModel):
     period: str  # daily/weekly/monthly
     target_calories: int
     start_date: date
-
 class GoalOut(GoalSet):
     id: int
     class Config:
         from_attributes = True
-
 class GoalRecommendationRequest(BaseModel):
     height_cm: float
     weight_kg: float
     sex: str = "M"
     age_years: int = 25
     activity: str = "moderate"  # sedentary/light/moderate/active/very_active
-
 class OCRMenuItem(BaseModel):
     name: str
     calories: int
@@ -135,37 +118,29 @@ class OCRMenuItem(BaseModel):
     servings: Optional[float] = None
     veg_flag: bool = True
     kind: Optional[str] = None
-
 class OCRResult(BaseModel):
     items: List[OCRMenuItem]
-
 class DriverLocationIn(BaseModel):
     lat: float
     lng: float
     timestamp: datetime
-
 class AssignedOrderOut(OrderOut):
     driver_id: Optional[int]
-
 class DriverLocationOut(BaseModel):
     driver_id: int
     lat: float
     lng: float
     timestamp: datetime
     status: DriverStatus
-
 class DriverStatusUpdate(BaseModel):
     status: DriverStatus
-
 class DriverLocationWithStatus(BaseModel):
     lat: float
     lng: float
     status: DriverStatus
     timestamp: Optional[datetime] = None
-
 class AssignDriverRequest(BaseModel):
     driver_id: Optional[int] = None  # If None, auto-assign nearest driver
-
 class IdleDriverInfo(BaseModel):
     driver_id: int
     driver_name: str
@@ -174,32 +149,26 @@ class IdleDriverInfo(BaseModel):
     lng: float
     status: str
     last_update: datetime
-
 class DriverLoginRequest(BaseModel):
     email: EmailStr
     password: str
-
 class CartOut(BaseModel):
     id: int
     user_id: int
     created_at: datetime
     class Config:
         from_attributes = True
-
 # CAFE REVIEW SUMMARIZER
 class ReviewBase(BaseModel):
     rating: Optional[float] = None
     text: str
-
 class ReviewCreate(ReviewBase):
     cafe_id: int
     user_id: int
-
 class ReviewOut(ReviewBase):
     id: int
     cafe_id: int
     user_id: int
     created_at: datetime  # ✅ timezone-aware datetime expected
-
     class Config:
         from_attributes = True
