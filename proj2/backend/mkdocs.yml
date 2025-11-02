@@ -1,0 +1,16 @@
+site_name: My FastAPI Docs
+site_url: https://AryanT7.github.io/SE-Fall-25-Group-2/
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: blue
+    accent: indigo
+
+nav:
+  - Home: index.md
+  - API Reference: openapi.md
+
+plugins:
+  - search
+  - redoc-tag
