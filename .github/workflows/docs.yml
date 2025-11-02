@@ -32,6 +32,7 @@ jobs:
         run: |
           python -m pip install -U pip
           pip install mkdocs mkdocs-material mkdocs-redoc-tag
+          pip install -r requirements.txt
 
       - name: Export OpenAPI
         run: |
