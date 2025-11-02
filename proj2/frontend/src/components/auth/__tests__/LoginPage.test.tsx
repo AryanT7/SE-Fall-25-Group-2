@@ -1,318 +1,142 @@
-import React from 'react'
-import { screen, fireEvent, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom'
-import { toast } from 'sonner'
-import LoginPage from '../LoginPage'
-import { render, mockUsers } from '../../../test/utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+/**
+ * @file LoginPage.test.tsx
+ * Vitest + RTL tests for the real LoginPage component
+ */
 
-const mockNavigate = vi.fn()
-const mockLogin = vi.fn().mockResolvedValue(true)
-const mockClearError = vi.fn()
+import { vi, describe, beforeEach, test, expect } from 'vitest';
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+// jest-dom matchers are registered in the Vitest setup file
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  }
-})
+/* -------------------- Mocks (declare BEFORE importing component) -------------------- */
 
-// vi.mock('../../../hooks/useAuth', () => ({
-//   useAuth: () => ({
-//     login: mockLogin,
-//     isLoading: false,
-//     error: null,
-//     clearError: mockClearError,
-//   }),
-// }))
-vi.mock('../../../hooks/useAuth', () => {
-    const React = require('react')
-  
-    const login = vi.fn(async (_credentials?: any) => {
-      await new Promise(r => setTimeout(r, 30)) // simulate async delay
-      return true
-    })
-  
-    return {
-      useAuth: () => {
-        const [isLoading, setIsLoading] = React.useState(false)
-  
-        const wrappedLogin = async (args: any) => {
-          setIsLoading(true)
-          try {
-            return await login(args)
-          } finally {
-            setIsLoading(false)
-          }
-        }
-  
-        return { login: wrappedLogin, isLoading, error: null, clearError: vi.fn() }
-      },
-    }
-  })
+// Toasts
 vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
   },
-}))
+}));
 
+// Auth context used by the component
+const mockLogin = vi.fn();
+const mockAuthValue = {
+  user: null,
+  isLoading: false,
+  error: null as string | null,
+  isAuthenticated: false,
+  clearError: vi.fn(),
+  login: mockLogin,
+};
+
+// IMPORTANT: mock the EXACT module path your component imports
+// IMPORTANT: mock the EXACT module path your component imports
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuth: () => mockAuthValue,
+}));
+
+// Only override useNavigate, keep rest of react-router-dom real
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual: any = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+/* -------------------- Import the REAL component (enables coverage) -------------------- */
+import LoginPage from '../LoginPage';
+
+/* -------------------- Helpers -------------------- */
+const renderLoginPage = () =>
+  render(
+    <MemoryRouter initialEntries={['/login']}>
+      <LoginPage />
+    </MemoryRouter>
+  );
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockAuthValue.isLoading = false;
+  mockAuthValue.error = null;
+});
+
+/* -------------------- Tests -------------------- */
 describe('LoginPage Component', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockLogin.mockResolvedValue(true) // Reset to success
-  })
+  test('renders login form with correct title and description', () => {
+    renderLoginPage();
+    // Adjust these strings if your component uses different copy
+    expect(screen.getByRole('heading', { name: /welcome to foodapp/i })).toBeInTheDocument();
+    expect(screen.getByText(/sign in to your account to continue/i)).toBeInTheDocument();
+  });
 
-  describe('Rendering', () => {
-    it('renders login form with correct title and description', () => {
-      render(<LoginPage />)
-      
-      expect(screen.getByText('Welcome to FoodApp')).toBeInTheDocument()
-      expect(screen.getByText('Sign in to your account to continue')).toBeInTheDocument()
-    })
+  test('renders Customer / Restaurant / Driver tabs', () => {
+    renderLoginPage();
+    expect(screen.getByRole('tab', { name: /customer/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /restaurant/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /driver/i })).toBeInTheDocument();
+  });
 
-    it('renders both customer and restaurant tabs', () => {
-      render(<LoginPage />)
-      
-      expect(screen.getByText('Customer')).toBeInTheDocument()
-      expect(screen.getByText('Restaurant')).toBeInTheDocument()
-    })
+  test('renders Sign up link', () => {
+    renderLoginPage();
+    const link = screen.getByRole('link', { name: /sign up/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/register'); // tweak if different
+  });
 
-    it('renders demo credentials section', () => {
-      render(<LoginPage />)
-      
-      expect(screen.getByText('Demo Credentials:')).toBeInTheDocument()
-      expect(screen.getByText(/customer@demo\.com/)).toBeInTheDocument()
-      expect(screen.getByText(/restaurant@demo\.com/)).toBeInTheDocument()
-      expect(screen.getByText(/staff@demo\.com/)).toBeInTheDocument()
-    })
+  test('allows user to input email and password', async () => {
+    renderLoginPage();
+    const email = screen.getByLabelText(/email/i);
+    const password = screen.getByLabelText(/password/i);
 
-    it('renders sign up link', () => {
-      render(<LoginPage />)
-      
-      const signUpLink = screen.getByText('Sign up')
-      expect(signUpLink).toBeInTheDocument()
-      expect(signUpLink.closest('a')).toHaveAttribute('href', '/register')
-    })
-  })
+    await userEvent.type(email, 'test@example.com');
+    await userEvent.type(password, 'mypassword');
 
-  describe('Customer Tab Functionality', () => {
-    it('renders customer form fields', () => {
-      render(<LoginPage />)
-      
-      expect(screen.getByLabelText('Email')).toBeInTheDocument()
-      expect(screen.getByLabelText('Password')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument()
-    })
+    expect(email).toHaveValue('test@example.com');
+    expect(password).toHaveValue('mypassword');
+  });
 
-    it('allows user to input email and password', async () => {
-      const user = userEvent.setup()
-      render(<LoginPage />)
-      
-      const emailInput = screen.getByLabelText('Email')
-      const passwordInput = screen.getByLabelText('Password')
-      
-      await user.type(emailInput, 'test@example.com')
-      await user.type(passwordInput, 'password123')
-      
-      expect(emailInput).toHaveValue('test@example.com')
-      expect(passwordInput).toHaveValue('password123')
-    })
+  test('disables the button and shows loading label when isLoading is true', () => {
+    mockAuthValue.isLoading = true;
+    renderLoginPage();
+    // During loading, label should become "Signing in..."
+    const btn = screen.getByRole('button', { name: /signing in/i });
+    expect(btn).toBeDisabled();
+  });
 
-    it('shows loading state during login', async () => {
-    //   const user = userEvent.setup()
-    //   render(<LoginPage />)
-      
-    //   const emailInput = screen.getByLabelText('Email')
-    //   const passwordInput = screen.getByLabelText('Password')
-    //   const submitButton = screen.getByRole('button', { name: 'Sign In' })
-      
-    //   await user.type(emailInput, 'customer@demo.com')
-    //   await user.type(passwordInput, 'demo123')
-    //   await user.click(submitButton)
-      
-    //   expect(screen.getByText('Signing in...')).toBeInTheDocument()
-        const user = userEvent.setup()
-        render(<LoginPage />)
-        
-        const emailInput = screen.getByLabelText('Email')
-        const passwordInput = screen.getByLabelText('Password')
-        const submitButton = screen.getByRole('button', { name: 'Sign In' })
-        
-        await user.type(emailInput, 'customer@demo.com')
-        await user.type(passwordInput, 'demo123')
-        
-        // Click without awaiting to catch the loading state
-        user.click(submitButton)
-        
-        // Check for loading state immediately
-        await waitFor(() => {
-            expect(screen.getByText('Signing in...')).toBeInTheDocument()
-        })
-    })
-    it('successfully logs in and navigates to dashboard with valid credentials', async () => {
-      const user = userEvent.setup()
-      render(<LoginPage />)
-      
-      const emailInput = screen.getByLabelText('Email')
-      const passwordInput = screen.getByLabelText('Password')
-      const submitButton = screen.getByRole('button', { name: 'Sign In' })
-      
-      await user.type(emailInput, 'customer@demo.com')
-      await user.type(passwordInput, 'demo123')
-      await user.click(submitButton)
-      //debug1
-      console.log('mockLogin called?', mockLogin.mock.calls)
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Login successful!')
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-      })
-    })
+  test('logs in as USER and navigates to /dashboard', async () => {
+    mockLogin.mockResolvedValueOnce({ role: 'USER' });
 
-    it('handles customer demo login', async () => {
-      const user = userEvent.setup()
-      render(<LoginPage />)
-      
-      const demoButton = screen.getByText('Try Customer Demo')
-      await user.click(demoButton)
-      
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Demo login successful!')
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-      })
-    })
-  })
+    renderLoginPage();
+    await userEvent.type(screen.getByLabelText(/email/i), 'user@example.com');
+    await userEvent.type(screen.getByLabelText(/password/i), 'password');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
-  describe('Restaurant Tab Functionality', () => {
-    beforeEach((async() => {
-      render(<LoginPage />)
-    //   const restaurantTab = screen.getByText('Restaurant')
-    //   fireEvent.click(restaurantTab)
-    const user = userEvent.setup()
-    await user.click(screen.getByRole('tab', { name: /restaurant/i }));
-    }))
+    await waitFor(() => expect(mockLogin).toHaveBeenCalled());
+    expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+  });
 
-    it('renders restaurant form fields', () => {
-      expect(screen.getByLabelText('Email')).toBeInTheDocument()
-      expect(screen.getByLabelText('Password')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument()
-    })
+  test('logs in as OWNER and navigates to /restaurant/dashboard', async () => {
+    mockLogin.mockResolvedValueOnce({ role: 'OWNER' });
 
-    it('successfully logs in and navigates to dashboard with valid restaurant credentials', async () => {
-      const user = userEvent.setup()
-      
-      const emailInput = screen.getByLabelText('Email')
-      const passwordInput = screen.getByLabelText('Password')
-      const submitButton = screen.getByRole('button', { name: 'Sign In' })
-      
-      await user.type(emailInput, 'restaurant@demo.com')
-      await user.type(passwordInput, 'demo123')
-      await user.click(submitButton)
-      
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Login successful!')
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-      })
-    })
+    renderLoginPage();
+    // Switch to Restaurant tab so your component sets the role appropriately
+    await userEvent.click(screen.getByRole('tab', { name: /restaurant/i }));
 
-    it('handles restaurant demo login', async () => {
-      const user = userEvent.setup()
-      
-      const demoButton = screen.getByText('Try Restaurant Demo')
-      await user.click(demoButton)
-      
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Demo login successful!')
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-      })
-    })
+    await userEvent.type(screen.getByLabelText(/email/i), 'resto@example.com');
+    await userEvent.type(screen.getByLabelText(/password/i), 'password');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
-    it('handles staff demo login', async () => {
-      const user = userEvent.setup()
-      
-      const demoButton = screen.getByText('Try Staff Demo')
-      await user.click(demoButton)
-      
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Demo login successful!')
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-      })
-    })
-  })
+    await waitFor(() => expect(mockLogin).toHaveBeenCalled());
+    expect(mockNavigate).toHaveBeenCalledWith('/restaurant/dashboard', { replace: true });
+  });
 
-  describe('Form Validation', () => {
-    it('requires email and password fields', () => {
-      render(<LoginPage />)
-      
-      const emailInput = screen.getByLabelText('Email')
-      const passwordInput = screen.getByLabelText('Password')
-      
-      expect(emailInput).toBeRequired()
-      expect(passwordInput).toBeRequired()
-    })
-
-    it('validates email format', async () => {
-      const user = userEvent.setup()
-      render(<LoginPage />)
-      
-      const emailInput = screen.getByLabelText('Email')
-      const passwordInput = screen.getByLabelText('Password')
-      const submitButton = screen.getByRole('button', { name: 'Sign In' })
-      
-      await user.type(emailInput, 'invalid-email')
-      await user.type(passwordInput, 'password')
-      await user.click(submitButton)
-      
-      // HTML5 validation should prevent form submission
-      expect(mockNavigate).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('Accessibility', () => {
-    it('has proper form labels', () => {
-      render(<LoginPage />)
-      
-      expect(screen.getByLabelText('Email')).toBeInTheDocument()
-      expect(screen.getByLabelText('Password')).toBeInTheDocument()
-    })
-
-    it('has proper button roles', () => {
-      render(<LoginPage />)
-      
-      expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Try Customer Demo' })).toBeInTheDocument()
-    })
-
-    it('has proper tab navigation', () => {
-      render(<LoginPage />)
-      
-      const customerTab = screen.getByText('Customer')
-      const restaurantTab = screen.getByText('Restaurant')
-      
-      expect(customerTab).toBeInTheDocument()
-      expect(restaurantTab).toBeInTheDocument()
-    })
-  })
-
-  describe('Error Handling', () => {
-    it('handles login errors gracefully', async () => {
-      const user = userEvent.setup()
-      render(<LoginPage />)
-      
-      const emailInput = screen.getByLabelText('Email')
-      const passwordInput = screen.getByLabelText('Password')
-      const submitButton = screen.getByRole('button', { name: 'Sign In' })
-      
-      await user.type(emailInput, 'wrong@example.com')
-      await user.type(passwordInput, 'wrongpassword')
-      await user.click(submitButton)
-      
-      // Since useAuth mock always returns success, just verify the form worked
-      await waitFor(() => {
-        expect(toast.success).toHaveBeenCalled()
-      })
-    })
-  })
-})
+  test('shows error message when context error is set', () => {
+    mockAuthValue.error = 'Invalid credentials';
+    renderLoginPage();
+    expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
+  });
+});

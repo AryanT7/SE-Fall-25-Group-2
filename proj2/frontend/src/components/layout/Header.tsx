@@ -28,8 +28,14 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
  
   }
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getInitials = (name?: string) => {
+    if (!name) return 'U';
+    return String(name)
+      .split(' ')
+      .filter(Boolean)
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
   };
 
   return (
@@ -73,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
                     {user.email}
                   </p>
                   <p className="text-xs text-muted-foreground capitalize">
-                    {user.role.replace('_', ' ')}
+                    {(user.role ?? '').toString().replace(/_/g, ' ')}
                   </p>
                 </div>
               </div>
