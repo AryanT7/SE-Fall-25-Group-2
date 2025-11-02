@@ -4,7 +4,6 @@ export interface ApiResponse<T = any> {
   error?: string;
   message?: string;
 }
-
 // Auth Types
 export interface LoginRequest {
   email: string;
@@ -12,20 +11,17 @@ export interface LoginRequest {
   role?: 'USER' | 'OWNER' | 'DRIVER' | 'ADMIN';
 }
 
-
 export interface LoginResponse {
   access_token: string;
   refresh_token: string;
   token_type: string;
 }
-
 export interface TokenPayload {
   sub: string;
   uid: number;
   role: 'USER' | 'OWNER' | 'DRIVER'; 
   exp: number;
 }
-
 export interface User {
   id: number;
   email: string;
@@ -41,7 +37,6 @@ export interface User {
   activity?: string;
   daily_calorie_goal?: number;
 }
-
 export interface DashboardStats {
   total_orders: number;
   total_spent: number;
@@ -68,32 +63,30 @@ export interface DashboardStats {
     calories: number;
   }>;
 }
-
 export interface RegisterRequest {
   email: string;
   name: string;
   password: string;
   role: 'USER' | 'OWNER' | 'DRIVER'; // ✅ added role here for registration
 }
-
 // Cafe Types
 export interface Cafe {
   id: number;
   name: string;
   address?: string;
+  cuisine?: string;
   active: boolean;
   lat: number;
   lng: number;
 }
 
-
 export interface CafeCreateRequest {
   name: string;
   address?: string;
+  cuisine?: string;
   lat: number;
   lng: number;
 }
-
 // Item Types
 export interface MenuItem {
   id: number;
@@ -112,7 +105,6 @@ export interface MenuItem {
   image?: string; // Added image property
   restaurantId: string; // Added to match usage in MenuPage.tsx
 }
-
 // REVIEWS
 export interface Review {
   id: number;
@@ -122,20 +114,17 @@ export interface Review {
   text: string;
   created_at: string; // ISO timestamp
 }
-
 export interface ReviewSummary {
   summary: string;
   review_count: number;
   cached: boolean;
 }
-
 export interface CreateReviewInput {
   cafe_id: number;
   user_id: number;
   rating: number;
   text: string;
 }
-
 export interface ItemCreateRequest {
   name: string;
   description?: string;
@@ -147,7 +136,6 @@ export interface ItemCreateRequest {
   veg_flag?: boolean;
   kind?: string;
 }
-
 // Cart Types
 export interface CartItem {
   id: number;
@@ -156,31 +144,26 @@ export interface CartItem {
   quantity: number;
   assignee_user_id?: number;
 }
-
 export interface CartAddRequest {
   item_id: number;
   quantity?: number;
   assignee_email?: string;
 }
-
 // export interface CartSummary {
 //   by_person: Record<string, Record<string, number>>;
 //   total_calories: number;
 //   total_price: number;
 // }
-
 export interface CartAddItem {
   item_id: number;
   quantity: number;
   assignee_email?: string;
 }
-
 export interface CartOut {
   id: number;
   user_id: number;
   created_at: string;
 }
-
 export interface CartSummary {
   by_person: {
     [email: string]: {
@@ -191,10 +174,8 @@ export interface CartSummary {
   total_calories: number;
   total_price: number;
 }
-
 // Order Types
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'READY' | 'PICKED_UP' | 'CANCELLED' | 'REFUNDED';
-
 export interface Order {
   id: number;
   cafe_id: number;
@@ -204,11 +185,9 @@ export interface Order {
   total_calories: number;
   can_cancel_until: string;
 }
-
 export interface PlaceOrderRequest {
   cafe_id: number;
 }
-
 // Goal Types
 export interface CalorieGoal {
   id: number;
@@ -216,13 +195,11 @@ export interface CalorieGoal {
   target_calories: number;
   start_date: string;
 }
-
 export interface GoalSetRequest {
   period: string;
   target_calories: number;
   start_date: string;
 }
-
 export interface GoalRecommendationRequest {
   height_cm: number;
   weight_kg: number;
@@ -231,20 +208,16 @@ export interface GoalRecommendationRequest {
   dob?: string; // optional input, client will derive age
   activity?: string;
 }
-
 export interface GoalRecommendationResponse {
   daily_calorie_goal: number;
 }
-
 // API Error Types
 export interface ApiError {
   detail: string;
   status_code?: number;
 }
-
 // HTTP Methods
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-
 // Request Options
 export interface RequestOptions {
   method?: HttpMethod;
