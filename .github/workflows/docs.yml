@@ -1,4 +1,4 @@
-name: Docs (MkDocs) – Build on PR, Deploy on main
+name: Docs (MkDocs) - Build on PR, Deploy on main
 
 on:
   push:
@@ -49,7 +49,6 @@ jobs:
       # Always upload a standard build artifact so PR reviewers can download it
       - name: Upload build artifact (for PR review)
         uses: actions/upload-artifact@v4
-        working-directory: proj2/backend
         with:
           name: mkdocs-site
           path: site
@@ -63,7 +62,6 @@ jobs:
       - name: Upload Pages artifact
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: actions/upload-pages-artifact@v3
-        working-directory: proj2/backend
         with:
           path: site
 
