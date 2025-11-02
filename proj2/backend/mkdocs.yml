@@ -1,5 +1,7 @@
 site_name: My FastAPI Docs
 site_url: https://AryanT7.github.io/SE-Fall-25-Group-2/
+docs_dir: proj2/backend/docs
+site_dir: proj2/backend/site
 theme:
   name: material
   palette:
