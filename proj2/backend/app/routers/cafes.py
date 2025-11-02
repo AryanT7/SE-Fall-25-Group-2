@@ -6,9 +6,7 @@ from ..schemas import CafeCreate, CafeOut, OCRResult
 from ..models import Cafe, User, Role
 from ..deps import get_current_user, require_roles
 from ..services.ocr import parse_menu_pdf
-
 router = APIRouter(prefix="/cafes", tags=["cafes"])
-
 @router.get("/mine", response_model=CafeOut)
 def get_my_cafe(
     db: Session = Depends(get_db),
@@ -20,19 +18,23 @@ def get_my_cafe(
         raise HTTPException(status_code=404, detail="You have no cafe registered yet.")
     return cafe
 
-
 @router.post("/", response_model=CafeOut)
 def create_cafe(data: CafeCreate, db: Session = Depends(get_db), owner: User = Depends(require_roles(Role.OWNER, Role.ADMIN))):
     """Create a cafe. Only OWNER or ADMIN may call this endpoint.
-
     For seeding, prefer `/admin/cafes` which accepts query params and is intended for administrative creation.
     """
-    cafe = Cafe(name=data.name, address=data.address, lat=data.lat, lng=data.lng, owner_id=owner.id if owner.role == Role.OWNER else None)
+    cafe = Cafe(
+        name=data.name,
+        address=data.address,
+        lat=data.lat,
+        lng=data.lng,
+        cuisine=getattr(data, "cuisine", None),
+        owner_id=owner.id if owner.role == Role.OWNER else None,
+    )
     db.add(cafe)
     db.commit()
     db.refresh(cafe)
     return cafe
-
 @router.get("/", response_model=List[CafeOut])
 def list_cafes(q: str | None = None, db: Session = Depends(get_db)):
     query = db.query(Cafe).filter(Cafe.active == True)
@@ -40,7 +42,6 @@ def list_cafes(q: str | None = None, db: Session = Depends(get_db)):
         like = f"%{q}%"
         query = query.filter(Cafe.name.ilike(like))
     return query.order_by(Cafe.name).all()
-
 @router.post("/{cafe_id}/menu/upload", response_model=OCRResult)
 def upload_menu(cafe_id: int, pdf: UploadFile = File(...), db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
@@ -51,3 +52,4 @@ def upload_menu(cafe_id: int, pdf: UploadFile = File(...), db: Session = Depends
     content = pdf.file.read()
     items = parse_menu_pdf(content)
     return OCRResult(items=items)
+
