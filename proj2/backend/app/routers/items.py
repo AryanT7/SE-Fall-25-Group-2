@@ -21,6 +21,33 @@ def add_item(cafe_id: int, data: ItemCreate, db: Session = Depends(get_db), user
     db.refresh(item)
     return item
 
+@router.put("/{item_id}", response_model=ItemOut)
+def update_item(item_id: int, data: ItemCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    item = db.query(Item).filter(Item.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    cafe = db.query(Cafe).filter(Cafe.id == item.cafe_id).first()
+    if not (user.role == Role.ADMIN or (cafe and cafe.owner_id == user.id)):
+        raise HTTPException(status_code=403, detail="Only owner/admin can update items")
+    for key, value in data.model_dump().items():
+        setattr(item, key, value)
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+@router.delete("/{item_id}")
+def delete_item(item_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    item = db.query(Item).filter(Item.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    cafe = db.query(Cafe).filter(Cafe.id == item.cafe_id).first()
+    if not (user.role == Role.ADMIN or (cafe and cafe.owner_id == user.id)):
+        raise HTTPException(status_code=403, detail="Only owner/admin can delete items")
+    db.delete(item)
+    db.commit()
+    return {"status": "deleted"}
+
 # NEW: Get all items across all cafes (for AI recommendations)
 @router.get("", response_model=List[ItemOut])
 def list_all_items(q: str | None = None, db: Session = Depends(get_db)):

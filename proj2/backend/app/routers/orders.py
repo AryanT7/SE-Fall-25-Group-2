@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 from datetime import datetime
 from ..database import get_db
-from ..schemas import PlaceOrderRequest, OrderOut, AssignDriverRequest
+from ..schemas import PlaceOrderRequest, OrderOut, AssignDriverRequest, OrderSummaryOut
 from ..models import Cart, CartItem, Item, Order, OrderItem, OrderStatus, User, Cafe
 from ..deps import get_current_user, require_cafe_staff_or_owner
 from ..services.driver import find_nearest_idle_driver, update_driver_status_to_occupied
@@ -39,6 +39,50 @@ def place_order(data: PlaceOrderRequest, db: Session = Depends(get_db), current:
     db.commit()
     db.refresh(order)
     return order
+
+@router.get("/{order_id}", response_model=OrderOut)
+def get_order(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    # Check if the current user is either the order owner, cafe staff/owner, or admin
+    if order.user_id != current.id:
+        try:
+            require_cafe_staff_or_owner(order.cafe_id, db, current)
+        except HTTPException:
+            raise HTTPException(status_code=403, detail="Not authorized to view this order")
+    return order
+
+@router.get("/{order_id}/summary", response_model=OrderSummaryOut)
+def order_summary(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    order = db.query(Order).filter(Order.id == order_id, Order.user_id == current.id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    items = db.query(OrderItem, Item).join(Item, OrderItem.item_id == Item.id).filter(OrderItem.order_id == order.id).all()
+    item_summaries = [
+        {
+            "item_id": it.id,
+            "name": it.name,
+            "quantity": oi.quantity,
+            "subtotal_price": oi.subtotal_price,
+            "subtotal_calories": oi.subtotal_calories
+        }
+        for oi, it in items
+    ]
+    driver_id = order.driver_id
+    if driver_id:
+        driver = db.query(User).filter(User.id == driver_id).first()
+        driver_info = {"driver_id": driver.id, "driver_email": driver.email} if driver else None
+    else:
+        driver_info = None
+    return OrderSummaryOut(
+        order_id=order.id,
+        total_price=order.total_price,
+        total_calories=order.total_calories,
+        items=item_summaries,
+        driver_info=driver_info
+    )
+
 
 @router.post("/{order_id}/cancel", response_model=OrderOut)
 def cancel_order(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):

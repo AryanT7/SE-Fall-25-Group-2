@@ -172,3 +172,14 @@ class ReviewOut(ReviewBase):
     created_at: datetime  # ✅ timezone-aware datetime expected
     class Config:
         from_attributes = True
+
+class OrderSummaryOut(BaseModel):
+    id: int
+    cafe_id: int
+    status: OrderStatus
+    created_at: datetime
+    total_price: float
+    total_calories: int
+    driver_info: Optional[dict] = None
+    class Config:
+        from_attributes = True
