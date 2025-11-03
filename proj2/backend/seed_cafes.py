@@ -206,6 +206,50 @@ def register_driver(driver_data):
     """Register a new driver."""
     return make_request("POST", "/drivers/register", driver_data)
 
+def login_driver(email, password):
+    """Login driver and return token (drivers login endpoint)."""
+    login_data = {"email": email, "password": password}
+    response = make_request("POST", "/drivers/login", login_data)
+    if response and "access_token" in response:
+        return response["access_token"]
+    return None
+
+def post_driver_location_with_status(driver_id, lat, lng, token):
+    """Post driver location with IDLE status."""
+    from datetime import datetime
+    now = datetime.utcnow().isoformat() + "Z"
+    location_data = {
+        "lat": lat,
+        "lng": lng,
+        "timestamp": now,
+        "status": "IDLE"
+    }
+    headers = {"Authorization": f"Bearer {token}"}
+    return make_request("POST", f"/drivers/{driver_id}/location-status", location_data, headers)
+
+def get_driver_id(token):
+    """Get driver ID from token."""
+    headers = {"Authorization": f"Bearer {token}"}
+    # Try /drivers/me endpoint
+    response = make_request("GET", "/drivers/me", headers=headers)
+    if response and "id" in response:
+        return response["id"]
+    return None
+
+def seed_admin_user():
+    """Create admin user using the seed_user endpoint."""
+    # The seed_user endpoint expects query parameters, not JSON body
+    params = {
+        "email": "admin@example.com",
+        "name": "Admin User", 
+        "password": "admin123",
+        "role": "ADMIN"
+    }
+    # Build query string
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    endpoint = f"/auth/seed_user?{query_string}"
+    return make_request("POST", endpoint)
+
 def seed_owners_and_cafes():
     """Create owners and their cafes."""
     print("Creating owners and their cafes...")
@@ -316,17 +360,54 @@ def seed_users():
     return users
 
 def seed_drivers():
-    """Register drivers."""
-    print("Creating drivers...")
+    """Register all drivers, set their locations, and mark them as IDLE."""
+    print("Creating/checking drivers...")
     drivers = []
     
-    for driver_data in DRIVERS:
+    for i, driver_data in enumerate(DRIVERS):
         response = register_driver(driver_data)
         if response:
             drivers.append(response)
             print(f"✓ Created driver: {driver_data['email']}")
         else:
-            print(f"⚠️ Driver might exist: {driver_data['email']}")
+            print(f"Driver {driver_data['email']} might already exist, trying to login...")
+            token = login_driver(driver_data['email'], driver_data['password'])
+            if token:
+                driver_info = get_current_user(token)
+                if driver_info:
+                    drivers.append(driver_info)
+                    print(f"✓ Logged in existing driver: {driver_data['email']}")
+                else:
+                    drivers.append({"email": driver_data['email'], "name": driver_data['name']})
+                    print(f"✓ Logged in existing driver (fallback): {driver_data['email']}")
+            else:
+                print(f"✗ Failed to create or login driver: {driver_data['email']}")
+                continue
+        
+        # After registration/login, post location and set to IDLE
+        token = login_driver(driver_data['email'], driver_data['password'])
+        if token:
+            driver_id = get_driver_id(token)
+            if not driver_id:
+                # Fallback: try to get from driver_info
+                if drivers and isinstance(drivers[-1], dict) and "id" in drivers[-1]:
+                    driver_id = drivers[-1]["id"]
+                else:
+                    print(f"⚠️ Could not get driver ID for {driver_data['email']}, skipping location setup")
+                    continue
+            
+            # Calculate location (spread drivers around base location)
+            random.seed(i + 1)  # Consistent locations per driver
+            lat = BASE_LAT + (random.random() - 0.5) * 0.1  # ~10km spread
+            lng = BASE_LNG + (random.random() - 0.5) * 0.1
+            
+            location_response = post_driver_location_with_status(driver_id, lat, lng, token)
+            if location_response:
+                print(f"  ✓ Set location and IDLE status for driver {driver_data['email']} (ID: {driver_id})")
+            else:
+                print(f"  ⚠️ Failed to set location for driver {driver_data['email']}")
+        else:
+            print(f"  ⚠️ Could not login driver {driver_data['email']} to set location")
     
     return drivers
 
@@ -419,6 +500,15 @@ def main():
     
     print("✓ API is responding\n")
     
+    # Step 0: Create admin user (optional, for admin features)
+    print("Creating admin user...")
+    admin_response = seed_admin_user()
+    if admin_response:
+        print("✓ Created admin user")
+    else:
+        print("⚠️ Admin user might already exist")
+    print()
+    
     # Step 1: Create owners and their cafes
     owners_data = seed_owners_and_cafes()
     if not owners_data:
@@ -474,6 +564,9 @@ def main():
     print("\n🚗 DRIVERS:")
     for i in range(min(3, len(drivers))):
         print(f"  {i+1}. Email: driver{i+1}@deliveryapp.com | Password: Password123!")
+    
+    print("\n👑 ADMIN:")
+    print("  Email: admin@example.com | Password: admin123")
     
     print("\n" + "="*60)
 
