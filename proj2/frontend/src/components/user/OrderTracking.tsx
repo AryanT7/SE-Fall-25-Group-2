@@ -6,7 +6,8 @@ import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { Separator } from '../ui/separator';
 import { Clock, MapPin, Phone, CheckCircle, Circle, ArrowLeft } from 'lucide-react';
-import { Order } from '../../App';
+import { Order as ApiOrder, OrderStatus, User } from '../../api/types';
+import { getMyOrders } from '../../api/orders';
 
 interface OrderTrackingProps {
   user?: User;
@@ -14,47 +15,54 @@ interface OrderTrackingProps {
 
 const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
   const { orderId } = useParams<{ orderId: string }>();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [order, setOrder] = useState<null | {
+    id: string;
+    restaurantId: string;
+    items: any[];
+    totalAmount: number;
+    totalCalories: number;
+    status: string;
+    createdAt: Date;
+    pickupTime?: Date;
+    paymentMethod: string;
+    reviewId?: number;
+  }>(null);
+  
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!orderId) return;
 
-    // Load order from localStorage (in real app, this would be an API call)
-    const savedOrders = localStorage.getItem('orders');
-    if (savedOrders) {
-      const orders = JSON.parse(savedOrders);
-      const foundOrder = orders.find((o: Order) => o.id === orderId);
-      setOrder(foundOrder || null);
-      
-      // Show feedback for completed orders
-      if (foundOrder && foundOrder.status === 'completed' && !foundOrder.regretData) {
-        setShowFeedback(true);
+    let isMounted = true;
+    let intervalId: number | undefined;
+
+    const mapOrder = (apiOrder: ApiOrder) => ({
+      id: apiOrder.id.toString(),
+      restaurantId: apiOrder.cafe_id.toString(),
+      items: [],
+      totalAmount: apiOrder.total_price,
+      totalCalories: apiOrder.total_calories,
+      status: apiOrder.status.toLowerCase(),
+      createdAt: new Date(apiOrder.created_at),
+      paymentMethod: 'credit_card',
+    });
+
+    const load = async () => {
+      const resp = await getMyOrders();
+      if (resp.data && isMounted) {
+        const found = resp.data.find(o => o.id.toString() === orderId);
+        setOrder(found ? mapOrder(found) : null);
       }
-    }
-    setLoading(false);
+      if (isMounted) setLoading(false);
+    };
+
+    load();
+    intervalId = window.setInterval(load, 5000);
+    return () => {
+      isMounted = false;
+      if (intervalId) window.clearInterval(intervalId);
+    };
   }, [orderId]);
-
-  const handleReviewSubmit = (review: Review) => {
-    if (!order) return;
-
-    // Save review
-    const existingReviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-    localStorage.setItem('reviews', JSON.stringify([review, ...existingReviews]));
-
-    // Update order with reviewId
-    const orders: Order[] = JSON.parse(localStorage.getItem('orders') || '[]');
-    const updatedOrders = orders.map(o => 
-      o.id === order.id ? { ...o, reviewId: review.id } : o
-    );
-    localStorage.setItem('orders', JSON.stringify(updatedOrders));
-
-    // Update local state
-    setOrder({ ...order, reviewId: review.id });
-    setShowReviewDialog(false);
-  };
 
   const getRestaurantName = (restaurantId: string) => {
     const restaurantNames: { [key: string]: string } = {
@@ -80,23 +88,23 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
     return restaurantPhones[restaurantId] || '(555) 000-0000';
   };
 
-  const getEstimatedTime = (order: Order) => {
-    const baseTime = new Date(order.createdAt).getTime();
+  const getEstimatedTime = (orderData: { createdAt: Date }) => {
+    const baseTime = new Date(orderData.createdAt).getTime();
     const estimatedReady = new Date(baseTime + 30 * 60 * 1000); // 30 minutes
     return estimatedReady;
   };
 
-  const getOrderProgress = (status: Order['status']) => {
+  const getOrderProgress = (status: string) => {
     switch (status) {
       case 'pending':
         return 20;
       case 'accepted':
         return 40;
-      case 'preparing':
-        return 70;
       case 'ready':
-        return 90;
-      case 'completed':
+        return 70;
+      case 'picked_up':
+        return 85;
+      case 'delivered':
         return 100;
       case 'cancelled':
         return 0;
@@ -108,13 +116,13 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
   const orderSteps = [
     { key: 'pending', label: 'Order Placed', description: 'Your order has been received' },
     { key: 'accepted', label: 'Order Confirmed', description: 'Restaurant confirmed your order' },
-    { key: 'preparing', label: 'Preparing', description: 'Your food is being prepared' },
     { key: 'ready', label: 'Ready for Pickup', description: 'Your order is ready to collect' },
-    { key: 'completed', label: 'Order Complete', description: 'Order has been picked up' }
+    { key: 'picked_up', label: 'Picked Up', description: 'Driver/customer picked up the order' },
+    { key: 'delivered', label: 'Order Complete', description: 'Order delivered/completed' }
   ];
 
-  const getStepStatus = (stepKey: string, currentStatus: Order['status']) => {
-    const stepOrder = ['pending', 'accepted', 'preparing', 'ready', 'completed'];
+  const getStepStatus = (stepKey: string, currentStatus: string) => {
+    const stepOrder = ['pending', 'accepted', 'ready', 'picked_up', 'delivered'];
     const currentIndex = stepOrder.indexOf(currentStatus);
     const stepIndex = stepOrder.indexOf(stepKey);
     
@@ -173,7 +181,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
                   </CardDescription>
                 </div>
                 <Badge 
-                  variant={order.status === 'completed' ? 'default' : 'secondary'}
+                  variant={order.status === 'delivered' ? 'default' : 'secondary'}
                   className="capitalize"
                 >
                   {order.status}
@@ -223,7 +231,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
                             Confirmed at {new Date(new Date(order.createdAt).getTime() + 2 * 60 * 1000).toLocaleTimeString()}
                           </p>
                         )}
-                        {status === 'current' && step.key === 'preparing' && (
+                        {status === 'current' && step.key === 'ready' && (
                           <p className="text-xs text-blue-600 mt-1">
                             Estimated ready time: {getEstimatedTime(order).toLocaleTimeString()}
                           </p>
@@ -376,15 +384,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
           </Card>
 
           <div className="space-y-2">
-            {order.status === 'completed' && !order.reviewId && user && (
-              <Button 
-                className="w-full" 
-                onClick={() => setShowReviewDialog(true)}
-              >
-                <Star className="h-4 w-4 mr-2" />
-                Write a Review
-              </Button>
-            )}
+              {/* Review flow omitted for now */}
 
             {order.reviewId && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
@@ -410,26 +410,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
         </div>
       </div>
 
-      {/* Post-Order Feedback */}
-      {showFeedback && order && order.status === 'completed' && (
-        <div className="mt-6">
-          <PostOrderFeedback
-            order={order}
-            onFeedbackSubmit={handleFeedbackSubmit}
-          />
-        </div>
-      )}
-
-      {/* Review Dialog */}
-      {user && order && (
-        <ReviewDialog
-          open={showReviewDialog}
-          onClose={() => setShowReviewDialog(false)}
-          order={order}
-          user={user}
-          onReviewSubmit={handleReviewSubmit}
-        />
-      )}
+      {/* Review/feedback UI omitted */}
     </div>
   );
 };
