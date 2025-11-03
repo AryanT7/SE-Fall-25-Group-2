@@ -175,7 +175,7 @@ export interface CartSummary {
   total_price: number;
 }
 // Order Types
-export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'READY' | 'PICKED_UP' | 'CANCELLED' | 'REFUNDED';
+export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'READY' | 'PICKED_UP' | 'CANCELLED' | 'REFUNDED' | 'DELIVERED';
 export interface Order {
   id: number;
   cafe_id: number;

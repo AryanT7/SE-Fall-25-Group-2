@@ -27,8 +27,8 @@ export const ordersApi = {
   /**
    * Cancel an order
    */
-  async cancelOrder(orderId: number): Promise<{ data?: { message: string }; error?: string }> {
-    return apiClient.post(`/orders/${orderId}/cancel`);
+  async cancelOrder(orderId: number): Promise<{ data?: Order; error?: string }> {
+    return apiClient.post<Order>(`/orders/${orderId}/cancel`);
   },
 
   /**

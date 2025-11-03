@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Clock, MapPin, Star, RotateCcw, Package } from 'lucide-react';
-import { User } from '../../api/types';
+import { User, Order as ApiOrder } from '../../api/types';
 import { toast } from 'sonner';
 import { getMyOrders, cancelOrder as cancelOrderApi } from '../../api/orders';
 
@@ -40,16 +40,16 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
         const response = await getMyOrders();
         if (response.data) {
           // Transform API orders to match component's expected format
-          const transformedOrders: Order[] = response.data.map((order) => ({
+          const transformedOrders: Order[] = response.data.map((order: ApiOrder) => ({
             id: order.id.toString(),
             userId: user.id.toString(),
             restaurantId: order.cafe_id.toString(),
-            items: [], // TODO: Fetch order items separately if needed
+            items: [],
             totalAmount: order.total_price,
             totalCalories: order.total_calories,
             status: order.status.toLowerCase(),
             createdAt: new Date(order.created_at),
-            paymentMethod: 'credit_card', // TODO: Get payment method from API
+            paymentMethod: 'credit_card',
             canCancelUntil: new Date(order.can_cancel_until)
           }));
           setOrders(transformedOrders);
@@ -72,11 +72,11 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
     switch (activeTab) {
       case 'active':
         filtered = orders.filter(order => 
-          ['pending', 'accepted', 'preparing', 'ready'].includes(order.status)
+          ['pending', 'accepted', 'ready', 'picked_up'].includes(order.status)
         );
         break;
       case 'completed':
-        filtered = orders.filter(order => order.status === 'completed');
+        filtered = orders.filter(order => order.status === 'delivered');
         break;
       case 'cancelled':
         filtered = orders.filter(order => order.status === 'cancelled');
@@ -94,11 +94,11 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
         return 'bg-yellow-100 text-yellow-800';
       case 'accepted':
         return 'bg-blue-100 text-blue-800';
-      case 'preparing':
-        return 'bg-orange-100 text-orange-800';
       case 'ready':
         return 'bg-green-100 text-green-800';
-      case 'completed':
+      case 'picked_up':
+        return 'bg-purple-100 text-purple-800';
+      case 'delivered':
         return 'bg-gray-100 text-gray-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
@@ -244,7 +244,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
                             </Button>
                           </Link>
                           
-                          {order.status === 'completed' && (
+                          {order.status === 'delivered' && (
                             <>
                               <Button 
                                 variant="outline" 
@@ -285,16 +285,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
                           </div>
                         )}
 
-                        {order.status === 'preparing' && (
-                          <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                            <p className="text-sm text-orange-800 font-medium">
-                              👨‍🍳 Your order is being prepared
-                            </p>
-                            <p className="text-xs text-orange-700 mt-1">
-                              Estimated ready time: {new Date(new Date(order.createdAt).getTime() + 30 * 60 * 1000).toLocaleTimeString()}
-                            </p>
-                          </div>
-                        )}
+                        {/* Backend does not expose PREPARING; omit this block */}
                       </div>
                     </CardContent>
                   </Card>
