@@ -65,6 +65,7 @@ export const cartApi = {
 
 // Export individual functions for convenience
 export const {
+  getCart,
   addToCart,        // was addItem
   getSummary,
   updateItemQuantity,
