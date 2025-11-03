@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 from datetime import datetime
 from ..database import get_db
@@ -67,8 +67,84 @@ def cafe_orders(cafe_id: int, status: OrderStatus | None = None, db: Session = D
         q = q.filter(Order.status == status)
     return q.order_by(Order.created_at.desc()).all()
 
+def _try_auto_assign_driver(order: Order, db: Session) -> bool:
+    """
+    Helper function to automatically assign the nearest idle driver to an order.
+    Returns True if assignment was successful, False otherwise.
+    """
+    # Skip if order already has a driver
+    if order.driver_id:
+        return False
+    
+    # Only auto-assign for ACCEPTED or READY status
+    if order.status not in [OrderStatus.ACCEPTED, OrderStatus.READY]:
+        return False
+    
+    try:
+        # Get cafe location
+        cafe = db.query(Cafe).filter(Cafe.id == order.cafe_id).first()
+        if not cafe:
+            return False
+        
+        # Find nearest idle driver using Haversine distance
+        result = find_nearest_idle_driver(cafe.lat, cafe.lng, db)
+        if not result:
+            return False
+        
+        driver, distance = result
+        driver_id = driver.id
+        
+        # Assign driver to order
+        order.driver_id = driver_id
+        db.add(order)
+        db.commit()
+        
+        # Update driver status to OCCUPIED
+        update_driver_status_to_occupied(driver_id, db)
+        
+        db.refresh(order)
+        return True
+    except Exception:
+        # If auto-assignment fails, don't fail the status update
+        # Just log or silently continue
+        db.rollback()
+        return False
+
 @router.post("/{order_id}/status", response_model=OrderOut)
-def update_status(order_id: int, new_status: OrderStatus, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def update_status(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+    new_status: str | None = Query(None),
+    status_body: str | dict = Body(...)
+):
+    """
+    Update order status. 
+    Accepts new_status as:
+    - Query parameter: ?new_status=ACCEPTED (from demo scripts)  
+    - JSON body: "ACCEPTED" (as string directly from frontend) or {"new_status": "ACCEPTED"}
+    """
+    # Determine which status value to use
+    status_str = None
+    
+    # Priority 1: Query parameter (for demo scripts)
+    if new_status:
+        status_str = new_status
+    # Priority 2: Body parameter
+    elif status_body:
+        if isinstance(status_body, dict):
+            status_str = status_body.get("new_status", status_body.get("status"))
+        else:
+            status_str = str(status_body)
+    
+    if not status_str:
+        raise HTTPException(status_code=400, detail="new_status is required")
+    
+    # Convert to OrderStatus enum
+    try:
+        new_status_enum = OrderStatus(status_str.upper())
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail=f"Invalid status: {status_str}")
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -78,14 +154,20 @@ def update_status(order_id: int, new_status: OrderStatus, db: Session = Depends(
         OrderStatus.ACCEPTED: {OrderStatus.READY, OrderStatus.CANCELLED},
         OrderStatus.READY: {OrderStatus.PICKED_UP},
     }
-    if order.status in valid_transitions and new_status in valid_transitions[order.status]:
-        order.status = new_status
+    if order.status in valid_transitions and new_status_enum in valid_transitions[order.status]:
+        order.status = new_status_enum
         db.add(order)
         db.commit()
         db.refresh(order)
         
+        # Automatically try to assign a driver when order reaches ACCEPTED or READY status
+        if new_status_enum in [OrderStatus.ACCEPTED, OrderStatus.READY] and not order.driver_id:
+            _try_auto_assign_driver(order, db)
+            # Refresh order to get updated driver_id
+            db.refresh(order)
+        
         # If order is delivered, set driver back to IDLE
-        if new_status == OrderStatus.DELIVERED and order.driver_id:
+        if new_status_enum == OrderStatus.DELIVERED and order.driver_id:
             from ..services.driver import update_driver_status_to_idle
             update_driver_status_to_idle(order.driver_id, db)
         

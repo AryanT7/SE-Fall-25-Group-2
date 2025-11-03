@@ -137,6 +137,28 @@ def login_driver(email, password):
         return response["access_token"]
     return None
 
+def post_driver_location_with_status(driver_id, lat, lng, token):
+    """Post driver location with IDLE status."""
+    from datetime import datetime
+    now = datetime.utcnow().isoformat() + "Z"
+    location_data = {
+        "lat": lat,
+        "lng": lng,
+        "timestamp": now,
+        "status": "IDLE"
+    }
+    headers = {"Authorization": f"Bearer {token}"}
+    return make_request("POST", f"/drivers/{driver_id}/location-status", location_data, headers)
+
+def get_driver_id(token):
+    """Get driver ID from token."""
+    headers = {"Authorization": f"Bearer {token}"}
+    # Try /drivers/me endpoint
+    response = make_request("GET", "/drivers/me", headers=headers)
+    if response and "id" in response:
+        return response["id"]
+    return None
+
 def seed_admin_user():
     """Create admin user using the seed_user endpoint."""
     # The seed_user endpoint expects query parameters, not JSON body
@@ -188,10 +210,10 @@ def seed_users():
     return users
 
 def seed_drivers():
-    """Register all drivers or login if they already exist."""
+    """Register all drivers, set their locations, and mark them as IDLE."""
     print("Creating/checking drivers...")
     drivers = []
-    for driver_data in DRIVERS:
+    for i, driver_data in enumerate(DRIVERS):
         response = register_driver(driver_data)
         if response:
             drivers.append(response)
@@ -209,6 +231,34 @@ def seed_drivers():
                     print(f"✓ Logged in existing driver (fallback): {driver_data['email']}")
             else:
                 print(f"✗ Failed to create or login driver: {driver_data['email']}")
+                continue
+        
+        # After registration/login, post location and set to IDLE
+        token = login_driver(driver_data['email'], driver_data['password'])
+        if token:
+            driver_id = get_driver_id(token)
+            if not driver_id:
+                # Fallback: try to get from driver_info
+                if drivers and isinstance(drivers[-1], dict) and "id" in drivers[-1]:
+                    driver_id = drivers[-1]["id"]
+                else:
+                    print(f"⚠️ Could not get driver ID for {driver_data['email']}, skipping location setup")
+                    continue
+            
+            # Calculate location (spread drivers around base location)
+            import random
+            random.seed(i + 1)  # Consistent locations per driver
+            lat = BASE_LAT + (random.random() - 0.5) * 0.1  # ~10km spread
+            lng = BASE_LNG + (random.random() - 0.5) * 0.1
+            
+            location_response = post_driver_location_with_status(driver_id, lat, lng, token)
+            if location_response:
+                print(f"  ✓ Set location and IDLE status for driver {driver_data['email']} (ID: {driver_id})")
+            else:
+                print(f"  ⚠️ Failed to set location for driver {driver_data['email']}")
+        else:
+            print(f"  ⚠️ Could not login driver {driver_data['email']} to set location")
+    
     return drivers
 
 def seed_cafes(admin_token):
