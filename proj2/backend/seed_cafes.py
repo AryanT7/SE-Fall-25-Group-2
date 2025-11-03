@@ -24,6 +24,18 @@ API_BASE = f"{BASE_URL}/api/v1" if "/api/v1" in BASE_URL else BASE_URL
 BASE_LAT = 35.7796
 BASE_LNG = -78.6382
 
+# Cuisines to assign to cafes (cycled)
+CUISINES = [
+    "Italian",
+    "Chinese",
+    "Indian",
+    "Mexican",
+    "American",
+    "Thai",
+    "Japanese",
+    "Mediterranean",
+]
+
 # Test data - 5 OWNERS
 OWNERS = [
     {
@@ -281,6 +293,7 @@ def seed_owners_and_cafes():
         cafe_data = {
             "name": CAFE_NAMES[i],
             "address": f"{100 + i * 10} Main St, Raleigh, NC",
+            "cuisine": CUISINES[i % len(CUISINES)],
             "lat": BASE_LAT + (random.random() - 0.5) * 0.05,
             "lng": BASE_LNG + (random.random() - 0.5) * 0.05
         }
@@ -292,7 +305,8 @@ def seed_owners_and_cafes():
                 "owner": owner_info,
                 "token": owner_token,
                 "cafe": cafe,
-                "cafe_type": CAFE_TYPES[i]
+                "cafe_type": CAFE_TYPES[i],
+                "cuisine": cafe_data.get("cuisine")
             })
         else:
             print(f"✗ Failed to create cafe for {owner_data['email']}")
