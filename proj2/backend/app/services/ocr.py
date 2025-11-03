@@ -74,6 +74,9 @@ Return the JSON array of menu items:
             }
             
             response = requests.post(self.mistral_url, headers=headers, json=payload)
+            if response.status_code != 200:
+                print(f"Mistral API error {response.status_code}: {response.text}")
+
             response.raise_for_status()
             
             response_data = response.json()
