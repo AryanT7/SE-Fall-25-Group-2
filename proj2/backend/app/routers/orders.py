@@ -40,7 +40,7 @@ def place_order(data: PlaceOrderRequest, db: Session = Depends(get_db), current:
     db.refresh(order)
     return order
 
-@router.get("/{order_id}", response_model=OrderOut)
+@router.get("/o/{order_id}", response_model=OrderOut)
 def get_order(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
