@@ -68,6 +68,9 @@ export interface RegisterRequest {
   name: string;
   password: string;
   role: 'USER' | 'OWNER' | 'DRIVER'; // ✅ added role here for registration
+  // Optional owner-specific fields
+  cuisine?: string;
+  address?: string;
 }
 // Cafe Types
 export interface Cafe {

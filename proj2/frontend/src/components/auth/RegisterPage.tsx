@@ -91,6 +91,11 @@ const RegisterPage: React.FC = () => {
         gender: formData.gender || null,
         activity_level: formData.activityLevel || null,
       }),
+      // include owner-specific cafe fields in registration payload so backend can create cafe with cuisine
+      ...(userType === 'OWNER' && {
+        cuisine: formData.cuisine || undefined,
+        address: formData.address || undefined,
+      }),
     });
   
     console.log('Registration successful:', !!registeredUser);

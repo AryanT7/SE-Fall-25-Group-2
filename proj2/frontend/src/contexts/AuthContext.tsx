@@ -188,7 +188,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (loggedInUser?.role === 'OWNER') {
           const cafePayload: CafeCreateRequest = {
             name: userData.name || `${loggedInUser.name}'s Cafe`,
-            address: 'Not specified', // or pass from frontend later
+            // prefer address/cuisine passed at registration if available
+            address: (userData as any).address || 'Not specified',
+            cuisine: (userData as any).cuisine || undefined,
             lat: 0,
             lng: 0,
           };
