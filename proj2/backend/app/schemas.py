@@ -111,6 +111,7 @@ class GoalRecommendationRequest(BaseModel):
     activity: str = "moderate"  # sedentary/light/moderate/active/very_active
 class OCRMenuItem(BaseModel):
     name: str
+    description: Optional[str] = None
     calories: int
     price: float
     ingredients: Optional[str] = None
@@ -120,6 +121,9 @@ class OCRMenuItem(BaseModel):
     kind: Optional[str] = None
 class OCRResult(BaseModel):
     items: List[OCRMenuItem]
+
+class MenuTextRequest(BaseModel):
+    text_content: str
 class DriverLocationIn(BaseModel):
     lat: float
     lng: float
