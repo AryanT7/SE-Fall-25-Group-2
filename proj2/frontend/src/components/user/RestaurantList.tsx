@@ -118,7 +118,7 @@ const RestaurantList: React.FC = () => {
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">Name (A–Z)</SelectItem>
+                <SelectItem value="name">Closed</SelectItem>
                 <SelectItem value="active">Open First</SelectItem>
               </SelectContent>
             </Select>
@@ -156,11 +156,16 @@ const RestaurantList: React.FC = () => {
                 </Badge>
               </div>
               <CardHeader className="pb-3">
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-lg">{cafe.name}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {cafe.address || 'Address not available'}
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-lg flex items-center gap-3">
+                      {cafe.name}
+                      <Badge variant="secondary" className="text-sm">{((cafe as any).cuisine) ?? '—'}</Badge>
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {cafe.address || 'Address not available'}
+                    </p>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-0 space-y-4">

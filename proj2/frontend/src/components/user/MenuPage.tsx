@@ -72,38 +72,49 @@ const MenuPage: React.FC = () => {
       try {
         // Fetch items for the cafe (public endpoint)
         const res = await itemsApi.getCafeItems(Number(restaurantId));
-        if (res.error) {
-          console.warn('Failed to load menu items:', res.error);
-          setMenuItems([]);
-          setRestaurant({
-            id: restaurantId,
-            name: `Cafe ${restaurantId}`,
-            description: '',
-            cuisine: 'Various',
-            rating: 4.5,
-            deliveryTime: '30-45 min',
-            minimumOrder: 10,
-            image: '',
-            ownerId: '1'
-          });
-        } else {
-          const items = res.data || [];
-          // map to MenuItem shape used by UI if necessary
-          setMenuItems(items as MenuItem[]);
+        const items: MenuItem[] = res.error ? [] : (res.data || []);
+        setMenuItems(items as MenuItem[]);
 
-          // Optionally derive restaurant metadata from items
-          setRestaurant({
-            id: restaurantId,
-            name: `Cafe ${restaurantId}`,
-            description: '',
-            cuisine: items && items.length > 0 ? (items[0].category || 'Various') : 'Various',
-            rating: 4.5,
-            deliveryTime: '30-45 min',
-            minimumOrder: 10,
-            image: items && items.length > 0 ? (items[0].image || '') : '',
-            ownerId: '1'
-          });
+        // derive a fallback cuisine from the first item if available (do not default to 'Various')
+        const fallbackCuisine = items && items.length > 0 ? (items[0].category || undefined) : undefined;
+        const fallbackRestaurant: Restaurant = {
+          id: restaurantId,
+          name: `Cafe ${restaurantId}`,
+          description: '',
+          cuisine: fallbackCuisine as any,
+          rating: 4.5,
+          deliveryTime: '30-45 min',
+          minimumOrder: 10,
+          image: items && items.length > 0 ? (items[0].image || '') : '',
+          ownerId: '1'
+        } as unknown as Restaurant;
+
+        // Try to fetch authoritative cafe metadata from backend; prefer its cuisine
+        try {
+          const cafeRes = await fetch(`/cafes/${restaurantId}`);
+          if (cafeRes.ok) {
+            const cafeJson = await cafeRes.json();
+            const merged: Restaurant = {
+              id: String(cafeJson.id),
+              name: cafeJson.name || fallbackRestaurant.name,
+              description: cafeJson.description || fallbackRestaurant.description,
+              cuisine: cafeJson.cuisine ?? fallbackRestaurant.cuisine,
+              rating: cafeJson.rating ?? fallbackRestaurant.rating,
+              deliveryTime: cafeJson.deliveryTime || fallbackRestaurant.deliveryTime,
+              minimumOrder: cafeJson.minimumOrder ?? fallbackRestaurant.minimumOrder,
+              image: cafeJson.image || fallbackRestaurant.image,
+              address: cafeJson.address || undefined,
+              ownerId: cafeJson.owner_id ?? cafeJson.ownerId ?? fallbackRestaurant.ownerId
+            } as unknown as Restaurant;
+            setRestaurant(merged);
+            return;
+          }
+        } catch (err) {
+          // ignore and fall through to fallback
         }
+
+        // fallback when cafe endpoint not available
+        setRestaurant(fallbackRestaurant);
       } catch (err) {
         console.error('Error loading cafe items', err);
         setMenuItems([]);
@@ -113,14 +124,22 @@ const MenuPage: React.FC = () => {
     load();
   }, [restaurantId]);
 
+  // Debug: log cafe metadata when it's loaded/updated (name, id, cuisine)
+  useEffect(() => {
+    if (restaurant) {
+      console.debug(`[debug] Cafe loaded: ${restaurant.name} (id: ${restaurant.id}) - cuisine: ${restaurant.cuisine}`);
+    }
+  }, [restaurant]);
+
   useEffect(() => {
     let filtered = menuItems;
 
     if (searchQuery) {
+      const q = searchQuery.toLowerCase();
       filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.ingredients.some(ing => ing.toLowerCase().includes(searchQuery.toLowerCase()))
+        (item.name || '').toLowerCase().includes(q) ||
+        (item.description || '').toLowerCase().includes(q) ||
+        (item.ingredients?.some((ing: string) => String(ing).toLowerCase().includes(q)) ?? false)
       );
     }
 
@@ -260,12 +279,12 @@ const MenuPage: React.FC = () => {
                 <span>{restaurant.deliveryTime}</span>
               </div>
               <Badge variant="secondary">{restaurant.cuisine}</Badge>
-              <Link to={`/restaurant/${restaurantId}/reviews`}>
+              {/* <Link to={`/restaurant/${restaurantId}/reviews`}>
                 <Button variant="secondary" size="sm" className="gap-1">
                   <MessageSquare className="h-4 w-4" />
                   Reviews
                 </Button>
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>
