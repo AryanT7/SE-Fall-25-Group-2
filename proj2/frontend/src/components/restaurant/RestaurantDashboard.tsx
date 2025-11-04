@@ -6,12 +6,14 @@ import { Badge } from '../ui/badge';
 import { Calendar, Bell, ChefHat, DollarSign, Package, TrendingUp, Clock, Users } from 'lucide-react';
 import { Order, OrderStatus, User } from '../../api/types';
 import { ordersApi } from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface RestaurantDashboardProps {
   user: User;
 }
 
-const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({ user }) => {
+const RestaurantDashboard: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -44,21 +46,36 @@ const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({ user }) => {
   };
 
   // ✅ Fetch all orders for cafe
-  useEffect(() => {
-    if (!user?.cafe?.id) return;
-    const cafeId = user.cafe.id;
-    const loadOrders = async () => {
+useEffect(() => {
+  if (!user?.cafe?.id) return;
+
+  const cafeId = user.cafe.id;
+
+  const loadOrders = async () => {
+    try {
       const { data, error } = await ordersApi.getCafeOrders(cafeId);
-      if (data) {
-        setOrders(data);
-        computeStats(data);
-      } else {
-        console.error("Failed to fetch orders:", error);
-      }
+      console.log("Fetched cafe orders:", data);
+      console.log("Fetched cafe orders type:", typeof data);
+
+      // Normalize the data — always use an array
+      const orderArray = Array.isArray(data)
+        ? data
+        : data
+        ? [data] // single object → wrap it in an array
+        : [];
+
+      setOrders(orderArray);
+      computeStats(orderArray);
+    } catch (err) {
+      console.error("Error loading orders:", err);
+    } finally {
       setLoading(false);
-    };
-    loadOrders();
-  }, [user?.cafe?.id]);
+    }
+  };
+
+  loadOrders();
+}, [user?.cafe?.id]);
+
 
   // ✅ Update order status handler
   const handleStatusUpdate = async (orderId: number, newStatus: OrderStatus) => {
@@ -83,7 +100,6 @@ const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({ user }) => {
   const quickActions = [
     { title: 'Manage Menu', description: 'Add, edit, or remove menu items', icon: ChefHat, href: '/restaurant/menu', color: 'bg-blue-50 text-blue-600' },
     { title: 'View Orders', description: 'Manage incoming orders', icon: Package, href: '/restaurant/orders', color: 'bg-green-50 text-green-600' },
-    { title: 'Staff Management', description: 'Manage staff accounts', icon: Users, href: '/restaurant/staff', color: 'bg-purple-50 text-purple-600' },
     { title: 'Analytics', description: 'View performance reports', icon: TrendingUp, href: '/restaurant/analytics', color: 'bg-orange-50 text-orange-600' },
     { title: 'Review Insights', description: 'AI-powered feedback analysis', icon: Bell, href: '/restaurant/reviews', color: 'bg-pink-50 text-pink-600' }
   ];
@@ -118,7 +134,7 @@ const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({ user }) => {
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold">Restaurant Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back, {user.name}! Here's what's happening today.
+          Welcome back, {user?.name}! Here's what's happening today.
         </p>
       </div>
 
@@ -131,7 +147,6 @@ const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({ user }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${stats.todayRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">+20.1% from yesterday</p>
           </CardContent>
         </Card>
 
@@ -153,7 +168,6 @@ const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({ user }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${stats.avgOrderValue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">+5.2% from last week</p>
           </CardContent>
         </Card>
 
@@ -273,10 +287,10 @@ const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({ user }) => {
             Today's Schedule
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        {/* <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div>
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg"> */}
+              {/* <div>
                 <p className="font-medium">Restaurant Hours</p>
                 <p className="text-sm text-muted-foreground">Open: 11:00 AM - 10:00 PM</p>
               </div>
@@ -292,8 +306,8 @@ const RestaurantDashboard: React.FC<RestaurantDashboardProps> = ({ user }) => {
                 <p className="text-xs text-muted-foreground">3 kitchen staff, 2 front desk</p>
               </div>
             </div>
-          </div>
-        </CardContent>
+          </div> */}
+        {/* </CardContent> */}
       </Card>
     </div>
   );

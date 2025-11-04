@@ -26,27 +26,39 @@ const OrderManagement: React.FC<OrderManagementProps> = ({ user }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch orders
-  const fetchOrders = async () => {
+  // Fetch orders
+const fetchOrders = async () => {
+  if (!user?.cafe?.id) return;
 
-    if (!user?.cafe?.id) return;
-    const cafeId = user.cafe.id;
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await ordersApi.getCafeOrders(cafeId);
-      if (error) {
-        setError(error);
-        toast.error('Failed to fetch orders');
-      } else if (data) {
-        setOrders(data);
-      }
-    } catch (err) {
-      setError('Failed to fetch orders');
+  const cafeId = user.cafe.id;
+  setLoading(true);
+  setError(null);
+
+  try {
+    const { data, error } = await ordersApi.getCafeOrders(cafeId);
+
+    if (error) {
+      setError(error);
       toast.error('Failed to fetch orders');
-    } finally {
-      setLoading(false);
+      setOrders([]); // fallback
+    } else if (data) {
+      // ✅ Backend returns an array directly
+      const orderArray = Array.isArray(data) ? data : [data];
+      setOrders(orderArray);
+      console.log('Fetched cafe orders:', orderArray);
+    } else {
+      setOrders([]);
     }
-  };
+  } catch (err) {
+    console.error('Error fetching orders:', err);
+    setError('Failed to fetch orders');
+    toast.error('Failed to fetch orders');
+    setOrders([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchOrders();
