@@ -36,6 +36,15 @@ CUISINES = [
     "Mediterranean",
 ]
 
+# Sample opening hours to assign to cafes (cycled)
+TIMINGS = [
+    "Mon-Fri 09:00-17:00",
+    "Mon-Sun 08:00-20:00",
+    "Tue-Sun 11:00-22:00",
+    "Mon-Sat 10:00-22:00",
+    "Weekdays 07:00-15:00",
+]
+
 # Test data - 5 OWNERS
 OWNERS = [
     {
@@ -294,6 +303,7 @@ def seed_owners_and_cafes():
             "name": CAFE_NAMES[i],
             "address": f"{100 + i * 10} Main St, Raleigh, NC",
             "cuisine": CUISINES[i % len(CUISINES)],
+            "timings": TIMINGS[i % len(TIMINGS)],
             "lat": BASE_LAT + (random.random() - 0.5) * 0.05,
             "lng": BASE_LNG + (random.random() - 0.5) * 0.05
         }

@@ -28,7 +28,8 @@ const RegisterPage: React.FC = () => {
     // OWNER fields
     restaurantName: '',
     cuisine: '',
-    address: '',
+  address: '',
+  timings: '',
   
     // DRIVER fields
     driverName: '',
@@ -95,6 +96,7 @@ const RegisterPage: React.FC = () => {
       ...(userType === 'OWNER' && {
         cuisine: formData.cuisine || undefined,
         address: formData.address || undefined,
+        timings: formData.timings || undefined,
       }),
     });
   
@@ -286,7 +288,7 @@ const RegisterPage: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cuisine">Cuisine Type</Label>
-                  <Select onValueChange={(value:string) => handleInputChange('cuisine', value)}>
+                  <Select value={formData.cuisine} onValueChange={(value:string) => handleInputChange('cuisine', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select cuisine type" />
                     </SelectTrigger>
@@ -301,6 +303,26 @@ const RegisterPage: React.FC = () => {
                       <SelectItem value="mediterranean">Mediterranean</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    placeholder="Restaurant address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="timings">Opening Hours</Label>
+                  {/* Use a textarea so the owner can enter multi-line/open-ended hours. */}
+                  <Textarea
+                    id="timings"
+                    placeholder="e.g. Mon-Fri 09:00-17:00\nSat-Sun 10:00-16:00"
+                    value={formData.timings}
+                    onChange={(e) => handleInputChange('timings', e.target.value)}
+                    rows={3}
+                  />
                 </div>
                 {/* <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>

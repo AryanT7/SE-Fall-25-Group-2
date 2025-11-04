@@ -71,6 +71,7 @@ export interface RegisterRequest {
   // Optional owner-specific fields
   cuisine?: string;
   address?: string;
+  timings?: string;
 }
 // Cafe Types
 export interface Cafe {
@@ -78,6 +79,7 @@ export interface Cafe {
   name: string;
   address?: string;
   cuisine?: string;
+  timings?: string;
   active: boolean;
   lat: number;
   lng: number;
@@ -87,6 +89,7 @@ export interface CafeCreateRequest {
   name: string;
   address?: string;
   cuisine?: string;
+  timings?: string;
   lat: number;
   lng: number;
 }

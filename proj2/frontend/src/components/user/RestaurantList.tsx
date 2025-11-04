@@ -113,7 +113,7 @@ const RestaurantList: React.FC = () => {
                 <SelectItem value="Mediterranean">Mediterranean</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={sortBy} onValueChange={setSortBy}>
+            {/* <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -121,7 +121,7 @@ const RestaurantList: React.FC = () => {
                 <SelectItem value="name">Closed</SelectItem>
                 <SelectItem value="active">Open First</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
         </div>
       </div>
@@ -145,16 +145,19 @@ const RestaurantList: React.FC = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCafes.map((cafe) => (
             <Card key={cafe.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-video relative">
-                <ImageWithFallback
-                  src={undefined} // no image in Cafe type; plug in when backend provides
-                  alt={cafe.name}
-                  className="w-full h-full object-cover"
-                />
-                <Badge className="absolute top-2 right-2 bg-background/90 text-foreground" variant={cafe.active ? 'default' : 'secondary'}>
-                  {cafe.active ? 'Open' : 'Closed'}
-                </Badge>
-              </div>
+                {/* Smaller image/hero area to reduce card height */}
+                <div className="relative h-36 md:h-44 overflow-hidden rounded-t">
+                  {/* Replace with ImageWithFallback when images are available. Fixed height keeps cards compact. */}
+                  {/* <ImageWithFallback
+                    src={undefined}
+                    alt={cafe.name}
+                    className="w-full h-full object-cover"
+                  /> */}
+                  {/* Optional status badge */}
+                  {/* <Badge className="absolute top-2 right-2 bg-background/90 text-foreground" variant={cafe.active ? 'default' : 'secondary'}>
+                    {cafe.active ? 'Open' : 'Closed'}
+                  </Badge> */}
+                </div>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
@@ -165,6 +168,11 @@ const RestaurantList: React.FC = () => {
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {cafe.address || 'Address not available'}
                     </p>
+                    {((cafe as any).timings) && (
+                      <p className="text-sm text-muted-foreground">
+                        Hours: {((cafe as any).timings)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardHeader>

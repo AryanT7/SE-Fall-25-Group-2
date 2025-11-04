@@ -191,6 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // prefer address/cuisine passed at registration if available
             address: (userData as any).address || 'Not specified',
             cuisine: (userData as any).cuisine || undefined,
+            timings: (userData as any).timings || undefined,
             lat: 0,
             lng: 0,
           };

@@ -39,6 +39,7 @@ class CafeCreate(BaseModel):
     name: str
     address: Optional[str] = None
     cuisine: Optional[str] = None
+    timings: Optional[str] = None
     lat: float
     lng: float
 class CafeOut(BaseModel):
@@ -46,6 +47,7 @@ class CafeOut(BaseModel):
     name: str
     address: Optional[str]
     cuisine: Optional[str]
+    timings: Optional[str]
     active: bool
     lat: float
     lng: float

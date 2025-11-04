@@ -36,6 +36,8 @@ class Cafe(Base):
     lng = Column(Float, nullable=False)
     # Cuisine for the cafe (e.g., Italian, Chinese, Indian, etc.)
     cuisine = Column(String, nullable=True)
+    # Human-readable opening hours / timings (e.g., "Mon-Fri 09:00-17:00")
+    timings = Column(String, nullable=True)
     owner = relationship("User", back_populates="owned_cafes")
     items = relationship("Item", back_populates="cafe")
     reviews = relationship("Review", back_populates="cafe", cascade="all, delete-orphan")
