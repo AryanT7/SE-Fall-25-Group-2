@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 from ..database import get_db
-from ..schemas import CafeCreate, CafeOut, OCRResult
-from ..models import Cafe, User, Role
+from ..schemas import CafeCreate, CafeOut, ItemCreate, OCRResult
+from ..models import Cafe, Item, User, Role
 from ..deps import get_current_user, require_roles
 from ..services.ocr import parse_menu_pdf
 router = APIRouter(prefix="/cafes", tags=["cafes"])
@@ -35,6 +35,7 @@ def create_cafe(data: CafeCreate, db: Session = Depends(get_db), owner: User = D
     db.commit()
     db.refresh(cafe)
     return cafe
+
 @router.get("/", response_model=List[CafeOut])
 def list_cafes(q: str | None = None, db: Session = Depends(get_db)):
     query = db.query(Cafe).filter(Cafe.active == True)
@@ -53,3 +54,25 @@ def upload_menu(cafe_id: int, pdf: UploadFile = File(...), db: Session = Depends
     items = parse_menu_pdf(content)
     return OCRResult(items=items)
 
+@router.put("/{cafe_id}/menu", response_model=dict)
+def replace_menu(
+    cafe_id: int,
+    items: List[ItemCreate],
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
+    if not cafe:
+        raise HTTPException(status_code=404, detail="Cafe not found")
+    if not (user.role == Role.ADMIN or cafe.owner_id == user.id):
+        raise HTTPException(status_code=403, detail="Only owner/admin can replace menu")
+
+    # Remove old items
+    db.query(Item).filter(Item.cafe_id == cafe_id).delete()
+
+    # Add new items
+    new_items = [Item(cafe_id=cafe_id, **item.model_dump()) for item in items]
+    db.add_all(new_items)
+    db.commit()
+
+    return {"success": True, "items_created": len(new_items)}
