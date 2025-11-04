@@ -34,6 +34,14 @@ interface EmotionalData {
   intensity: number;
 }
 
+interface DeliveryAddress {
+  street: string;
+  apartment?: string;
+  state: string;
+  zipcode: string;
+  country?: string;
+}
+
 interface UICartItem {
   id: number | string | null;
   menuItem: any;
@@ -49,6 +57,15 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
   const navigate = useNavigate();
   const [cart, setCart] = useState<UICartItem[]>([]);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
+    street: '',
+    apartment: undefined,
+    state: '',
+    zipcode: '',
+    country: 'United States'
+  });
+  // Use a per-user storage key so different logged-in users don't share the same saved address
+  const storageKey = `delivery_address_${user?.email ?? user?.id ?? 'guest'}`;
   const [friends, setFriends] = useState<string[]>(['']);
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
   const [showEmotionalDialog, setShowEmotionalDialog] = useState(false);
@@ -108,6 +125,24 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
             ownerId: '1'
           });
         }
+        // load saved delivery address (if any) for the current user
+        try {
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            setDeliveryAddress({
+              street: parsed.street || '',
+              apartment: parsed.apartment || undefined,
+              // ensure state is a string and strip digits/non-letter characters
+              state: parsed.state ? String(parsed.state).replace(/[^A-Za-z\s-]/g, '') : '',
+              // ensure zipcode contains only digits
+              zipcode: String(parsed.zipcode || '').replace(/\D/g, ''),
+              country: parsed.country || 'United States'
+            });
+          }
+        } catch (e) {
+          /* ignore */
+        }
       } catch (err) {
         console.error('Error loading cart items', err);
         setCart([]);
@@ -115,7 +150,8 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
     };
 
     loadCart();
-  }, []);
+  // re-run when the logged-in user changes so we load their own saved address
+  }, [user?.email]);
 
   const updateQuantity = async (cartItemId: number | string | null, change: number) => {
     try {
@@ -232,7 +268,19 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
     if (!restaurant) return;
 
     try {
-      const payload = { cafe_id: Number(restaurant.id) };
+      const payload: any = { cafe_id: Number(restaurant.id) };
+      // include structured delivery address when present
+      if (deliveryAddress && deliveryAddress.street && deliveryAddress.state && deliveryAddress.zipcode) {
+        payload.delivery_address = {
+          street: deliveryAddress.street.trim(),
+          apartment: deliveryAddress.apartment ? String(deliveryAddress.apartment).trim() : null,
+          // ensure state is a trimmed string
+          state: String(deliveryAddress.state).trim(),
+          // ensure zipcode is numeric-only (string of digits)
+          zipcode: String(deliveryAddress.zipcode).replace(/\D/g, '').trim(),
+          country: deliveryAddress.country || 'United States'
+        };
+      }
       const res = await ordersApi.placeOrder(payload as any);
       if (res.error) {
         toast.error(res.error || 'Failed to place order');
@@ -329,15 +377,79 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Delivery address <span className="text-rose-600">*</span></label>
+                <Input
+                  placeholder="Street address (required)"
+                  value={deliveryAddress.street}
+                  onChange={(e) => {
+                    const upd = { ...deliveryAddress, street: e.target.value };
+                    setDeliveryAddress(upd);
+                    try { localStorage.setItem(storageKey, JSON.stringify(upd)); } catch (err) { /* ignore */ }
+                  }}
+                />
+                <Input
+                  placeholder="Apt / Suite (optional)"
+                  value={deliveryAddress.apartment ?? ''}
+                  onChange={(e) => {
+                    const upd = { ...deliveryAddress, apartment: e.target.value || undefined };
+                    setDeliveryAddress(upd);
+                    try { localStorage.setItem(storageKey, JSON.stringify(upd)); } catch (err) { /* ignore */ }
+                  }}
+                />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="State (required)"
+                    value={deliveryAddress.state}
+                    inputMode="text"
+                    pattern="[A-Za-z\s-]*"
+                    maxLength={50}
+                    onChange={(e) => {
+                      // strip any numeric or other unwanted characters; allow letters, spaces and hyphens
+                      const raw = String(e.target.value || '');
+                      const sanitized = raw.replace(/[^A-Za-z\s-]/g, '');
+                      const upd = { ...deliveryAddress, state: sanitized };
+                      setDeliveryAddress(upd);
+                      try { localStorage.setItem(storageKey, JSON.stringify(upd)); } catch (err) { /* ignore */ }
+                    }}
+                  />
+                  <Input
+                    placeholder="Zipcode (required)"
+                    value={deliveryAddress.zipcode}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={10}
+                      onChange={(e) => {
+                        const raw = String(e.target.value || '');
+                        const digits = raw.replace(/\D/g, '');
+                        const upd = { ...deliveryAddress, zipcode: digits };
+                        setDeliveryAddress(upd);
+                        try { localStorage.setItem(storageKey, JSON.stringify(upd)); } catch (err) { /* ignore */ }
+                      }}
+                  />
+                </div>
+                <Input
+                  placeholder="Country"
+                  value={deliveryAddress.country ?? 'United States'}
+                  disabled
+                />
+                {(
+                  !deliveryAddress.street.trim() ||
+                  !deliveryAddress.state.trim() ||
+                  !deliveryAddress.zipcode.trim()
+                ) && (
+                  <p className="text-sm text-rose-600">Street, state and zipcode are required to place the order.</p>
+                )}
+              </div>
               {cart.map((item, index) => (
                 <div key={`${item.id ?? item.menuItem.id}-${index}`} className="space-y-4">
                   <div className="flex gap-4">
                     <div className="w-20 h-20 flex-shrink-0">
-                      <ImageWithFallback
+                      {/* <ImageWithFallback
                         src={item.menuItem.image}
                         alt={item.menuItem.name}
                         className="w-full h-full object-cover rounded"
-                      />
+                      /> */}
                     </div>
                     <div className="flex-1 space-y-2">
                       <div className="flex items-start justify-between">
@@ -504,11 +616,20 @@ const CartPage: React.FC<CartPageProps> = ({ user }) => {
                 <Button 
                   className="w-full" 
                   onClick={initiateCheckout}
-                  disabled={!restaurant || getTotalAmount() < (restaurant.minimumOrder ?? 0)}
+                  disabled={
+                    !restaurant ||
+                    getTotalAmount() < (restaurant?.minimumOrder ?? 0) ||
+                    !(
+                      deliveryAddress &&
+                      deliveryAddress.street.trim().length > 0 &&
+                      deliveryAddress.state.trim().length > 0 &&
+                      deliveryAddress.zipcode.trim().length > 0
+                    )
+                  }
                 >
-                  {!restaurant || getTotalAmount() < (restaurant.minimumOrder ?? 0) 
+                  {!restaurant || getTotalAmount() < (restaurant?.minimumOrder ?? 0)
                     ? `Add ${(Math.max(0, (restaurant?.minimumOrder ?? 0) - getTotalAmount())).toFixed(2)} more`
-                    : 'Continue to Checkout'
+                    : ((!deliveryAddress || !deliveryAddress.street.trim() || !deliveryAddress.state.trim() || !deliveryAddress.zipcode.trim()) ? 'Enter delivery address' : 'Continue to Checkout')
                   }
                 </Button>
               ) : (

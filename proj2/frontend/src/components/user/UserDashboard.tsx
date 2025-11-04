@@ -218,16 +218,36 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
       try {
         setLoading(true);
         setError(null);
+        // Prefer server-provided today's intake (goalsApi). fallback to local orders for instant UX.
+        let caloriesForToday = 0;
+        try {
+          const gres = await goalsApi.getTodayIntake();
+          if (gres && gres.data && typeof gres.data.calories !== 'undefined') {
+            caloriesForToday = Number(gres.data.calories) || 0;
+            console.debug('[Dash] used goalsApi.getTodayIntake() ->', caloriesForToday);
+          }
+        } catch (e) {
+          console.debug('[Dash] goalsApi.getTodayIntake() failed, will fallback to local orders', e);
+        }
 
-        const res = await cartApi.getSummary(); // -> { data?: CartSummary }
-        if (res.error) throw new Error(res.error);
-
-        const summary = res.data as CartSummary | undefined;
-        const caloriesFromSummary =
-          (summary as any)?.calories_today ?? (summary as any)?.caloriesToday ?? 0;
+        // fallback: if server didn't provide data, try local orders stored in localStorage (immediate UX)
+        if (!caloriesForToday) {
+          try {
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const todayStr = new Date().toDateString();
+            const total = (orders || []).filter((o: any) => new Date(o.createdAt).toDateString() === todayStr)
+              .reduce((sum: number, o: any) => sum + (o.totalCalories || 0), 0);
+            if (total > 0) {
+              caloriesForToday = total;
+              console.debug('[Dash] used localStorage orders fallback ->', caloriesForToday);
+            }
+          } catch (e) {
+            /* ignore parse errors */
+          }
+        }
 
         if (mounted) {
-          setTodayCalories(Number(caloriesFromSummary) || 0);
+          setTodayCalories(Number(caloriesForToday) || 0);
 
           // build a simple 7-day graph using resolvedGoal as baseline
           const today = new Date();
@@ -236,7 +256,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
             d.setDate(today.getDate() - (6 - i));
             return {
               date: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-              consumed: i === 6 ? Number(caloriesFromSummary) || 0 : 0, // 0 for past days until history exists
+              consumed: i === 6 ? Number(caloriesForToday) || 0 : 0, // 0 for past days until history exists
               goal: resolvedGoal || 2200,
             };
           });
@@ -365,14 +385,12 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
 
       {/* Recent Orders */}
       <Card>
-        <CardHeader>
+        {/* <CardHeader>
           <CardTitle>Recent Orders</CardTitle>
           <CardDescription>Your latest meals and their calorie impact</CardDescription>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent>
-          {recentOrders.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No recent orders to display.</p>
-          ) : (
+          {recentOrders.length > 0 && (
             <div className="space-y-4">
               {recentOrders.map((order) => (
                 <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">

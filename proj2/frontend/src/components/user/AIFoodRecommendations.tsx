@@ -20,7 +20,7 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
   const [todayCalories, setTodayCalories] = useState(0);
   const [allMenuItems, setAllMenuItems] = useState<MenuItem[]>([]);
   const [effectiveUser, setEffectiveUser] = useState<User>(user);
-  const [restaurantsById, setRestaurantsById] = useState<Record<string | number, any>>({});
+  const [restaurantsById, setRestaurantsById] = useState<Record<string, any>>({});
 
   // ---------- helpers ----------
   const coerceNumber = (v: unknown): number | undefined => {
@@ -51,9 +51,7 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
     if (['light', 'lightly active', 'lightly_active', '2'].includes(s)) return 'light';
     if (['moderate', 'moderately active', 'moderately_active', '3', 'avg', 'medium'].includes(s)) return 'moderate';
     if (['active', '4', 'high'].includes(s)) return 'active';
-    if (
-      ['very active', 'very_active', 'veryactive', 'extremely active', 'extremely_active', '5', 'extreme'].includes(s)
-    )
+    if (['very active', 'very_active', 'veryactive', 'extremely active', 'extremely_active', '5', 'extreme'].includes(s))
       return 'very active';
     return 'moderate';
   };
@@ -65,12 +63,12 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
       case 'light': return 1.375;
       case 'moderate': return 1.55;
       case 'active': return 1.725;
-      case 'very active': return 1.9; // ensure "very active" is highest
+      case 'very active': return 1.9;
       default: return 1.55;
     }
   };
 
-  // Only used as a final fallback if no daily_calorie_goal exists
+  // Final fallback if no daily_calorie_goal exists
   const computeHarrisBenedict = (u: any): number | null => {
     const height_cm = coerceNumber(u?.height_cm ?? u?.height);
     const weight_kg = coerceNumber(u?.weight_kg ?? u?.weight);
@@ -84,12 +82,6 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
     } else {
       bmr = 447.593 + 9.247 * weight_kg + 3.098 * height_cm - 4.330 * age_years;
     }
-    console.log("AI REC user.age =", age_years);
-    console.log("AI REC user.height =", height_cm);
-    console.log("AI REC user.weight =", weight_kg);
-    console.log("AI REC user.sex =", sex);
-    console.log("AI REC user.activityLevel =", activityMultiplier(u?.activityLevel));
-
     const mult = activityMultiplier(u?.activityLevel ?? u?.activity_level ?? u?.activity);
     return Math.max(1, Math.round(bmr * mult));
   };
@@ -129,13 +121,8 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
           if (orders) {
             const parsed = JSON.parse(orders);
             const today = new Date().toDateString();
-            const todayOrders = parsed.filter(
-              (o: any) => new Date(o.createdAt).toDateString() === today
-            );
-            const total = todayOrders.reduce(
-              (sum: number, o: any) => sum + (o.totalCalories || 0),
-              0
-            );
+            const todayOrders = parsed.filter((o: any) => new Date(o.createdAt).toDateString() === today);
+            const total = todayOrders.reduce((sum: number, o: any) => sum + (o.totalCalories || 0), 0);
             setTodayCalories(total);
           } else {
             setTodayCalories(0);
@@ -145,17 +132,14 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
         }
       }
 
-      // 2) Menu items (map cafe_id → restaurantId, ensure defaults)
+      // 2) Menu items — ensure restaurantId is a STRING to match restaurant map
       try {
         const res = await itemsApi.listAll();
         if (res?.data && Array.isArray(res.data)) {
           const transformed = res.data.map((item: any) => ({
             ...item,
-            restaurantId: item.cafe_id ?? item.restaurantId,
-            category: item.category || 'Main',
+            restaurantId: String(item.cafe_id ?? item.cafeId ?? item.restaurantId ?? ''), // 🔑 normalize to string
             isVegetarian: item.is_vegetarian ?? item.isVegetarian ?? false,
-            isNonVeg: item.is_non_veg ?? item.isNonVeg ?? false,
-            image: item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
             servings: item.servings || 1,
           }));
           setAllMenuItems(transformed);
@@ -166,31 +150,39 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
         setAllMenuItems([]);
       }
 
-      // 3) Restaurants list for name/address under each suggestion
+      // 3) Restaurants list — fetch from backend with base URL and normalize keys to STRING
       try {
-        let map: Record<string | number, any> = {};
+        const base = (import.meta as any)?.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+        const map: Record<string, any> = {};
 
-        // Try backend
         try {
-          const rres = await fetch('/api/restaurants');
+          const rres = await fetch(`${base}/cafes`, { credentials: 'include' });
           if (rres.ok) {
             const data = await rres.json();
             if (Array.isArray(data)) {
-              for (const r of data) map[r.id] = r;
+              for (const r of data) {
+                const key = r?.id ?? r?.cafe_id ?? r?.uuid;
+                if (key !== undefined && key !== null) map[String(key)] = r; // 🔑 normalize to string
+              }
             }
           }
-        } catch {
-          // ignore; fallback below
+        } catch (e) {
+          console.debug('[ai] /cafes fetch failed', e);
         }
 
-        // Fallback: localStorage
+        // Fallback: localStorage 'restaurants'
         if (Object.keys(map).length === 0) {
           const stored = localStorage.getItem('restaurants');
           if (stored) {
-            const arr = JSON.parse(stored);
-            if (Array.isArray(arr)) {
-              for (const r of arr) map[r.id] = r;
-            }
+            try {
+              const arr = JSON.parse(stored);
+              if (Array.isArray(arr)) {
+                for (const r of arr) {
+                  const key = r?.id ?? r?.cafe_id ?? r?.uuid;
+                  if (key !== undefined && key !== null) map[String(key)] = r;
+                }
+              }
+            } catch {/* ignore */}
           }
         }
 
@@ -203,11 +195,10 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
     };
 
     run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
-  // ---------- goal resolution ----------
-  // Use daily_calorie_goal first. If missing, fallback to user.calorieGoal.
-  // As a last resort, compute via Harris–Benedict from profile; default 2000 if still missing.
+  // ---------- goal + progress ----------
   const resolvedGoal = useMemo(() => {
     const fromDaily = coerceNumber((effectiveUser as any).daily_calorie_goal);
     if (typeof fromDaily === 'number') return fromDaily;
@@ -224,105 +215,64 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
   const progress = Math.min((todayCalories / resolvedGoal) * 100, 100);
   const remaining = Math.max(0, resolvedGoal - todayCalories);
 
-  // Personalized list: closest fits to remaining cals, else lightest items
-  const personalizedMenu = useMemo(() => {
-    if (!Array.isArray(allMenuItems) || allMenuItems.length === 0) return [];
-    const fit = allMenuItems.filter((it) => typeof it.calories === 'number' && it.calories <= remaining);
-    if (fit.length > 0) {
-      return fit.sort((a, b) => {
-        const da = Math.abs((a.calories || 0) - remaining);
-        const db = Math.abs((b.calories || 0) - remaining);
-        return da - db;
-      });
-    }
-    return [...allMenuItems]
-      .filter((it) => typeof it.calories === 'number')
-      .sort((a, b) => (a.calories || 0) - (b.calories || 0));
-  }, [allMenuItems, remaining]);
+  // ---------- enrich items with restaurantName (so children can render name directly) ----------
+  const enrichedMenuItems = useMemo(() => {
+    if (!Array.isArray(allMenuItems)) return [];
+    return allMenuItems.map((it: any) => {
+      const rid = String(it.restaurantId ?? '');
+      const cafe = restaurantsById[rid];
+      return {
+        ...it,
+        restaurantName: cafe?.name ?? cafe?.title ?? 'Unknown restaurant',
+        restaurantAddress: cafe?.address ?? '',
+      };
+    });
+  }, [allMenuItems, restaurantsById]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="p-6">
+        <div className="animate-pulse h-4 w-40 rounded bg-muted mb-3" />
+        <div className="animate-pulse h-4 w-24 rounded bg-muted" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-primary/10 rounded-lg">
-          <Lightbulb className="h-6 w-6 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold">AI Food Recommendations</h1>
-          <p className="text-muted-foreground">
-            Personalized suggestions based on your daily goal and today’s intake
-          </p>
-        </div>
-      </div>
-
-      {/* Progress Card */}
-      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-        <CardHeader>
+      <Card>
+        <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Daily Progress
+            <Lightbulb className="h-5 w-5" />
+            AI Food Recommendations
           </CardTitle>
-          <CardDescription>
-            {`We’re using your daily goal of ${resolvedGoal} cal`}
-          </CardDescription>
+          <CardDescription>Personalized picks based on your profile and goals</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex justify-between text-sm">
-            <span>Today's Progress</span>
-            <span className="font-medium">
-              {todayCalories} / {resolvedGoal} cal
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <Target className="h-4 w-4" />
+              Daily goal:&nbsp;<strong>{resolvedGoal} cal</strong>
+            </div>
+            <div className="text-sm">
+              Today:&nbsp;<strong>{todayCalories} cal</strong>&nbsp;• Remaining:&nbsp;<strong>{remaining} cal</strong>
+            </div>
           </div>
-          <Progress value={progress} className="h-2" />
-          <p className="text-xs text-muted-foreground">
-            {remaining > 0 ? `${remaining} calories remaining for today` : 'Daily goal reached!'}
-          </p>
+          <Progress value={progress} />
         </CardContent>
       </Card>
 
-      {/* Tabs */}
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">All (Personalized)</TabsTrigger>
-          <TabsTrigger value="vegetarian">Vegetarian</TabsTrigger>
-          <TabsTrigger value="low-cal">Low Calorie</TabsTrigger>
-        </TabsList>
+      {/* Pass enriched menu and the normalized restaurants map */}
+      <FoodSuggestions
+        user={effectiveUser}
+        menuItems={enrichedMenuItems as any}
+        currentCaloriesToday={todayCalories}
+        restaurantsById={restaurantsById}
+      />
 
-        <TabsContent value="all" className="space-y-4">
-          <FoodSuggestions
-            user={{ ...(effectiveUser as any), calorieGoal: resolvedGoal }}
-            menuItems={personalizedMenu}
-            currentCaloriesToday={todayCalories}
-            restaurantsById={restaurantsById}
-          />
-        </TabsContent>
-
-        <TabsContent value="vegetarian" className="space-y-4">
-          <FoodSuggestions
-            user={{ ...(effectiveUser as any), calorieGoal: resolvedGoal }}
-            menuItems={allMenuItems.filter((it) => (it as any).isVegetarian === true)}
-            currentCaloriesToday={todayCalories}
-            restaurantsById={restaurantsById}
-          />
-        </TabsContent>
-
-        <TabsContent value="low-cal" className="space-y-4">
-          <FoodSuggestions
-            user={{ ...(effectiveUser as any), calorieGoal: resolvedGoal }}
-            menuItems={allMenuItems.filter((it) => (it.calories || 0) < 300)}
-            currentCaloriesToday={todayCalories}
-            restaurantsById={restaurantsById}
-          />
-        </TabsContent>
-      </Tabs>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
+      </div>
     </div>
   );
 };

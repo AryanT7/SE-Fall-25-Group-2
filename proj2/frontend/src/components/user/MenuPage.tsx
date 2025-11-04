@@ -102,7 +102,7 @@ const MenuPage: React.FC = () => {
               rating: cafeJson.rating ?? fallbackRestaurant.rating,
               deliveryTime: cafeJson.deliveryTime || fallbackRestaurant.deliveryTime,
               minimumOrder: cafeJson.minimumOrder ?? fallbackRestaurant.minimumOrder,
-              image: cafeJson.image || fallbackRestaurant.image,
+              //image: cafeJson.image || fallbackRestaurant.image,
               address: cafeJson.address || undefined,
               ownerId: cafeJson.owner_id ?? cafeJson.ownerId ?? fallbackRestaurant.ownerId
             } as unknown as Restaurant;
@@ -260,11 +260,11 @@ const MenuPage: React.FC = () => {
       {/* Restaurant Header */}
       <div className="relative">
         <div className="aspect-[3/1] relative rounded-lg overflow-hidden">
-          <ImageWithFallback
+          {/* <ImageWithFallback
             src={restaurant.image}
             alt={restaurant.name}
             className="w-full h-full object-cover"
-          />
+          /> */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-4 left-4 text-white">
             <h1 className="text-3xl font-bold">{restaurant.name}</h1>
@@ -278,7 +278,7 @@ const MenuPage: React.FC = () => {
                 <Clock className="h-5 w-5" />
                 <span>{restaurant.deliveryTime}</span>
               </div>
-              <Badge variant="secondary">{restaurant.cuisine}</Badge>
+              {/* <Badge variant="secondary">{restaurant.cuisine}</Badge> */}
               {/* <Link to={`/restaurant/${restaurantId}/reviews`}>
                 <Button variant="secondary" size="sm" className="gap-1">
                   <MessageSquare className="h-4 w-4" />
@@ -353,11 +353,11 @@ const MenuPage: React.FC = () => {
                     <Card key={item.id} className="overflow-hidden">
                       <div className="flex">
                         <div className="w-32 h-32 flex-shrink-0">
-                          <ImageWithFallback
+                          {/* <ImageWithFallback
                             src={item.image}
                             alt={item.name}
                             className="w-full h-full object-cover"
-                          />
+                          /> */}
                         </div>
                         <div className="flex-1 p-4">
                           <CardHeader className="p-0 space-y-2">
