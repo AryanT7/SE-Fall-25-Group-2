@@ -3,9 +3,13 @@ import { MenuItem, ItemCreateRequest } from './types';
 
 // Items API Functions
 export const itemsApi = {
-    async listAll(): Promise<{ data?: MenuItem[]; error?: string }> {
-        return apiClient.get<MenuItem[]>(`/items`, false); // Public endpoint
+  /**
+   * List all items across all cafes
+   */
+  async listAll(): Promise<{ data?: MenuItem[]; error?: string }> {
+    return apiClient.get<MenuItem[]>('/items', false); // Public endpoint
   },
+
   /**
    * Get all menu items from a specific cafe
    */
@@ -20,7 +24,7 @@ export const itemsApi = {
    * Get a specific menu item by ID
    */
   async getItem(itemId: number): Promise<{ data?: MenuItem; error?: string }> {
-    return apiClient.get<MenuItem>(`/items/item/${itemId}`, false); // Assuming this endpoint exists
+    return apiClient.get<MenuItem>(`/items/${itemId}`, false);
   },
 
   /**
@@ -34,21 +38,21 @@ export const itemsApi = {
    * Update a menu item (Owner/Admin only)
    */
   async updateItem(itemId: number, updates: Partial<ItemCreateRequest>): Promise<{ data?: MenuItem; error?: string }> {
-    return apiClient.put<MenuItem>(`/items/item/${itemId}`, updates);
+    return apiClient.put<MenuItem>(`/items/${itemId}`, updates);
   },
 
   /**
    * Delete a menu item (Owner/Admin only)
    */
-  async deleteItem(itemId: number): Promise<{ data?: { message: string }; error?: string }> {
-    return apiClient.delete(`/items/item/${itemId}`);
+  async deleteItem(itemId: number): Promise<{ data?: { status: string }; error?: string }> {
+    return apiClient.delete(`/items/${itemId}`);
   },
 
   /**
-   * Toggle item active status (Owner/Admin only)
+   * Replace entire menu with extracted items from PDF (Owner/Admin only)
    */
-  async toggleItemStatus(itemId: number, active: boolean): Promise<{ data?: MenuItem; error?: string }> {
-    return apiClient.patch<MenuItem>(`/items/item/${itemId}/status`, { active });
+  async replaceMenu(cafeId: number, items: ItemCreateRequest[]): Promise<{ data?: { success: boolean; items_created: number }; error?: string }> {
+    return apiClient.put<{ success: boolean; items_created: number }>(`/cafes/${cafeId}/menu`, items);
   },
 };
 
@@ -57,8 +61,8 @@ export const {
   listAll,
   getCafeItems,
   getItem,
-  addMenuItem,      // was addItem
+  addMenuItem,
   updateItem,
   deleteItem,
-  toggleItemStatus,
+  replaceMenu,
 } = itemsApi;

@@ -68,11 +68,11 @@ export default function App() {
         {/* OWNER/STAFF ROUTES */}
         {isAuthenticated && user?.role === 'OWNER' && (
           <>
-            <Route path="/restaurant/dashboard" element={<RestaurantDashboard user={user} />} />
-            <Route path="/restaurant/menu" element={<MenuManagement />} />
+            <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
+            <Route path="/restaurant/menu" element={<MenuManagement/>} />
             <Route path="/restaurant/orders" element={<OrderManagement user={user} />} />
             <Route path="/restaurant/reviews" element={<ReviewInsights cafeId={user?.cafe?.id!} />} />
-            <Route path="/restaurant/analytics" element={<Analytics />} /> 
+            <Route path="/restaurant/analytics" element={<Analytics/>} /> 
           </>
         )}
 
@@ -122,5 +122,4 @@ export default function App() {
     </main>
   );
 }
-
 
