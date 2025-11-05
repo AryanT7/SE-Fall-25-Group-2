@@ -44,9 +44,9 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">F</span>
+              <span className="text-primary-foreground font-bold">CC</span>
             </div>
-            <span className="text-xl font-bold">CalorieConnect</span>
+            <span className="text-2xl sm:text-3xl font-bold">CalorieConnect</span>
           </Link>
         </div>
 
