@@ -21,7 +21,8 @@ export const ordersApi = {
    * Get a specific order by ID
    */
   async getOrder(orderId: number): Promise<{ data?: Order; error?: string }> {
-    return apiClient.get<Order>(`/orders/${orderId}`);
+    // Use the summary endpoint which includes item-level details
+    return apiClient.get<any>(`/orders/${orderId}/summary`);
   },
 
   /**

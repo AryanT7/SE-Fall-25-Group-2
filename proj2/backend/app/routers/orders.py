@@ -76,7 +76,10 @@ def order_summary(order_id: int, db: Session = Depends(get_db), current: User = 
     else:
         driver_info = None
     return OrderSummaryOut(
-        order_id=order.id,
+        id=order.id,
+        cafe_id=order.cafe_id,
+        status=order.status,
+        created_at=order.created_at,
         total_price=order.total_price,
         total_calories=order.total_calories,
         items=item_summaries,

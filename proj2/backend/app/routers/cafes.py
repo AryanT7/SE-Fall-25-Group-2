@@ -44,6 +44,15 @@ def list_cafes(q: str | None = None, db: Session = Depends(get_db)):
         like = f"%{q}%"
         query = query.filter(Cafe.name.ilike(like))
     return query.order_by(Cafe.name).all()
+
+
+@router.get("/{cafe_id}", response_model=CafeOut)
+def get_cafe(cafe_id: int, db: Session = Depends(get_db)):
+    """Retrieve a specific cafe by id (public)."""
+    cafe = db.query(Cafe).filter(Cafe.id == cafe_id, Cafe.active == True).first()
+    if not cafe:
+        raise HTTPException(status_code=404, detail="Cafe not found")
+    return cafe
 @router.post("/{cafe_id}/menu/upload", response_model=OCRResult)
 def upload_menu(cafe_id: int, pdf: UploadFile = File(...), db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()

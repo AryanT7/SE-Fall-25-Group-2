@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Clock, MapPin, Star, RotateCcw, Package } from 'lucide-react';
 import { User, Order as ApiOrder } from '../../api/types';
 import { toast } from 'sonner';
-import { getMyOrders, cancelOrder as cancelOrderApi } from '../../api/orders';
+import { getMyOrders, cancelOrder as cancelOrderApi, getOrder as getOrderApi } from '../../api/orders';
+import { getCafe as getCafeApi } from '../../api/cafes';
 
 // Local Order interface for the component
 interface Order {
@@ -22,6 +23,7 @@ interface Order {
   pickupTime?: Date;
   paymentMethod: string;
   canCancelUntil?: Date;
+  restaurantName?: string;
 }
 
 interface OrderHistoryProps {
@@ -32,26 +34,79 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState('all');
+  const cafeNameCache = new Map<number, string>();
 
   useEffect(() => {
     // Fetch orders from API
     const fetchOrders = async () => {
       try {
         const response = await getMyOrders();
+        console.debug('[OrderHistory] getMyOrders response:', response);
         if (response.data) {
-          // Transform API orders to match component's expected format
-          const transformedOrders: Order[] = response.data.map((order: ApiOrder) => ({
-            id: order.id.toString(),
+          // For each API order, try to fetch detailed order (items) and cafe name for display
+          const detailed = await Promise.all(
+            response.data.map(async (order: ApiOrder) => {
+              let items: any[] = [];
+              let restaurantName = 'Restaurant';
+              console.debug('[OrderHistory] processing order', order.id, order);
+              try {
+                const od = await getOrderApi(order.id);
+                console.debug('[OrderHistory] getOrderApi result for', order.id, od);
+                if (od && od.data) {
+                  const rawItems = (od.data as any).items ?? (od.data as any).order_items ?? [];
+                  // normalize item fields for UI
+                  items = rawItems.map((it: any) => ({
+                    name: it.name ?? it.item_name ?? it.title ?? 'Item',
+                    quantity: it.quantity ?? it.qty ?? 1,
+                    calories: it.subtotal_calories ?? it.subtotalCalories ?? it.calories ?? 0,
+                    price: it.subtotal_price ?? it.subtotalPrice ?? it.price ?? 0,
+                  }));
+                }
+              } catch (e) {
+                console.debug('[OrderHistory] getOrderApi failed for', order.id, e);
+                // ignore
+              }
+
+              try {
+                const cafeId = Number(order.cafe_id);
+                if (cafeId && cafeNameCache.has(cafeId)) {
+                  restaurantName = cafeNameCache.get(cafeId)!;
+                } else if (cafeId) {
+                  const cres = await getCafeApi(cafeId);
+                  console.debug('[OrderHistory] getCafeApi for', cafeId, cres);
+                  if (cres && cres.data) {
+                    restaurantName = (cres.data as any).name || restaurantName;
+                    cafeNameCache.set(cafeId, restaurantName);
+                  }
+                }
+              } catch (e) {
+                console.debug('[OrderHistory] getCafeApi failed for', order.cafe_id, e);
+                // ignore
+              }
+
+              return {
+                raw: order,
+                items,
+                restaurantName,
+              };
+            })
+          );
+
+          const transformedOrders: Order[] = detailed.map(({ raw, items, restaurantName }: any) => ({
+            id: raw.id.toString(),
             userId: user.id.toString(),
-            restaurantId: order.cafe_id.toString(),
-            items: [],
-            totalAmount: order.total_price,
-            totalCalories: order.total_calories,
-            status: order.status.toLowerCase(),
-            createdAt: new Date(order.created_at),
+            restaurantId: raw.cafe_id.toString(),
+            items: items || [],
+            totalAmount: raw.total_price,
+            totalCalories: raw.total_calories,
+            status: raw.status.toLowerCase(),
+            createdAt: new Date(raw.created_at),
             paymentMethod: 'credit_card',
-            canCancelUntil: new Date(order.can_cancel_until)
+            canCancelUntil: new Date(raw.can_cancel_until),
+            // include human-readable name for UI convenience
+            restaurantName,
           }));
+
           setOrders(transformedOrders);
           setFilteredOrders(transformedOrders);
         } else if (response.error) {
@@ -108,7 +163,9 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
   };
 
   const getRestaurantName = (restaurantId: string) => {
-    const restaurantNames: { [key: string]: string } = {
+    // If the order object already contains a restaurantName, prefer that.
+    // Otherwise fall back to the static mapping for demo data.
+    const staticNames: { [key: string]: string } = {
       'rest1': 'Pizza Palace',
       'rest2': 'Burger Hub',
       'rest3': 'Sushi Zen',
@@ -116,7 +173,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
       'rest5': 'Green Garden',
       'rest6': 'Curry House'
     };
-    return restaurantNames[restaurantId] || 'Restaurant';
+    return staticNames[restaurantId] || 'Restaurant';
   };
 
   const canCancelOrder = (order: Order) => {
@@ -203,7 +260,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
                       <div className="flex items-start justify-between">
                         <div className="space-y-2">
                           <CardTitle className="flex items-center gap-2">
-                            {getRestaurantName(order.restaurantId)}
+                            {order.restaurantName ?? getRestaurantName(order.restaurantId)}
                             <Badge className={getStatusColor(order.status)}>
                               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             </Badge>
@@ -220,6 +277,21 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
+                          {order.items && order.items.length > 0 && (
+                            <div className="space-y-2">
+                              {order.items.map((it: any, idx: number) => (
+                                <div key={idx} className="flex justify-between text-sm">
+                                  <div>
+                                    <div className="font-medium">{it.name || it.title || it.item_name || 'Item'}</div>
+                                    <div className="text-xs text-muted-foreground">x{it.quantity ?? it.qty ?? 1}</div>
+                                  </div>
+                                  <div className="text-right text-sm text-muted-foreground">
+                                    {it.calories ? `${it.calories} cal` : ''}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />

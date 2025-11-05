@@ -187,5 +187,14 @@ class OrderSummaryOut(BaseModel):
     total_price: float
     total_calories: int
     driver_info: Optional[dict] = None
+    # include item-level details so frontend can render order contents
+    class OrderItemSummary(BaseModel):
+        item_id: int
+        name: str
+        quantity: int
+        subtotal_price: float
+        subtotal_calories: int
+
+    items: Optional[List[OrderItemSummary]] = []
     class Config:
         from_attributes = True
