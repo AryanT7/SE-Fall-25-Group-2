@@ -435,38 +435,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         <FoodSuggestions user={user as any} menuItems={sampleMenuItems} currentCaloriesToday={todayCalories} />
       )}
 
-      {/* Recent Orders */}
-      <Card>
-        {/* <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
-          <CardDescription>Your latest meals and their calorie impact</CardDescription>
-        </CardHeader> */}
-        <CardContent>
-          {recentOrders.length > 0 && (
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-medium">{order.restaurantName}</h4>
-                      <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>{order.status}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {order.totalCalories} calories • ${order.totalAmount}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Link to={`/orders/${order.id}/track`}>
-                      <Button variant="outline" size="sm">Track</Button>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Recent Orders removed from dashboard per user request */}
 
       {/* Weekly Calorie Chart */}
       <Card>
