@@ -2,35 +2,62 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from typing import List
 import logging
-from ..schemas import OCRResult, OCRMenuItem
-from ..services.ocr import parse_menu_pdf
+import os
+from ..schemas import OCRResult, OCRMenuItem, MenuTextRequest
+from ..services.ocr import parse_menu_file
 from ..deps import get_current_user
 from ..models import User
 
 router = APIRouter(prefix="/ocr", tags=["OCR"])
 logger = logging.getLogger(__name__)
 
+# Supported file types
+SUPPORTED_IMAGE_TYPES = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp'}
+SUPPORTED_PDF_TYPES = {'.pdf'}
+SUPPORTED_FILE_TYPES = SUPPORTED_IMAGE_TYPES | SUPPORTED_PDF_TYPES
+
+def get_file_type(filename: str) -> str:
+    """Extract file type from filename."""
+    if not filename:
+        raise ValueError("Filename is required")
+    ext = os.path.splitext(filename.lower())[1]
+    if not ext:
+        raise ValueError("File must have an extension")
+    return ext[1:]  # Remove the dot
+
 @router.post("/parse-menu", response_model=OCRResult)
-async def parse_menu_from_pdf(
+async def parse_menu_from_file(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Parse a menu PDF file and extract structured menu items using OCR and Mistral AI.
+    Parse a menu file (PDF or image) and extract structured menu items using OCR and Mistral AI.
+    
+    Supports:
+    - PDF files (.pdf)
+    - Image files (.png, .jpg, .jpeg, .gif, .bmp, .tiff, .webp)
     
     Args:
-        file: PDF file containing the menu
+        file: PDF or image file containing the menu
         current_user: Current authenticated user
         
     Returns:
-        OCRResult containing list of parsed menu items
+        OCRResult containing list of parsed menu items in JSON format
     """
     try:
         # Validate file type
-        if not file.filename.lower().endswith('.pdf'):
+        if not file.filename:
             raise HTTPException(
                 status_code=400,
-                detail="Only PDF files are supported"
+                detail="Filename is required"
+            )
+        
+        file_ext = os.path.splitext(file.filename.lower())[1]
+        
+        if file_ext not in SUPPORTED_FILE_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file type. Supported formats: PDF ({', '.join(sorted(SUPPORTED_PDF_TYPES))}) and Images ({', '.join(sorted(SUPPORTED_IMAGE_TYPES))})"
             )
         
         # Read file content
@@ -49,10 +76,13 @@ async def parse_menu_from_pdf(
                 detail="File size too large. Maximum size is 10MB"
             )
         
-        logger.info(f"Processing PDF file: {file.filename} ({len(file_content)} bytes)")
+        # Get file type
+        file_type = get_file_type(file.filename)
         
-        # Parse the PDF using OCR service
-        menu_items = parse_menu_pdf(file_content)
+        logger.info(f"Processing {file_type.upper()} file: {file.filename} ({len(file_content)} bytes)")
+        
+        # Parse the file using OCR service
+        menu_items = parse_menu_file(file_content, file_type, file.filename)
         
         logger.info(f"Successfully parsed {len(menu_items)} menu items from {file.filename}")
         
@@ -64,6 +94,8 @@ async def parse_menu_from_pdf(
             status_code=422,
             detail=f"Failed to parse menu: {str(e)}"
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Unexpected error during OCR processing: {str(e)}")
         raise HTTPException(
@@ -73,7 +105,7 @@ async def parse_menu_from_pdf(
 
 @router.post("/parse-menu-text", response_model=OCRResult)
 async def parse_menu_from_text(
-    text_content: str,
+    request: MenuTextRequest,
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -81,13 +113,15 @@ async def parse_menu_from_text(
     This endpoint is useful for testing or when you already have extracted text.
     
     Args:
-        text_content: Raw text content of the menu
+        request: Request body containing text_content field
         current_user: Current authenticated user
         
     Returns:
         OCRResult containing list of parsed menu items
     """
     try:
+        text_content = request.text_content
+        
         if not text_content.strip():
             raise HTTPException(
                 status_code=400,
@@ -130,27 +164,22 @@ async def ocr_health_check():
         from ..services.ocr import OCRService
         ocr_service = OCRService()
         
-        # Simple test to verify API key is working
-        headers = {
-            "Authorization": f"Bearer {ocr_service.api_key}",
-            "Content-Type": "application/json"
-        }
+        # Simple test to verify API key is working using Mistral client
+        test_response = ocr_service.client.chat.complete(
+            model="mistral-small-latest",
+            messages=[{"role": "user", "content": "Hello"}],
+            max_tokens=10
+        )
         
-        payload = {
-            "model": "mistral-small-latest",
-            "messages": [{"role": "user", "content": "Hello"}],
-            "max_tokens": 10
-        }
-        
-        import requests
-        test_response = requests.post(ocr_service.mistral_url, headers=headers, json=payload)
-        test_response.raise_for_status()
-        
-        return {
-            "status": "healthy",
-            "mistral_api": "connected",
-            "service": "OCR Service"
-        }
+        # If we get here, the API is working
+        if test_response and test_response.choices:
+            return {
+                "status": "healthy",
+                "mistral_api": "connected",
+                "service": "OCR Service"
+            }
+        else:
+            raise Exception("Invalid response from Mistral API")
         
     except Exception as e:
         logger.error(f"OCR health check failed: {str(e)}")
