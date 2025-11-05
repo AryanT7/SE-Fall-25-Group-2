@@ -59,7 +59,7 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl">Welcome to FoodApp</CardTitle>
+          <CardTitle className="text-2xl">Welcome to Calorie Connect</CardTitle>
           <CardDescription>
             Sign in to your account to continue
           </CardDescription>

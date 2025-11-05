@@ -9,6 +9,7 @@ import { User, Order as ApiOrder } from '../../api/types';
 import { toast } from 'sonner';
 import { getMyOrders, cancelOrder as cancelOrderApi, getOrder as getOrderApi } from '../../api/orders';
 import { getCafe as getCafeApi } from '../../api/cafes';
+import { createReview } from '../../api/reviews';
 
 // Local Order interface for the component
 interface Order {
@@ -183,6 +184,49 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
     return now < cancelUntil && ['pending', 'accepted'].includes(order.status.toLowerCase());
   };
 
+  // Review form state
+  const [reviewingOrderId, setReviewingOrderId] = useState<string | null>(null);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const openReviewForm = (orderId: string) => {
+    setReviewingOrderId(orderId);
+    setReviewText('');
+    setReviewRating(5);
+  };
+
+  const cancelReview = () => {
+    setReviewingOrderId(null);
+    setReviewText('');
+    setReviewRating(5);
+  };
+
+  const submitReview = async (order: Order) => {
+    try {
+      setSubmittingReview(true);
+      const cafeId = parseInt(order.restaurantId);
+      const payload = {
+        cafe_id: cafeId,
+        user_id: user.id,
+        rating: reviewRating,
+        text: reviewText,
+      };
+      const res = await createReview(cafeId, payload as any);
+      if (res.data) {
+        toast.success('Review submitted');
+        cancelReview();
+      } else {
+        toast.error(res.error || 'Failed to submit review');
+      }
+    } catch (e) {
+      console.error('Error submitting review', e);
+      toast.error('Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   const cancelOrder = async (orderId: string) => {
     try {
       const response = await cancelOrderApi(parseInt(orderId));
@@ -315,7 +359,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
                               Track Order
                             </Button>
                           </Link>
-                          
+
                           {order.status === 'delivered' && (
                             <>
                               <Button 
@@ -334,7 +378,12 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
                               </Link>
                             </>
                           )}
-                          
+
+                          {/* Always allow leaving a review for any order */}
+                          <Button variant="ghost" size="sm" onClick={() => openReviewForm(order.id)}>
+                            Leave Review
+                          </Button>
+
                           {canCancelOrder(order) && (
                             <Button 
                               variant="destructive" 
@@ -345,6 +394,40 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ user }) => {
                             </Button>
                           )}
                         </div>
+
+                        {/* Inline review form */}
+                        {reviewingOrderId === order.id && (
+                          <div className="mt-3 space-y-2 border p-3 rounded">
+                            <div className="flex items-center gap-2">
+                              <label className="text-sm font-medium">Rating:</label>
+                              <select
+                                value={reviewRating}
+                                onChange={(e) => setReviewRating(parseInt(e.target.value))}
+                                className="border rounded px-2 py-1"
+                              >
+                                {[5,4,3,2,1].map((r) => (
+                                  <option key={r} value={r}>{r} ★</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium">Review</label>
+                              <textarea
+                                value={reviewText}
+                                onChange={(e) => setReviewText(e.target.value)}
+                                className="w-full border rounded p-2 mt-1"
+                                rows={3}
+                                placeholder="Share your experience"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => submitReview(order)} disabled={submittingReview || !reviewText.trim()}>
+                                {submittingReview ? 'Submitting...' : 'Submit Review'}
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={cancelReview}>Cancel</Button>
+                            </div>
+                          </div>
+                        )}
 
                         {order.status === 'ready' && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
