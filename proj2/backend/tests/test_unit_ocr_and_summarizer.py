@@ -33,24 +33,34 @@ def test_extract_text_from_pdf_empty():
 def test_parse_menu_with_mistral_mock(monkeypatch):
     svc = OCRService()
 
-    sample_response = {
-        "choices": [{"message": {"content": '[{"name": "Test Dish", "calories": 200, "price": 5.5}]'}}]
-    }
-
-    class DummyResp:
-        def raise_for_status(self):
-            return None
-        def json(self):
-            return sample_response
-
-    def fake_post(url, headers=None, json=None):
-        return DummyResp()
-
-    monkeypatch.setattr('requests.post', fake_post)
+    # Mock the Mistral client's chat.complete method
+    class MockChoice:
+        def __init__(self):
+            self.message = MockMessage()
+    
+    class MockMessage:
+        def __init__(self):
+            self.content = '{"items": [{"name": "Test Dish", "calories": 200, "price": 5.5, "veg_flag": true}]}'
+    
+    class MockChatResponse:
+        def __init__(self):
+            self.choices = [MockChoice()]
+    
+    class MockChat:
+        def complete(self, model=None, messages=None, response_format=None, temperature=None, max_tokens=None):
+            return MockChatResponse()
+    
+    # Create a mock client with mock chat
+    mock_chat = MockChat()
+    
+    # Replace the client's chat attribute
+    svc.client.chat = mock_chat
 
     items = svc.parse_menu_with_mistral("Some menu text")
     assert len(items) == 1
     assert items[0].name == "Test Dish"
+    assert items[0].calories == 200
+    assert items[0].price == 5.5
 
 
 def test_review_summarizer_cache_and_call(monkeypatch):
