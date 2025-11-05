@@ -10,6 +10,7 @@ import { User, CartSummary } from '../../api/types';
 import FoodSuggestions from './FoodSuggestions';
 import { cartApi } from '../../api/cart';
 import { goalsApi } from '../../api/goals';
+import { getMyOrders } from '../../api/orders';
 
 interface UserDashboardProps {
   user: User;
@@ -230,40 +231,91 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
           console.debug('[Dash] goalsApi.getTodayIntake() failed, will fallback to local orders', e);
         }
 
-        // fallback: if server didn't provide data, try local orders stored in localStorage (immediate UX)
-        if (!caloriesForToday) {
+        // Build 7-day totals from local order history (fallback UX). We prefer the
+        // server-provided today intake if available, but use order history to
+        // populate the chart for the last 7 days (including today).
+        // Try server-side orders first for multi-device consistency. If that fails, fall back to localStorage.
+        let ordersArr: any[] = [];
+        try {
+          const ores = await getMyOrders();
+          if (ores && Array.isArray(ores.data)) {
+            ordersArr = ores.data as any[];
+          } else {
+            // fallback to localStorage
+            ordersArr = JSON.parse(localStorage.getItem('orders') || '[]') || [];
+          }
+        } catch (e) {
           try {
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-            const todayStr = new Date().toDateString();
-            const total = (orders || []).filter((o: any) => new Date(o.createdAt).toDateString() === todayStr)
-              .reduce((sum: number, o: any) => sum + (o.totalCalories || 0), 0);
-            if (total > 0) {
-              caloriesForToday = total;
-              console.debug('[Dash] used localStorage orders fallback ->', caloriesForToday);
-            }
-          } catch (e) {
-            /* ignore parse errors */
+            ordersArr = JSON.parse(localStorage.getItem('orders') || '[]') || [];
+          } catch {
+            ordersArr = [];
           }
         }
 
-        if (mounted) {
-          setTodayCalories(Number(caloriesForToday) || 0);
+        const today = new Date();
 
-          // build a simple 7-day graph using resolvedGoal as baseline
-          const today = new Date();
-          const sevenDays: CalorieData[] = Array.from({ length: 7 }).map((_, i) => {
-            const d = new Date(today);
-            d.setDate(today.getDate() - (6 - i));
-            return {
-              date: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-              consumed: i === 6 ? Number(caloriesForToday) || 0 : 0, // 0 for past days until history exists
-              goal: resolvedGoal || 2200,
-            };
-          });
+        const sevenDays: CalorieData[] = Array.from({ length: 7 }).map((_, i) => {
+          const d = new Date(today);
+          d.setDate(today.getDate() - (6 - i));
+          const dayStr = d.toDateString();
+          const consumed = (ordersArr || [])
+            .filter((o: any) => {
+              try {
+                const createdRaw = o.createdAt ?? o.created_at;
+                if (!createdRaw) return false;
+                let od = new Date(createdRaw);
+                if (isNaN(od.getTime())) {
+                  // try numeric timestamp
+                  const asNum = Number(createdRaw);
+                  if (!Number.isFinite(asNum)) return false;
+                  od = new Date(asNum);
+                }
+                // Compare local year/month/date to avoid timezone string mismatches
+                return (
+                  od.getFullYear() === d.getFullYear() &&
+                  od.getMonth() === d.getMonth() &&
+                  od.getDate() === d.getDate()
+                );
+              } catch {
+                return false;
+              }
+            })
+            .reduce((sum: number, o: any) => {
+              const caloriesRaw = o.totalCalories ?? o.total_calories ?? 0;
+              return sum + (Number(caloriesRaw) || 0);
+            }, 0);
+          return {
+            date: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            consumed,
+            goal: resolvedGoal || 2200,
+          };
+        });
+
+        // If server returned today's calories, prefer that for the last day
+        if (Number.isFinite(Number(caloriesForToday)) && Number(caloriesForToday) > 0) {
+          sevenDays[6].consumed = Number(caloriesForToday);
+        }
+
+        if (mounted) {
+          setTodayCalories(Number(sevenDays[6].consumed) || 0);
           setCalorieData(sevenDays);
 
-          // placeholders
-          setRecentOrders([]);
+          // recent orders: show the last 5 orders (most recent first)
+          try {
+            const recentsRaw = (ordersArr || []).slice(-5).reverse();
+            const recentsMapped = recentsRaw.map((o: any) => ({
+              id: (o.id ?? o.order_id ?? '').toString(),
+              restaurantName: o.restaurantName ?? o.cafe_name ?? o.cafe_id ? `Restaurant` : 'Restaurant',
+              status: (o.status ?? '').toString(),
+              totalCalories: Number(o.totalCalories ?? o.total_calories ?? 0),
+              totalAmount: Number(o.totalAmount ?? o.total_price ?? 0),
+              createdAt: o.createdAt ? new Date(o.createdAt) : o.created_at ? new Date(o.created_at) : new Date(),
+            }));
+            setRecentOrders(recentsMapped);
+          } catch {
+            setRecentOrders([]);
+          }
+
           setSampleMenuItems([]);
         }
       } catch (e: any) {
