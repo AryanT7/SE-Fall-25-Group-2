@@ -135,6 +135,13 @@ describe('ApiClient integration+unit tests', () => {
     expect(user).toEqual({ uid: 42, email: 'me@example.com', role: 'USER' })
   })
 
+  it('Integration: handles fetch throwing network error', async () => {
+    vi.stubGlobal('fetch' as any, vi.fn(() => { throw new Error('Network fail') }))
+    const res = await apiClient.get('/fail', false)
+    expect(res.error).toBe('Network fail')
+  })
+  
+
   it('Unit: isTokenExpired returns true for past exp and false for future exp', () => {
     const past = { exp: Math.floor(Date.now() / 1000) - 10 }
     const future = { exp: Math.floor(Date.now() / 1000) + 1000 }

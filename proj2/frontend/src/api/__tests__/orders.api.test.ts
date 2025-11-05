@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { apiClient } from '../client'
-import { ordersApi, placeOrder, getMyOrders, getOrder, cancelOrder, getCafeOrders, updateOrderStatus, trackOrder } from '../orders'
+import { 
+  ordersApi, 
+  placeOrder, 
+  getMyOrders, 
+  getOrder, 
+  cancelOrder, 
+  getCafeOrders, 
+  updateOrderStatus, 
+  trackOrder 
+} from '../orders'
 
 // Mock apiClient methods
 vi.mock('../client', () => ({
@@ -15,6 +24,7 @@ beforeEach(() => {
 })
 
 describe('ordersApi', () => {
+
   it('placeOrder POSTs to /orders/place', async () => {
     const orderData = { cafe_id: 1, items: [1, 2], payment_method: 'card' }
     const mockResponse = { data: { id: 10, total: 25 } }
@@ -23,6 +33,15 @@ describe('ordersApi', () => {
     const res = await placeOrder(orderData)
     expect(apiClient.post).toHaveBeenCalledWith('/orders/place', orderData)
     expect(res).toEqual(mockResponse)
+  })
+
+  it('placeOrder returns error if apiClient rejects', async () => {
+    const orderData = { cafe_id: 1 }
+    const errorMsg = 'Network error'
+    ;(apiClient.post as any).mockResolvedValue({ error: errorMsg })
+
+    const res = await placeOrder(orderData)
+    expect(res.error).toBe(errorMsg)
   })
 
   it('getMyOrders GETs /orders/my', async () => {
@@ -41,6 +60,12 @@ describe('ordersApi', () => {
     const res = await getOrder(42)
     expect(apiClient.get).toHaveBeenCalledWith('/orders/42')
     expect(res.data?.id).toBe(42)
+  })
+
+  it('getOrder returns error if apiClient returns error', async () => {
+    ;(apiClient.get as any).mockResolvedValue({ error: 'Not found' })
+    const res = await getOrder(99)
+    expect(res.error).toBe('Not found')
   })
 
   it('cancelOrder POSTs to /orders/:id/cancel', async () => {
@@ -79,6 +104,15 @@ describe('ordersApi', () => {
     expect(res.data?.status).toBe('completed')
   })
 
+  it('updateOrderStatus accepts empty body object', async () => {
+    const mockUpdated = { id: 12, status: 'ready' }
+    ;(apiClient.post as any).mockResolvedValue({ data: mockUpdated })
+
+    const res = await updateOrderStatus(12, 'ready' as any)
+    expect(apiClient.post).toHaveBeenCalledWith('/orders/12/status?new_status=ready', {})
+    expect(res.data?.status).toBe('ready')
+  })
+
   it('trackOrder GETs /orders/:id/track', async () => {
     const mockTrack = { status: 'in_transit' }
     ;(apiClient.get as any).mockResolvedValue({ data: mockTrack })
@@ -87,4 +121,11 @@ describe('ordersApi', () => {
     expect(apiClient.get).toHaveBeenCalledWith('/orders/77/track')
     expect(res.data?.status).toBe('in_transit')
   })
+
+  it('trackOrder returns error if apiClient fails', async () => {
+    ;(apiClient.get as any).mockResolvedValue({ error: 'Server error' })
+    const res = await trackOrder(88)
+    expect(res.error).toBe('Server error')
+  })
+
 })
