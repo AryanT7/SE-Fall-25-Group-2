@@ -55,7 +55,7 @@ For restaurant owners, Calorie Connect also integrates AI-generated review summa
 
 ## Tech Stack
 
-- **Backend**: FastAPI, SQLAlchemy, JWT auth, SQLite (default) or PostgreSQL
+- **Backend**: Python, FastAPI, SQLAlchemy, JWT auth, SQLite (default) or PostgreSQL
 - **Frontend**: React + Vite + TypeScript
 - **AI/ML**: Mistral AI (review summaries), OCR for menu scanning
 - **Docs**: OpenAPI, MkDocs (backend/docs)
@@ -160,6 +160,7 @@ Copyright © 2025 Group 2: Sachi Vyas, Aryan Tapkire, Supraj Gijre, Irala Narasi
 - Aryan Tapkire
 - Supraj Gijre
 - Irala Narasimhareddy Dilip Kumar
+
 
 
 
