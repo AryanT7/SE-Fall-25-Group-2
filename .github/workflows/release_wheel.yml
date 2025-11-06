@@ -1,0 +1,70 @@
+name: Build and Release Wheel
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag name to create (e.g. v0.1.0)'
+        required: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Build wheel
+        working-directory: proj2/backend
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip wheel . -w dist
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend
+        working-directory: proj2/frontend
+        run: |
+          npm ci || npm install
+          npm run build
+          if [ -d build ]; then
+            zip -r dist.zip build
+          elif [ -d dist ]; then
+            zip -r dist.zip dist
+          else
+            echo "No build/ or dist/ directory found after build" >&2
+            exit 2
+          fi
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload wheel to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: proj2/backend/dist/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload frontend dist to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: proj2/frontend/dist.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
