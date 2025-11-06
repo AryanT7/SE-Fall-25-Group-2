@@ -11,8 +11,8 @@ This project and its source code are the property of Group 2:
 
 # CI / Status
 #
-# [![CI](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/ci.yml)
-# [![UI CI](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/uici.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/uici.yml)
+# [![Backend Tests](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/ci.yml)
+# [![FrontEnd Tests](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/uici.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/uici.yml)
 # [![Style Checkers](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/style-checkers.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/style-checkers.yml)
 # [![Syntax Checkers](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/syntax-checkers.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/syntax-checkers.yml)
 # [![Formatters](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/formatters.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/formatters.yml)
