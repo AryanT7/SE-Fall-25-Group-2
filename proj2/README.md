@@ -68,4 +68,10 @@ pytest -q
 ## License
 MIT
 
+## Who should use this software?
+- Consumers who want to discover cafes, order food, and track daily/weekly calorie goals.
+- Cafe owners and staff who manage menus, accept/prepare orders, and view simple analytics.
+- Delivery drivers who report location/status and receive auto/manual order assignments.
+- Administrators who oversee accounts, cafes, and platform health.
+
 

@@ -2,6 +2,12 @@
 
 A FastAPI backend for cafe ordering, delivery (driver assignment), payments, analytics, and calorie goals.
 
+## Intended users
+- Consumers: browse cafes, manage carts, place and track orders, set calorie goals.
+- Cafe owners/staff: manage cafes, items, orders, and view analytics.
+- Drivers: update location/status, receive assignments, pickup and deliver orders.
+- Admins: manage users/cafes and enforce platform policies.
+
 ## 🚀 Quick Start
 
 ### Prerequisites

@@ -1,8 +1,12 @@
 
-  # Cafes and Calorie Tracker App (Sachi)
+  # Cafes and Calorie Tracker App
 
   A React + Vite + TypeScript frontend for the Cafe Calories platform.
-  Figma reference: https://www.figma.com/design/Y4PyS0hJSyhTdgfXIcWJn5/Cafes-and-Calorie-Tracker-App--Sachi-
+
+  ## Who is this for?
+  - Consumers placing cafe orders and tracking calorie goals
+  - Cafe owners/staff managing menus and orders
+  - Drivers viewing/acting on assignments
 
   ## Prerequisites
   - Node 18+
