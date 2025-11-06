@@ -21,7 +21,7 @@ const Navigation: React.FC<NavigationProps> = ({ user }) => {
   const navItems = [
     { path: '/dashboard', label: 'Home', icon: Home },
     { path: '/restaurants', label: 'Restaurants', icon: Store },
-    { path: '/ai-recommendations', label: 'AI Suggestions', icon: Sparkles },
+  { path: '/ai-recommendations', label: 'Food Recommendations', icon: Sparkles },
     { path: '/cart', label: 'Cart', icon: ShoppingCart },
     { path: '/orders', label: 'Orders', icon: Clock },
     //{ path: '/emotional-insights', label: 'Insights', icon: Brain },

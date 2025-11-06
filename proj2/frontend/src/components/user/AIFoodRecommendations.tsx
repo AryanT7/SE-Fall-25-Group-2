@@ -244,9 +244,9 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5" />
-            AI Food Recommendations
+            Food Recommendations
           </CardTitle>
-          <CardDescription>Personalized picks based on your profile and goals</CardDescription>
+          <CardDescription>Personalized picks based on your profile by us</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">

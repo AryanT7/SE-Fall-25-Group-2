@@ -348,7 +348,7 @@ const MenuPage: React.FC = () => {
           className="flex items-center gap-2"
         >
           <Sparkles className="h-4 w-4" />
-          {showSuggestions ? 'Hide' : 'Show'} AI Suggestions
+          {showSuggestions ? 'Hide' : 'Show'} Suggestions
         </Button>
         {getTotalCartItems() > 0 && (
           <Link to="/cart">
