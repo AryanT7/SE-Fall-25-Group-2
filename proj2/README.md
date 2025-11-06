@@ -40,7 +40,7 @@ For restaurant owners, Calorie Connect also integrates AI-generated review summa
 - **Delivery Status Updates**: Update order status throughout delivery process
 
 ### Advanced Features
-- **Food Rerouting System**: Redirects orders to alternate users or drivers when active orders are canceled
+- **AI Review Insights**: Powered by mistral AI it summarizes user feedback to help cafe owners quickly understand what diners love and where to improve. 
 - **OCR Menu Scanning**: Automatically extracts and digitizes restaurant menu data from uploaded PDFs or images
 - **GitHub Actions**: Automated build and pre-commit test workflows for code quality and CI
 
@@ -96,7 +96,7 @@ proj2/
 
 ## Environments
 - Development (default): SQLite file `proj2/backend/app.db`
-- PostgreSQL: set `POSTGRES_DATABASE_URL` or `DATABASE_URL` (see `DBSetup.md`)
+- `DATABASE_URL` (see `DBSetup.md`)
 
 ## Testing (backend)
 ```bash
@@ -123,7 +123,7 @@ npx vitest run
 - Consumers who want to discover cafes, order food, and track daily/weekly calorie goals.
 - Cafe owners and staff who manage menus, accept/prepare orders, and view simple analytics.
 - Delivery drivers who report location/status and receive auto/manual order assignments.
-- Administrators who oversee accounts, cafes, and platform health.
+
 
 ## Citation
 
@@ -157,4 +157,5 @@ Copyright © 2025 Group 2: Sachi Vyas, Aryan Tapkire, Supraj Gijre, Irala Narasi
 - Aryan Tapkire
 - Supraj Gijre
 - Irala Narasimhareddy Dilip Kumar
+
 
