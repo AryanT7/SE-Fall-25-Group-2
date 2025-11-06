@@ -271,7 +271,7 @@ const LoginPage: React.FC = () => {
       </Card>
 
       {/* Review slider positioned below the sign-in box */}
-      <div className="mt-12 w-full max-w-md px-4">
+      <div className="mt-20 w-full max-w-md px-4">
         <div className="bg-background/80 backdrop-blur border rounded-lg shadow-sm px-4 py-3 flex items-center gap-3">
           <button
             type="button"
