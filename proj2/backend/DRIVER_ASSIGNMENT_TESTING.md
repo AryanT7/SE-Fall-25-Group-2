@@ -1,5 +1,12 @@
 # Driver Assignment Feature - Testing Guide
 
+This guide walks through end‑to‑end driver assignment: creating users, posting driver locations, accepting orders, auto/manual assignment, pickup, and delivery.
+
+Notes:
+- Backend must be running (SQLite default is fine). See `proj2/backend/README.md`.
+- Use PostgreSQL only if needed (see `DBSetup.md`).
+- On Windows PowerShell, keep the JSON quoting as shown (double quotes outside, single quotes inside).
+
 ## Prerequisites
 1. Start the FastAPI backend server:
 ```bash
@@ -548,6 +555,10 @@ echo "\n✅ All tests completed!"
 - Replace `$ORDER_ID`, `$CAFE_ID`, etc. with actual IDs from your responses
 - The `-d` flag for PUT requests expects JSON body content
 - Make sure your database is running and migrations are applied
+
+Windows PowerShell tips:
+- Use `$env:VAR = "value"` to set environment variables in the current shell if needed.
+- If curl is aliased to `Invoke-WebRequest`, install curl or use `iwr` with `-Method`/`-Body`.
 
 ## Expected Behavior Summary
 

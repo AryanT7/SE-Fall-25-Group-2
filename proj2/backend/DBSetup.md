@@ -1,6 +1,6 @@
 # Database Setup Guide
 
-This document outlines the complete setup process for the Cafe Calories PostgreSQL database, including user creation, permissions, and access control.
+This document outlines the setup process for using PostgreSQL with Cafe Calories. By default, the app uses SQLite (`app.db`) and needs no DB setup. Use this guide only if you want PostgreSQL.
 
 ## Prerequisites
 
@@ -58,8 +58,9 @@ CREATE TYPE paymentstatus AS ENUM ('CREATED', 'PAID', 'FAILED', 'REFUNDED');
 ### Option A: Using SQLAlchemy (Recommended)
 ```bash
 # Set environment variable and run the application
-cd /Users/<your_user_name>/Documents/GitHub/SE-Fall-25-Group-2/proj2/backend
-POSTGRES_DATABASE_URL="postgresql+psycopg://app_user:app_password@localhost:5432/cafe_calories" python -m uvicorn app.main:app --reload
+cd <path-to-repo>/proj2/backend
+POSTGRES_DATABASE_URL="postgresql+psycopg://app_user:app_password@localhost:5432/cafe_calories" \
+  python -m uvicorn app.main:app --reload
 ```
 
 The application will automatically create all tables on startup via `Base.metadata.create_all(bind=engine)`.
@@ -109,7 +110,7 @@ Expected tables:
 ### Using API Endpoints
 ```bash
 # Run the seed script
-cd /Users/<your_user_name>/Documents/GitHub/SE-Fall-25-Group-2/proj2/backend
+cd <path-to-repo>/proj2/backend
 POSTGRES_DATABASE_URL="postgresql+psycopg://app_user:app_password@localhost:5432/cafe_calories" python3 seed_via_api.py
 ```
 
@@ -123,8 +124,9 @@ POSTGRES_DATABASE_URL="postgresql+psycopg://app_user:app_password@localhost:5432
 
 ```bash
 # Start FastAPI server with PostgreSQL
-cd /Users/<your_user_name>/Documents/GitHub/SE-Fall-25-Group-2/proj2/backend
-POSTGRES_DATABASE_URL="postgresql+psycopg://app_user:app_password@localhost:5432/cafe_calories" python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+cd <path-to-repo>/proj2/backend
+POSTGRES_DATABASE_URL="postgresql+psycopg://app_user:app_password@localhost:5432/cafe_calories" \
+  python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## Environment Variables
@@ -146,6 +148,13 @@ export DATABASE_URL="postgresql+psycopg://app_user:app_password@localhost:5432/c
 
 # SQLite (Development)
 # No environment variable needed - uses default SQLite
+```
+
+### Windows PowerShell examples
+```powershell
+# One-time for current shell
+$env:POSTGRES_DATABASE_URL = "postgresql+psycopg://app_user:app_password@localhost:5432/cafe_calories"
+python -m uvicorn app.main:app --reload
 ```
 
 ## Security Considerations
@@ -175,7 +184,9 @@ The `app_user` role has been granted:
    # Check if PostgreSQL is running
    pg_ctl status
    # Or check port
-   netstat -an | grep 5432
+   netstat -an | grep 5432   # macOS/Linux
+   # Windows (PowerShell):
+   netstat -ano | Select-String 5432
    ```
 
 2. **Role Does Not Exist**
