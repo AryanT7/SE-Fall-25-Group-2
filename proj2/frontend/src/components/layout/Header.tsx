@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { User, LogOut, Settings, ShoppingCart, FileImage } from 'lucide-react';
-// import { useAuth } from '../../hooks/useAuth';
+import { User, LogOut, Settings, ShoppingCart, FileImage, Mail } from 'lucide-react';
 
 interface HeaderProps {
   user: {
@@ -16,16 +15,10 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ user, logout }) => {
-
-  // const { user, logout } = useAuth();
-  // const navigate = useNavigate();
-
   if (!user) return null;
 
   const handleLogout = () => {
     logout();
-    // navigate('/login', {replace:true})
- 
   }
 
   const getInitials = (name?: string) => {
@@ -92,12 +85,6 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
-                  {/* <DropdownMenuItem asChild>
-                    <Link to="/settings/calories" className="flex items-center">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Calorie Settings</span>
-                    </Link>
-                  </DropdownMenuItem> */}
                 </>
               )}
               {(user.role === 'OWNER') && (
@@ -117,6 +104,12 @@ const Header: React.FC<HeaderProps> = ({ user, logout }) => {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/contact" className="flex items-center">
+                  <Mail className="mr-2 h-4 w-4" />
+                  <span>Contact Us</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/poster" className="flex items-center">
                   <FileImage className="mr-2 h-4 w-4" />

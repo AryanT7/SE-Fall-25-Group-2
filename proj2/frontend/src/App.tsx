@@ -26,7 +26,8 @@ import Header from './components/layout/Header';
 import Navigation from './components/layout/Navigation';
 import ApplicationPoster from './components/poster/ApplicationPoster';
 import DriverDashboard from './components/driver/DriverDashboard';
-import {User} from './api/types';
+import ContactUs from './components/layout/ContactUs';
+
 
 export default function App() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -62,6 +63,7 @@ export default function App() {
             {/*<Route path="/emotions" element={<EmotionalInsights />} /> */}
             <Route path="/reviews" element={<RestaurantReviews />} />
             <Route path="/poster" element={<ApplicationPoster />} />
+            <Route path="/contact" element={<ContactUs />} />
           </>
         )}
 
@@ -72,7 +74,8 @@ export default function App() {
             <Route path="/restaurant/menu" element={<MenuManagement/>} />
             <Route path="/restaurant/orders" element={<OrderManagement user={user} />} />
             <Route path="/restaurant/reviews" element={<ReviewInsights cafeId={user?.cafe?.id!} />} />
-            <Route path="/restaurant/analytics" element={<Analytics/>} /> 
+            <Route path="/restaurant/analytics" element={<Analytics/>} />
+            <Route path="/contact" element={<ContactUs />} />
           </>
         )}
 
@@ -80,11 +83,9 @@ export default function App() {
         {isAuthenticated && user?.role === 'DRIVER' && (
           <>
             <Route path="/driver/dashboard" element={<DriverDashboard user={user} />} />
-            {/* Add other driver-specific routes here if needed */}
+            <Route path="/contact" element={<ContactUs />} />
           </>
         )}
-        
-
 
         {/* ADMIN ROUTES */}
         {isAuthenticated && user?.role === 'OWNER' && (
@@ -122,4 +123,3 @@ export default function App() {
     </main>
   );
 }
-
