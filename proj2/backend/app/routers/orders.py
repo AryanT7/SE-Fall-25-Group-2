@@ -55,9 +55,17 @@ def get_order(order_id: int, db: Session = Depends(get_db), current: User = Depe
 
 @router.get("/{order_id}/summary", response_model=OrderSummaryOut)
 def order_summary(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
-    order = db.query(Order).filter(Order.id == order_id, Order.user_id == current.id).first()
+    order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check authorization: either order owner OR cafe staff/owner
+    if order.user_id != current.id:
+        try:
+            require_cafe_staff_or_owner(order.cafe_id, db, current)
+        except HTTPException:
+            raise HTTPException(status_code=403, detail="Not authorized to view this order")
+    
     items = db.query(OrderItem, Item).join(Item, OrderItem.item_id == Item.id).filter(OrderItem.order_id == order.id).all()
     item_summaries = [
         {

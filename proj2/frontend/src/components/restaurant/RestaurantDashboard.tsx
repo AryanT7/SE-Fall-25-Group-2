@@ -287,13 +287,13 @@ useEffect(() => {
       </div>
 
       {/* Today's Schedule */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             Today's Schedule
           </CardTitle>
-        </CardHeader>
+        </CardHeader> */}
         {/* <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg"> */}
@@ -315,7 +315,7 @@ useEffect(() => {
             </div>
           </div> */}
         {/* </CardContent> */}
-      </Card>
+      {/* </Card> */}
     </div>
   );
 };

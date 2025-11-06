@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Order, PlaceOrderRequest, OrderStatus } from './types';
+import { Order, PlaceOrderRequest, OrderStatus, OrderSummary } from './types';
 
 // Orders API Functions
 export const ordersApi = {
@@ -15,6 +15,13 @@ export const ordersApi = {
    */
   async getMyOrders(): Promise<{ data?: Order[]; error?: string }> {
     return apiClient.get<Order[]>('/orders/my');
+  },
+
+  /**
+ * Get order summary with full details (items, driver info, etc.)
+ */
+  async getOrderSummary(orderId: number): Promise<{ data?: OrderSummary; error?: string }> {
+    return apiClient.get<OrderSummary>(`/orders/${orderId}/summary`);
   },
 
   /**
@@ -49,6 +56,9 @@ export const ordersApi = {
     // ✅ Send status as query parameter, not body
     return apiClient.post<Order>(`/orders/${orderId}/status?new_status=${status}`, {});
   },
+
+
+
   
   /**
    * Get order tracking information
@@ -63,6 +73,7 @@ export const {
   placeOrder,
   getMyOrders,
   getOrder,
+  getOrderSummary,
   cancelOrder,
   getCafeOrders,
   updateOrderStatus,
