@@ -182,6 +182,7 @@ export interface CartSummary {
 }
 // Order Types
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'READY' | 'PICKED_UP' | 'CANCELLED' | 'REFUNDED' | 'DELIVERED';
+
 export interface Order {
   id: number;
   cafe_id: number;
@@ -191,6 +192,32 @@ export interface Order {
   total_calories: number;
   can_cancel_until: string;
 }
+
+// Add these new types for order summaries
+export interface OrderItemSummary {
+  item_id: number;
+  name: string;
+  quantity: number;
+  subtotal_price: number;
+  subtotal_calories: number;
+}
+
+export interface DriverInfo {
+  driver_id: number;
+  driver_email: string;
+}
+
+export interface OrderSummary {
+  id: number;
+  cafe_id: number;
+  status: OrderStatus;
+  created_at: string;
+  total_price: number;
+  total_calories: number;
+  items: OrderItemSummary[];
+  driver_info?: DriverInfo | null;
+}
+
 export interface PlaceOrderRequest {
   cafe_id: number;
 }
