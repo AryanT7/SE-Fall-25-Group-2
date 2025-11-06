@@ -31,6 +31,7 @@ class Cafe(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True, nullable=False)
     address = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
     active = Column(Boolean, default=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
     lat = Column(Float, nullable=False)

@@ -72,12 +72,14 @@ export interface RegisterRequest {
   cuisine?: string;
   address?: string;
   timings?: string;
+  phone?: string;
 }
 // Cafe Types
 export interface Cafe {
   id: number;
   name: string;
   address?: string;
+  phone?: string;
   cuisine?: string;
   timings?: string;
   active: boolean;
@@ -88,6 +90,7 @@ export interface Cafe {
 export interface CafeCreateRequest {
   name: string;
   address?: string;
+  phone?: string;
   cuisine?: string;
   timings?: string;
   lat: number;

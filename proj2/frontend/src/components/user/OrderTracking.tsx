@@ -6,8 +6,9 @@ import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { Separator } from '../ui/separator';
 import { Clock, MapPin, Phone, CheckCircle, Circle, ArrowLeft } from 'lucide-react';
-import { Order as ApiOrder, OrderStatus, User } from '../../api/types';
+import { Order as ApiOrder, OrderStatus, User, Cafe } from '../../api/types';
 import { getMyOrders } from '../../api/orders';
+import { getCafe as getCafeApi } from '../../api/cafes';
 
 interface OrderTrackingProps {
   user?: User;
@@ -29,6 +30,8 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
   }>(null);
   
   const [loading, setLoading] = useState(true);
+  const [cafe, setCafe] = useState<null | Cafe>(null);
+  const [fetchedCafeId, setFetchedCafeId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!orderId) return;
@@ -52,6 +55,24 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
       if (resp.data && isMounted) {
         const found = resp.data.find(o => o.id.toString() === orderId);
         setOrder(found ? mapOrder(found) : null);
+
+        // If we found an order, fetch the cafe details once (avoid refetching on every poll)
+        if (found && found.cafe_id && fetchedCafeId !== Number(found.cafe_id)) {
+          try {
+            const cres = await getCafeApi(Number(found.cafe_id));
+            if (cres?.data) {
+              setCafe(cres.data as Cafe);
+              setFetchedCafeId(Number(found.cafe_id));
+            } else {
+              setCafe(null);
+              setFetchedCafeId(null);
+            }
+          } catch (e) {
+            console.debug('OrderTracking: failed to fetch cafe', e);
+            setCafe(null);
+            setFetchedCafeId(null);
+          }
+        }
       }
       if (isMounted) setLoading(false);
     };
@@ -65,6 +86,11 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
   }, [orderId]);
 
   const getRestaurantName = (restaurantId: string) => {
+    // Prefer the backend-provided cafe name when available and matching the current order
+    if (cafe && String(cafe.id) === restaurantId) {
+      return cafe.name || (cafe as any).title || 'Restaurant';
+    }
+
     const restaurantNames: { [key: string]: string } = {
       'rest1': 'Pizza Palace',
       'rest2': 'Burger Hub',
@@ -77,6 +103,11 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
   };
 
   const getRestaurantPhone = (restaurantId: string) => {
+    // Prefer backend-provided phone when available
+    if (cafe && String(cafe.id) === restaurantId && (cafe as any).phone) {
+      return (cafe as any).phone;
+    }
+
     const restaurantPhones: { [key: string]: string } = {
       'rest1': '(555) 123-4567',
       'rest2': '(555) 234-5678',
@@ -303,7 +334,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ user }) => {
                 <h4 className="font-medium">{getRestaurantName(order.restaurantId)}</h4>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  <span>123 Main Street, City</span>
+                  <span>{cafe?.address ?? '123 Main Street, City'}</span>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Phone className="h-4 w-4" />

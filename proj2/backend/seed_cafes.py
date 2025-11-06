@@ -45,6 +45,15 @@ TIMINGS = [
     "Weekdays 07:00-15:00",
 ]
 
+# Phone numbers to assign to seeded cafes (one per cafe)
+PHONE_NUMBERS = [
+    "(555) 101-0001",
+    "(555) 101-0002",
+    "(555) 101-0003",
+    "(555) 101-0004",
+    "(555) 101-0005",
+]
+
 # Test data - 5 OWNERS
 OWNERS = [
     {
@@ -304,6 +313,7 @@ def seed_owners_and_cafes():
             "address": f"{100 + i * 10} Main St, Raleigh, NC",
             "cuisine": CUISINES[i % len(CUISINES)],
             "timings": TIMINGS[i % len(TIMINGS)],
+            "phone": PHONE_NUMBERS[i % len(PHONE_NUMBERS)],
             "lat": BASE_LAT + (random.random() - 0.5) * 0.05,
             "lng": BASE_LNG + (random.random() - 0.5) * 0.05
         }

@@ -26,6 +26,7 @@ def create_cafe(data: CafeCreate, db: Session = Depends(get_db), owner: User = D
     cafe = Cafe(
         name=data.name,
         address=data.address,
+        phone=getattr(data, 'phone', None),
         lat=data.lat,
         lng=data.lng,
         cuisine=getattr(data, "cuisine", None),

@@ -39,6 +39,7 @@ class LoginRequest(BaseModel):
 class CafeCreate(BaseModel):
     name: str
     address: Optional[str] = None
+    phone: Optional[str] = None
     cuisine: Optional[str] = None
     timings: Optional[str] = None
     lat: float
@@ -47,6 +48,7 @@ class CafeOut(BaseModel):
     id: int
     name: str
     address: Optional[str]
+    phone: Optional[str]
     cuisine: Optional[str]
     timings: Optional[str]
     active: bool

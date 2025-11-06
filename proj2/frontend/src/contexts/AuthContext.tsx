@@ -190,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: userData.name || `${loggedInUser.name}'s Cafe`,
             // prefer address/cuisine passed at registration if available
             address: (userData as any).address || 'Not specified',
+            phone: (userData as any).phone || undefined,
             cuisine: (userData as any).cuisine || undefined,
             timings: (userData as any).timings || undefined,
             lat: 0,

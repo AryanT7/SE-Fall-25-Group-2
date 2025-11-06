@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Phone as PhoneIcon, MapPin } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Cafe } from '../../api/types';
 import { cafeApi } from '../../api/cafes';
@@ -168,6 +168,14 @@ const RestaurantList: React.FC = () => {
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {cafe.address || 'Address not available'}
                     </p>
+                    {cafe.phone && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <PhoneIcon className="h-4 w-4" />
+                        <a href={`tel:${cafe.phone}`} className="underline">
+                          {cafe.phone}
+                        </a>
+                      </p>
+                    )}
                     {((cafe as any).timings) && (
                       <p className="text-sm text-muted-foreground">
                         Hours: {((cafe as any).timings)}

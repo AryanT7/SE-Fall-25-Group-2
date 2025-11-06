@@ -28,8 +28,9 @@ const RegisterPage: React.FC = () => {
     // OWNER fields
     restaurantName: '',
     cuisine: '',
-  address: '',
-  timings: '',
+    address: '',
+    phone: '',
+    timings: '',
   
     // DRIVER fields
     driverName: '',
@@ -96,6 +97,7 @@ const RegisterPage: React.FC = () => {
       ...(userType === 'OWNER' && {
         cuisine: formData.cuisine || undefined,
         address: formData.address || undefined,
+        phone: formData.phone || undefined,
         timings: formData.timings || undefined,
       }),
     });
@@ -311,6 +313,15 @@ const RegisterPage: React.FC = () => {
                     placeholder="Restaurant address"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Contact Phone</Label>
+                  <Input
+                    id="phone"
+                    placeholder="Restaurant phone number"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
