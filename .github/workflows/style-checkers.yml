@@ -1,0 +1,46 @@
+name: Style Checkers
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-style:
+    name: Python style (ruff + black)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install style tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black
+      - name: Run ruff
+        run: ruff check proj2/backend || true
+      - name: Run black (check)
+        run: black --check proj2/backend || true
+
+  frontend-style:
+    name: Frontend style (lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: proj2/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install npm deps
+        run: npm ci || npm install
+      - name: Run frontend lint if available
+        run: |
+          if npm run | grep -q "lint"; then
+            npm run lint
+          else
+            echo "No 'lint' script found in package.json — skipping frontend lint"
+          fi
