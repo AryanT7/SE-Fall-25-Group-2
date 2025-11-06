@@ -15,6 +15,27 @@ const LoginPage: React.FC = () => {
   const { user, login, isLoading, error, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  // Mock review slider state
+  const reviews = [
+    { name: 'Alex P.', rating: 5, text: 'Ordering is seamless and calorie goals keep me accountable.' },
+    { name: 'Jamie L.', rating: 4.8, text: 'Great UI and fast checkout. Love the menu suggestions!' },
+    { name: 'Riya K.', rating: 5, text: 'As an owner, managing items and orders is super easy.' },
+    { name: 'Chris D.', rating: 4.7, text: 'Driver assignment is quick and reliable for deliveries.' },
+  ];
+  const [idx, setIdx] = useState(0);
+  const next = () => setIdx((i) => (i + 1) % reviews.length);
+  const prev = () => setIdx((i) => (i - 1 + reviews.length) % reviews.length);
+
+  const renderStars = (rating: number) => {
+    const full = '★'.repeat(rating);
+    const empty = '☆'.repeat(5 - rating);
+    return (
+      <span aria-label={`${rating} out of 5 stars`} className="text-yellow-500">
+        {full}<span className="text-muted-foreground">{empty}</span>
+      </span>
+    );
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
@@ -56,7 +77,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl">Welcome to Calorie Connect</CardTitle>
@@ -247,6 +268,35 @@ const LoginPage: React.FC = () => {
           </div> */}
         </CardContent>
       </Card>
+
+      {/* Bottom-center review slider */}
+      <div className="fixed bottom-6 left-0 right-0 px-4 flex justify-center">
+        <div className="max-w-xl w-full">
+          <div className="bg-background/80 backdrop-blur border rounded-lg shadow-sm px-4 py-3 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={prev}
+              className="h-8 w-8 rounded-full border flex items-center justify-center hover:bg-muted"
+              aria-label="Previous review"
+            >
+              ‹
+            </button>
+            <div className="flex-1 overflow-hidden">
+              <div className="text-sm font-medium truncate">{reviews[idx].name}</div>
+              <div className="text-xs text-muted-foreground line-clamp-2">{reviews[idx].text}</div>
+              <div className="text-sm mt-1">{renderStars(reviews[idx].rating)}</div>
+            </div>
+            <button
+              type="button"
+              onClick={next}
+              className="h-8 w-8 rounded-full border flex items-center justify-center hover:bg-muted"
+              aria-label="Next review"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
