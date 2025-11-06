@@ -1,3 +1,14 @@
+<!--
+Copyright (c) 2025 Group 2
+All rights reserved.
+
+This project and its source code are the property of Group 2:
+- Aryan Tapkire
+- Dilip Irala Narasimhareddy
+- Sachi Vyas
+- Supraj Gijre
+-->
+
 # Driver Assignment Feature - Testing Guide
 
 This guide walks through end‑to‑end driver assignment: creating users, posting driver locations, accepting orders, auto/manual assignment, pickup, and delivery.

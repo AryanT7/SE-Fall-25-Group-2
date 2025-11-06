@@ -1,3 +1,14 @@
+<!--
+Copyright (c) 2025 Group 2
+All rights reserved.
+
+This project and its source code are the property of Group 2:
+- Aryan Tapkire
+- Dilip Irala Narasimhareddy
+- Sachi Vyas
+- Supraj Gijre
+-->
+
 # Cafe Calories Backend API
 
 A FastAPI backend for cafe ordering, delivery (driver assignment), payments, analytics, and calorie goals.

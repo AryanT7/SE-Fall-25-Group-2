@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 """
 Integration tests for extended cart workflows - testing complex scenarios
 like cart summary with multiple assignees, item deletion, and edge cases.

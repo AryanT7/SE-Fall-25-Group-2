@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 def test_cancel_after_window_fails(client, monkeypatch):
     # create owner, cafe, item, user, add to cart and place order
     client.post("/users/register", json={"email": "ordx@example.com", "name": "OX", "password": "pw", "role": "OWNER"})

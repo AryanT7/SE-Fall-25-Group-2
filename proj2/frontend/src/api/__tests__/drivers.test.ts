@@ -1,3 +1,14 @@
+/**
+ * Copyright (c) 2025 Group 2
+ * All rights reserved.
+ * 
+ * This project and its source code are the property of Group 2:
+ * - Aryan Tapkire
+ * - Dilip Irala Narasimhareddy
+ * - Sachi Vyas
+ * - Supraj Gijre
+ */
+
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { apiClient } from '../client'
 import { driversApi } from '../drivers'

@@ -1,3 +1,14 @@
+/**
+ * Copyright (c) 2025 Group 2
+ * All rights reserved.
+ * 
+ * This project and its source code are the property of Group 2:
+ * - Aryan Tapkire
+ * - Dilip Irala Narasimhareddy
+ * - Sachi Vyas
+ * - Supraj Gijre
+ */
+
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { User, LoginRequest, RegisterRequest, Cafe, CafeCreateRequest } from '../api/types'; // adjust import path
 import { apiClient } from '../api/client';

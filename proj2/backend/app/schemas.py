@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 """Pydantic schemas for request/response validation and serialization."""
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Dict

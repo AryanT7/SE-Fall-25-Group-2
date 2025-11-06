@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 """
 Seed data via FastAPI endpoints instead of direct database access.
 Creates 10 users, 10 cafes, and 100 orders (10 per user).

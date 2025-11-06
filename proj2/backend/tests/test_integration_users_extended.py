@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 def test_register_duplicate_email(client):
     payload = {"email": "dup@example.com", "name": "Dup", "password": "p1", "role": "USER"}
     r = client.post("/users/register", json=payload)

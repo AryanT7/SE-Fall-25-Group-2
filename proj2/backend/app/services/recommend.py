@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 def daily_calorie_recommendation(height_cm: float, weight_kg: float, sex: str, age_years: int, activity: str) -> int:
     """Calculate daily calorie recommendation using revised Harris-Benedict BMR formula with activity multiplier."""
     sex = (sex or "").strip().upper()

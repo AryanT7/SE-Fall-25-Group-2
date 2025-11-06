@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 def auth_header(client, email, password, name="Bob"):
     # ensure user exists
     client.post("/users/register", json={"email": email, "name": name, "password": password, "role": "USER"})

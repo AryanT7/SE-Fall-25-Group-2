@@ -1,3 +1,14 @@
+<!--
+Copyright (c) 2025 Group 2
+All rights reserved.
+
+This project and its source code are the property of Group 2:
+- Aryan Tapkire
+- Dilip Irala Narasimhareddy
+- Sachi Vyas
+- Supraj Gijre
+-->
+
 # Database Setup Guide
 
 This document outlines the setup process for using PostgreSQL with Cafe Calories. By default, the app uses SQLite (`app.db`) and needs no DB setup. Use this guide only if you want PostgreSQL.

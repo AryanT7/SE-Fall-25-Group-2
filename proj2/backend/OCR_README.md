@@ -1,3 +1,14 @@
+<!--
+Copyright (c) 2025 Group 2
+All rights reserved.
+
+This project and its source code are the property of Group 2:
+- Aryan Tapkire
+- Dilip Irala Narasimhareddy
+- Sachi Vyas
+- Supraj Gijre
+-->
+
 # OCR Menu Processing Service
 
 This service provides OCR (Optical Character Recognition) functionality for processing restaurant menu files (PDFs and images) and converting them into structured JSON format using Mistral OCR API and Mistral AI.
