@@ -20,7 +20,7 @@
 [![Style Checkers](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/style-checkers.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/style-checkers.yml)
 [![Syntax Checkers](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/syntax-checkers.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/syntax-checkers.yml)
 [![Formatters](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/formatters.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/formatters.yml)
-[![Release Wheel](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/release_wheel.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/release_wheel.yml)
+[![Release Wheel](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/release_wheel.yml/badge.svg)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/release_wheel.yml)
 
 
 **Connecting Calories to Conscious Choices!**
@@ -170,6 +170,7 @@ Copyright © 2025 Group 2: Sachi Vyas, Aryan Tapkire, Supraj Gijre, Irala Narasi
 - Aryan Tapkire (atapkir)
 - Supraj Gijre (sgijre)
 - Irala Narasimhareddy Dilip Kumar (nirala)
+
 
 
 
