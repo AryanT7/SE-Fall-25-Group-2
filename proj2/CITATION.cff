@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Calorie Connect: Connecting Calories to Conscious Choices"
+version: 1.0.0
+date-released: 2025-11-06
+url: "https://github.com/AryanT7/SE-Fall-25-Group-2/tree/main/proj2"
+repository-code: "https://github.com/AryanT7/SE-Fall-25-Group-2/tree/main/proj2"
+license: MIT
+authors:
+  - family-names: "Vyas"
+    given-names: "Sachi"
+  - family-names: "Tapkire"
+    given-names: "Aryan"
+  - family-names: "Gijre"
+    given-names: "Supraj"
+  - family-names: "Kumar"
+    given-names: "Irala Narasimhareddy Dilip"
+keywords:
+  - calorie tracking
+  - nutrition
+  - food delivery
+  - restaurant management
+  - health goals
+  - AI review summaries
+  - OCR menu scanning
+  - full-stack
+  - FastAPI
+  - React
+  - software engineering
+abstract: "Calorie Connect is a full-stack application that helps users monitor their daily calorie intake through personalized goal tracking and smart meal recommendations. It features AI-powered review summaries for restaurant owners, OCR menu scanning, live order tracking, and automated delivery assignment, promoting healthier lifestyles while empowering restaurants with intelligent feedback tools."
