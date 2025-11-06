@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Plus, Minus, Search, Star, Clock, Leaf, AlertCircle, Sparkles, MessageSquare } from 'lucide-react';
 import { Restaurant, MenuItem, CartItem, User } from '../../App';
 import { itemsApi } from '../../api/items';
+import { getReviews } from '../../api/reviews';
+import { getCafe as getCafeApi } from '../../api/cafes';
 import { cartApi } from '../../api/cart';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { toast } from 'sonner';
@@ -16,6 +18,7 @@ import FoodSuggestions from './FoodSuggestions';
 const MenuPage: React.FC = () => {
   const { restaurantId } = useParams<{ restaurantId: string }>();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [userRatingsCount, setUserRatingsCount] = useState<number | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,9 +94,10 @@ const MenuPage: React.FC = () => {
 
         // Try to fetch authoritative cafe metadata from backend; prefer its cuisine
         try {
-          const cafeRes = await fetch(`/cafes/${restaurantId}`);
-          if (cafeRes.ok) {
-            const cafeJson = await cafeRes.json();
+          // Use the frontend API helper so the request goes to the configured backend base URL
+          const cafeRes = await getCafeApi(Number(restaurantId));
+          if (!cafeRes.error && cafeRes.data) {
+            const cafeJson: any = cafeRes.data;
             const merged: Restaurant = {
               id: String(cafeJson.id),
               name: cafeJson.name || fallbackRestaurant.name,
@@ -107,6 +111,23 @@ const MenuPage: React.FC = () => {
               ownerId: cafeJson.owner_id ?? cafeJson.ownerId ?? fallbackRestaurant.ownerId
             } as unknown as Restaurant;
             setRestaurant(merged);
+            // fetch reviews and update rating based on user reviews
+            try {
+              const revRes = await getReviews(Number(merged.id));
+              if (!revRes.error && revRes.data) {
+                if (revRes.data.length > 0) {
+                  const ratings = revRes.data.map((r: any) => Number(r.rating) || 0);
+                  const avg = ratings.reduce((s: number, v: number) => s + v, 0) / ratings.length;
+                  setRestaurant((prev: Restaurant | null) => prev ? { ...prev, rating: Number(avg.toFixed(2)) } : prev);
+                  setUserRatingsCount(revRes.data.length);
+                } else {
+                  // reviews fetched but none exist
+                  setUserRatingsCount(0);
+                }
+              }
+            } catch (err) {
+              // ignore review fetch errors and leave userRatingsCount as null
+            }
             return;
           }
         } catch (err) {
@@ -115,6 +136,22 @@ const MenuPage: React.FC = () => {
 
         // fallback when cafe endpoint not available
         setRestaurant(fallbackRestaurant);
+        // try to compute rating from reviews even if cafe metadata endpoint is missing
+        try {
+          const revRes = await getReviews(Number(restaurantId));
+          if (!revRes.error && revRes.data) {
+            if (revRes.data.length > 0) {
+              const ratings = revRes.data.map((r: any) => Number(r.rating) || 0);
+              const avg = ratings.reduce((s: number, v: number) => s + v, 0) / ratings.length;
+              setRestaurant((prev: Restaurant | null) => prev ? { ...prev, rating: Number(avg.toFixed(2)) } : prev);
+              setUserRatingsCount(revRes.data.length);
+            } else {
+              setUserRatingsCount(0);
+            }
+          }
+        } catch (err) {
+          // ignore
+        }
       } catch (err) {
         console.error('Error loading cafe items', err);
         setMenuItems([]);
@@ -269,14 +306,18 @@ const MenuPage: React.FC = () => {
           <div className="absolute bottom-4 left-4 text-white">
             <h1 className="text-3xl font-bold">{restaurant.name}</h1>
             <p className="text-lg opacity-90">{restaurant.description}</p>
-            <div className="flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-4 mt-2">
               <div className="flex items-center gap-1">
                 <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                <span>{restaurant.rating}</span>
+                {userRatingsCount === 0 ? (
+                  <span className="text-sm text-muted-foreground">No user reviews available</span>
+                ) : (
+                  <span>{restaurant.rating}</span>
+                )}
               </div>
               <div className="flex items-center gap-1">
-                <Clock className="h-5 w-5" />
-                <span>{restaurant.deliveryTime}</span>
+                {/* <Clock className="h-5 w-5" />
+                <span>{restaurant.deliveryTime}</span> */}
               </div>
               {/* <Badge variant="secondary">{restaurant.cuisine}</Badge> */}
               {/* <Link to={`/restaurant/${restaurantId}/reviews`}>

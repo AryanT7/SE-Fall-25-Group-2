@@ -11,6 +11,9 @@ interface FoodSuggestionsProps {
   user: User;
   menuItems: MenuItem[];
   currentCaloriesToday: number;
+  // If provided, use this pre-computed remaining calories (preferred). Falls back to
+  // per-user calorieGoal lookup for backward-compatibility.
+  remainingCalories?: number;
   // NEW: a map of restaurant/cafe by id: { [id]: { id, name, address, ... } }
   restaurantsById?: Record<string | number, any>;
 }
@@ -19,13 +22,20 @@ const FoodSuggestions: React.FC<FoodSuggestionsProps> = ({
   user,
   menuItems,
   currentCaloriesToday,
+  remainingCalories,
   restaurantsById = {},
 }) => {
   const [addingId, setAddingId] = useState<number | string | null>(null);
 
   const calorieGoal =
     (user as any).daily_calorie_goal || (user as any).calorieGoal || 2000;
-  const remaining = Math.max(0, calorieGoal - currentCaloriesToday);
+  // Prefer a pre-computed remainingCalories prop (provided by the parent) to avoid
+  // duplicating the calorie-goal calculation logic. Fall back to computing from
+  // the user object for backward-compatibility.
+  const remaining =
+    typeof remainingCalories === 'number'
+      ? remainingCalories
+      : Math.max(0, calorieGoal - currentCaloriesToday);
 
   const sortedItems = useMemo(() => {
     const fit = menuItems.filter(
@@ -107,7 +117,8 @@ const FoodSuggestions: React.FC<FoodSuggestionsProps> = ({
           const rid = item.cafe_id ?? item.restaurantId;
           const r = rid != null ? restaurantsById[rid] : undefined;
           const restaurantName = r?.name || r?.title || 'Unknown restaurant';
-          const restaurantAddress = r?.address || r?.location || r?.addr || 'Address unavailable';
+          // Only show an address if one is available; do not show a fallback string.
+          const restaurantAddress = r?.address || r?.location || r?.addr || '';
 
           return (
             <Card
@@ -143,7 +154,9 @@ const FoodSuggestions: React.FC<FoodSuggestionsProps> = ({
                     <MapPin className="h-4 w-4 mt-0.5" />
                     <div>
                       <p className="font-medium text-foreground">{restaurantName}</p>
-                      <p className="text-xs">{restaurantAddress}</p>
+                      {restaurantAddress ? (
+                        <p className="text-xs">{restaurantAddress}</p>
+                      ) : null}
                     </div>
                   </div>
                 </div>

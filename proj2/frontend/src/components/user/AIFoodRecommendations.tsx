@@ -263,12 +263,20 @@ const AIFoodRecommendations: React.FC<AIFoodRecommendationsProps> = ({ user }) =
       </Card>
 
       {/* Pass enriched menu and the normalized restaurants map */}
-      <FoodSuggestions
-        user={effectiveUser}
-        menuItems={enrichedMenuItems as any}
-        currentCaloriesToday={todayCalories}
-        restaurantsById={restaurantsById}
-      />
+      {remaining <= 0 ? (
+        <div className="text-center text-muted-foreground py-10">
+          🍽️ No AI recommendations available — you've reached your daily calorie goal.
+        </div>
+      ) : (
+        <FoodSuggestions
+          user={effectiveUser}
+          menuItems={enrichedMenuItems as any}
+          currentCaloriesToday={todayCalories}
+          // pass the parent's computed remaining so the child uses the same budget
+          remainingCalories={remaining}
+          restaurantsById={restaurantsById}
+        />
+      )}
 
       <div className="flex gap-2">
         <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
