@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    env:
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+    defaults:
+      run:
+        working-directory: proj2/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Run tests
+        env:
+          DATABASE_URL: "sqlite:///./test.db"
+          JWT_SECRET: "ci-secret"
+        run: |
+          npx vitest run
