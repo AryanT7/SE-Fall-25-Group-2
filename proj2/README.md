@@ -8,6 +8,7 @@
 ![image](https://img.shields.io/badge/Github%20Actions-282a2e?style=for-the-badge&logo=githubactions&logoColor=367cfe)
 ![image](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
 ![image](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+[![DOI](https://zenodo.org/badge/1044487649.svg)](https://doi.org/10.5281/zenodo.17546996)
 
 
 # CI / Status
@@ -168,6 +169,7 @@ Copyright © 2025 Group 2: Sachi Vyas, Aryan Tapkire, Supraj Gijre, Irala Narasi
 - Aryan Tapkire (atapkir)
 - Supraj Gijre (sgijre)
 - Irala Narasimhareddy Dilip Kumar (nirala)
+
 
 
 
