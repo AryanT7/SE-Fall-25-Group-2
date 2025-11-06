@@ -1,4 +1,4 @@
-name: CI
+name: Backend Tests
 
 on:
   push:
@@ -27,9 +27,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Run tests with coverage
         env:
           DATABASE_URL: "sqlite:///./test.db"
           JWT_SECRET: "ci-secret"
         run: |
-          pytest
+          python -m pip install pytest-cov
+          pytest --cov=app --cov-report=xml:coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+

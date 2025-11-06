@@ -13,6 +13,17 @@
 ![image](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 
 
+# CI / Status
+#
+[![Backend Tests](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/ci.yml)
+[![FrontEnd Tests](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/uici.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/uici.yml)
+[![Codecov](https://codecov.io/gh/AryanT7/SE-Fall-25-Group-2/branch/main/graph/badge.svg)](https://codecov.io/gh/AryanT7/SE-Fall-25-Group-2)
+[![Style Checkers](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/style-checkers.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/style-checkers.yml)
+[![Syntax Checkers](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/syntax-checkers.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/syntax-checkers.yml)
+[![Formatters](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/formatters.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/formatters.yml)
+[![Release Wheel](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/release_wheel.yml/badge.svg?branch=main)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/release_wheel.yml)
+
+
 **Connecting Calories to Conscious Choices!**
 
 A full‑stack project for cafe ordering, delivery, and calorie tracking that helps users monitor their nutritional balance and empowers restaurants with AI-driven insights.

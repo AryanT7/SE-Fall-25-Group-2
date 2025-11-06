@@ -1,4 +1,4 @@
-name: CI
+name: Frontend Tests
 
 on:
   push:
@@ -27,9 +27,16 @@ jobs:
         run: |
           npm install
 
-      - name: Run tests
+      - name: Run frontend tests with coverage
         env:
           DATABASE_URL: "sqlite:///./test.db"
           JWT_SECRET: "ci-secret"
         run: |
-          npx vitest run
+          npx vitest run --coverage
+
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: proj2/frontend/coverage/*.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
