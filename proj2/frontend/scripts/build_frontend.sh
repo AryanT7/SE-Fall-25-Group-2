@@ -18,13 +18,16 @@ fi
 
 npm run build
 
-# package the build output
+# package the build output (Vite outDir is 'build' in this project)
 rm -f dist.zip
-if [ -d dist ]; then
+if [ -d build ]; then
+  zip -r dist.zip build
+  echo "Created: $HERE/dist.zip (from build/)"
+elif [ -d dist ]; then
   zip -r dist.zip dist
-  echo "Created: $HERE/dist.zip"
+  echo "Created: $HERE/dist.zip (from dist/)"
 else
-  echo "No dist/ directory found after build" >&2
+  echo "No build/ or dist/ directory found after build" >&2
   exit 2
 fi
 

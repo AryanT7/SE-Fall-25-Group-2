@@ -39,7 +39,14 @@ jobs:
         run: |
           npm ci || npm install
           npm run build
-          zip -r dist.zip dist
+          if [ -d build ]; then
+            zip -r dist.zip build
+          elif [ -d dist ]; then
+            zip -r dist.zip dist
+          else
+            echo "No build/ or dist/ directory found after build" >&2
+            exit 2
+          fi
 
       - name: Create Release
         id: create_release
