@@ -29,6 +29,17 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools wheel
           python -m pip wheel . -w dist
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend
+        working-directory: proj2/frontend
+        run: |
+          npm ci || npm install
+          npm run build
+          zip -r dist.zip dist
 
       - name: Create Release
         id: create_release
@@ -42,5 +53,11 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: proj2/backend/dist/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload frontend dist to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: proj2/frontend/dist.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
