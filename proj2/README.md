@@ -164,10 +164,11 @@ Copyright © 2025 Group 2: Sachi Vyas, Aryan Tapkire, Supraj Gijre, Irala Narasi
 ## Team
 
 **Group 2**
-- Sachi Vyas
-- Aryan Tapkire
-- Supraj Gijre
-- Irala Narasimhareddy Dilip Kumar
+- Sachi Vyas (smvyas)
+- Aryan Tapkire (atapkir)
+- Supraj Gijre (sgijre)
+- Irala Narasimhareddy Dilip Kumar (nirala)
+
 
 
 
