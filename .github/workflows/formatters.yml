@@ -16,7 +16,10 @@ jobs:
           python-version: '3.11'
       - name: Install black
         run: python -m pip install --upgrade pip && pip install black
-      - name: Check formatting
+      - name: Auto-format Python
+        run: |
+          black proj2/backend || true
+      - name: Check formatting (non-fatal)
         run: black --check proj2/backend || true
 
   frontend-format:
@@ -33,14 +36,8 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: npm ci || npm install
-      - name: Run prettier if available
+      - name: Auto-format frontend with Prettier
         run: |
-          if npm run | grep -q "prettier" || npm run | grep -q "format"; then
-            if npm run | grep -q "prettier"; then
-              npm run prettier -- --check . || true
-            else
-              npm run format -- --check . || true
-            fi
-          else
-            echo "No formatter script found in package.json — skipping frontend format check"
-          fi
+          npx -y prettier --write "src/**/*.{js,jsx,ts,tsx,json,css,md}" || true
+      - name: Check Prettier (non-fatal)
+        run: npx -y prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,md}" || true

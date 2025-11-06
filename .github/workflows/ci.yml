@@ -27,25 +27,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Start application in background for seeding
-        run: |
-          # start uvicorn in background and save pid
-          nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > uvicorn.log 2>&1 &
-          echo $! > uvicorn.pid
-          # wait for the server to become healthy
-          for i in {1..30}; do
-            if curl -sS http://127.0.0.1:8000/ >/dev/null 2>&1; then
-              echo "server up"
-              break
-            fi
-            echo "waiting for server... ($i)"
-            sleep 1
-          done
-
-      - name: Seed test data via API
-        run: |
-          python seed_via_api.py || true
-
       - name: Run tests with coverage
         env:
           DATABASE_URL: "sqlite:///./test.db"
@@ -61,16 +42,3 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Stop background server
-        if: always()
-        run: |
-          if [ -f uvicorn.pid ]; then
-            kill "$(cat uvicorn.pid)" || true
-          fi
-
-      - name: Run tests
-        env:
-          DATABASE_URL: "sqlite:///./test.db"
-          JWT_SECRET: "ci-secret"
-        run: |
-          pytest

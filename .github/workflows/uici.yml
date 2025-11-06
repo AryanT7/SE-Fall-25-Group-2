@@ -27,13 +27,6 @@ jobs:
         run: |
           npm install
 
-      - name: Start backend for frontend tests (optional)
-        run: |
-          # start a lightweight backend server if frontend tests require API
-          nohup sh -c "cd proj2/backend && uvicorn app.main:app --host 127.0.0.1 --port 8000" > backend.log 2>&1 &
-          echo $! > backend.pid || true
-          sleep 2 || true
-
       - name: Run frontend tests with coverage
         env:
           DATABASE_URL: "sqlite:///./test.db"
@@ -47,10 +40,3 @@ jobs:
           files: proj2/frontend/coverage/*.xml
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Stop backend started for frontend tests
-        if: always()
-        run: |
-          if [ -f backend.pid ]; then
-            kill "$(cat backend.pid)" || true
-          fi
