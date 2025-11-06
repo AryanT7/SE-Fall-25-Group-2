@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 """SQLAlchemy ORM models for users, cafes, items, orders, payments, goals, drivers, and reviews."""
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Float, DateTime, Enum, Text, Date, UniqueConstraint
 from sqlalchemy.sql import func

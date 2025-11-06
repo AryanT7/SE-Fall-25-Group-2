@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 """Console entry point for the FastAPI app package.
 
 This module provides a `main()` function so the package can be executed as a

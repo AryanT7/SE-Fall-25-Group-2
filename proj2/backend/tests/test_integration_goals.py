@@ -1,3 +1,12 @@
+# Copyright (c) 2025 Group 2
+# All rights reserved.
+# 
+# This project and its source code are the property of Group 2:
+# - Aryan Tapkire
+# - Dilip Irala Narasimhareddy
+# - Sachi Vyas
+# - Supraj Gijre
+
 """
 Integration tests for calorie goals workflow - testing goal setting,
 tracking, intake calculation, and recommendation integration.
