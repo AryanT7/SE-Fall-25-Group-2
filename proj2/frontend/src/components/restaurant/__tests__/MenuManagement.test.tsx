@@ -1,3 +1,14 @@
+/**
+ * Copyright (c) 2025 Group 2
+ * All rights reserved.
+ * 
+ * This project and its source code are the property of Group 2:
+ * - Aryan Tapkire
+ * - Dilip Irala Narasimhareddy
+ * - Sachi Vyas
+ * - Supraj Gijre
+ */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
