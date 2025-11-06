@@ -1,9 +1,6 @@
 # Calorie Connect (proj2)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Backend](https://img.shields.io/badge/backend-78%25-yellowgreen)
-![Frontend](https://img.shields.io/badge/frontend-81.6%25-green)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 
 ![image](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![image](https://img.shields.io/badge/fastapi-109989?style=for-the-badge&logo=FASTAPI&logoColor=white)
@@ -171,6 +168,7 @@ Copyright © 2025 Group 2: Sachi Vyas, Aryan Tapkire, Supraj Gijre, Irala Narasi
 - Aryan Tapkire
 - Supraj Gijre
 - Irala Narasimhareddy Dilip Kumar
+
 
 
 
