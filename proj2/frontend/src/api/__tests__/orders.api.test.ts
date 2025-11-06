@@ -53,12 +53,12 @@ describe('ordersApi', () => {
     expect(res.data).toEqual(mockOrders)
   })
 
-  it('getOrder GETs /orders/:id', async () => {
-    const mockOrder = { id: 42, total: 15 }
+  it('getOrder GETs /orders/:id/summary', async () => {
+    const mockOrder = { id: 42, total: 15, items: [], total_calories: 0 }
     ;(apiClient.get as any).mockResolvedValue({ data: mockOrder })
-
+  
     const res = await getOrder(42)
-    expect(apiClient.get).toHaveBeenCalledWith('/orders/42')
+    expect(apiClient.get).toHaveBeenCalledWith('/orders/42/summary')  // Changed from '/orders/42'
     expect(res.data?.id).toBe(42)
   })
 

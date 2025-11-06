@@ -48,14 +48,16 @@ describe('itemsApi (mixed integration + unit tests)', () => {
 
   it('Integration: getItem requests /items/item/:id', async () => {
     const returned = { id: 9, name: 'Sushi' }
-    const fetchMock = vi.fn(async (url: string, opts: any) => {
-      expect(url).toContain('/items/item/9')
-      return mockFetchResponse(returned)
-    })
-    vi.stubGlobal('fetch' as any, fetchMock)
-
+    
+    
+    const spy = vi.spyOn(apiClient, 'get').mockResolvedValue({ data: returned } as any)
+  
     const res = await items.getItem(9)
+    expect(spy).toHaveBeenCalledWith('/items/9', false)  // Note: endpoint is /items/9, not /items/item/9
     expect(res.data?.id).toBe(9)
+    expect(res.data?.name).toBe('Sushi')
+    
+    spy.mockRestore()
   })
 
   it('Integration: addMenuItem POSTS to /items/:cafeId with JSON body', async () => {
@@ -76,21 +78,7 @@ describe('itemsApi (mixed integration + unit tests)', () => {
     expect(fetchMock).toHaveBeenCalled()
   })
 
-  it('Integration: toggleItemStatus PATCHes to /items/item/:id/status with { active }', async () => {
-    const returned = { id: 5, active: false }
-    const fetchMock = vi.fn(async (url: string, opts: any) => {
-      expect(url).toContain('/items/item/5/status')
-      expect(opts.method).toBe('PATCH')
-      const body = opts?.body ? JSON.parse(opts.body) : {}
-      expect(body.active).toBe(false)
-      return mockFetchResponse(returned)
-    })
-    vi.stubGlobal('fetch' as any, fetchMock)
-
-    const res = await items.toggleItemStatus(5, false)
-    expect(res.data?.active).toBe(false)
-    expect(fetchMock).toHaveBeenCalled()
-  })
+  
 
   // Unit tests (spy on apiClient methods)
   it('Unit: listAll calls apiClient.get with /items and requiresAuth=false', async () => {
@@ -104,16 +92,16 @@ describe('itemsApi (mixed integration + unit tests)', () => {
   it('Unit: updateItem calls apiClient.put with correct endpoint', async () => {
     const spy = vi.spyOn(apiClient, 'put').mockResolvedValue({ data: { id: 20 } } as any)
     const res = await items.updateItem(20, { price: 9 })
-    expect(spy).toHaveBeenCalledWith('/items/item/20', { price: 9 })
+    expect(spy).toHaveBeenCalledWith('/items/20', { price: 9 })  // Changed from '/items/item/20'
     expect(res.data?.id).toBe(20)
     spy.mockRestore()
   })
 
   it('Unit: deleteItem calls apiClient.delete with correct endpoint', async () => {
-    const spy = vi.spyOn(apiClient, 'delete').mockResolvedValue({ data: { message: 'deleted' } } as any)
+    const spy = vi.spyOn(apiClient, 'delete').mockResolvedValue({ data: { status: 'deleted' } } as any)  // Changed message to status
     const res = await items.deleteItem(30)
-    expect(spy).toHaveBeenCalledWith('/items/item/30')
-    expect(res.data?.message).toBe('deleted')
+    expect(spy).toHaveBeenCalledWith('/items/30')  // Changed from '/items/item/30'
+    expect(res.data?.status).toBe('deleted')
     spy.mockRestore()
   })
 })

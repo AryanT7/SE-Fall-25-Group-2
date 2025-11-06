@@ -69,7 +69,7 @@ describe('LoginPage Component', () => {
   test('renders login form with correct title and description', () => {
     renderLoginPage();
     // Adjust these strings if your component uses different copy
-    expect(screen.getByRole('heading', { name: /welcome to foodapp/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome to calorie connect/i })).toBeInTheDocument();
     expect(screen.getByText(/sign in to your account to continue/i)).toBeInTheDocument();
   });
 

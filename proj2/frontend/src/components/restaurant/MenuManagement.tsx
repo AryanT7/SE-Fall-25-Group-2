@@ -196,7 +196,25 @@ const MenuManagement: React.FC = () => {
 
   const handleUpload = async () => {
     if (!cafeId) return toast.error('Cafe ID missing');
-    if (!selectedFile) return toast.error('Please select a PDF file first');
+    if (!selectedFile) return toast.error('Please select a PDF or image file first');
+
+    const allowedTypes = [
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
+      'image/webp',
+      'image/gif',
+      'image/bmp',
+      'image/tiff',
+    ];
+    
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setUploading(false);
+      return toast.error('Only PDF or image files are supported');
+    }
+    
+
     setUploading(true);
     try {
       const { data, error } = await cafeApi.uploadMenu(cafeId, selectedFile);
@@ -300,12 +318,12 @@ const MenuManagement: React.FC = () => {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold">Menu Management</h1>
-          <p className="text-muted-foreground">Manage menu items and upload PDF menus for AI parsing.</p>
+          <p className="text-muted-foreground">Manage menu items and upload PDF/Image menus for AI parsing.</p>
         </div>
 
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setUploadOpen(true)}>
-            <Upload className="mr-2 h-4 w-4" /> Upload PDF Menu
+            <Upload className="mr-2 h-4 w-4" /> Upload Menu File
           </Button>
           <Button onClick={handleOpenAddDialog}>
             <Plus className="mr-2 h-4 w-4" /> Add Item
@@ -444,16 +462,16 @@ const MenuManagement: React.FC = () => {
       <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload PDF Menu</DialogTitle>
+            <DialogTitle>Upload Menu File</DialogTitle>
             <DialogDescription>
-              Upload your menu in PDF format and AI will extract the items automatically.
+              Upload your menu in PDF or Image format and AI will extract the items automatically.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <input
               type="file"
-              accept="application/pdf"
+              accept="application/pdf, image/*"
               onChange={(e) => handleFileChange(e.target.files?.[0])}
               className="w-full"
             />
@@ -840,457 +858,3 @@ const MenuManagement: React.FC = () => {
 };
 
 export default MenuManagement;
-
-// import React, { useCallback, useEffect, useMemo, useState } from 'react';
-// import { useAuth } from '../../contexts/AuthContext';
-// import { itemsApi } from '../../api/items';
-// import { cafeApi } from '../../api/cafes';
-// import { MenuItem, ItemCreateRequest } from '../../api/types';
-// import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../ui/card';
-// import { Button } from '../ui/button';
-// import { Badge } from '../ui/badge';
-// import { Input } from '../ui/input';
-// import { Separator } from '../ui/separator';
-// import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
-// import { Textarea } from '../ui/textarea';
-// import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
-
-// import { Loader2, Upload, Plus, Trash2, Check } from 'lucide-react';
-// import { toast } from 'sonner';
-
-// type OCRItem = {
-//   name: string;
-//   calories?: number | null;
-//   price?: number | null;
-//   ingredients?: string | null;
-//   quantity?: string | null;
-//   servings?: number | null;
-//   veg_flag?: boolean | null;
-//   kind?: string | null;
-//   description?: string | null;
-// };
-
-// const MenuManagement: React.FC = () => {
-//   const { user } = useAuth();
-//   const cafeId = user?.cafe?.id;
-
-//   // items from cafe
-//   const [items, setItems] = useState<MenuItem[]>([]);
-//   const [loadingItems, setLoadingItems] = useState(false);
-//   const [itemsError, setItemsError] = useState<string | null>(null);
-
-//   // upload modal
-//   const [uploadOpen, setUploadOpen] = useState(false);
-//   const [uploading, setUploading] = useState(false);
-//   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-//   // OCR review modal & data
-//   const [reviewOpen, setReviewOpen] = useState(false);
-//   const [extractedItems, setExtractedItems] = useState<OCRItem[]>([]);
-//   const [submittingExtracted, setSubmittingExtracted] = useState(false);
-
-//   // add/edit dialog (single item) - optional, but we support inline editing inside review list
-//   const [editIndex, setEditIndex] = useState<number | null>(null);
-
-//   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
-//   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
-//   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-//   const [formData, setFormData] = useState<ItemCreateRequest>({
-//     name: '',
-//     description: '',
-//     ingredients: '',
-//     calories: 0,
-//     price: 0,
-//     quantity: '',
-//     servings: 1,
-//     veg_flag: true,
-//     kind: '',
-//   });
-
-
-//   // local search/filter
-//   const [searchTerm, setSearchTerm] = useState('');
-
-//   // Stats derived
-//   const stats = useMemo(() => {
-//     const totalItems = items.length;
-//     const categories = new Set(items.map(i => i.category || 'Uncategorized'));
-//     const avgPrice = totalItems ? items.reduce((s, it) => s + (it.price ?? 0), 0) / totalItems : 0;
-//     const vegCount = items.filter(it => !!it.isVegetarian).length;
-//     return {
-//       totalItems,
-//       categoriesCount: categories.size,
-//       avgPrice,
-//       vegCount,
-//     };
-//   }, [items]);
-
-//   const fetchItems = useCallback(async () => {
-//     if (!cafeId) return;
-//     setLoadingItems(true);
-//     setItemsError(null);
-//     try {
-//       const { data, error } = await itemsApi.getCafeItems(cafeId);
-//       if (error) {
-//         setItemsError(error);
-//         toast.error('Failed to load items');
-//       } else if (data) {
-//         setItems(data);
-//       }
-//     } catch (err) {
-//       setItemsError('Failed to load items');
-//       toast.error('Failed to load items');
-//     } finally {
-//       setLoadingItems(false);
-//     }
-//   }, [cafeId]);
-
-//   useEffect(() => {
-//     fetchItems();
-//   }, [fetchItems]);
-
-//   // Upload handler
-//   const handleFileChange = (f?: File) => {
-//     setSelectedFile(f ?? null);
-//   };
-
-//   const handleUpload = async () => {
-//     if (!cafeId) return toast.error('Cafe ID missing');
-//     if (!selectedFile) return toast.error('Please select a PDF file first');
-//     setUploading(true);
-//     try {
-//       const { data, error } = await cafeApi.uploadMenu(cafeId, selectedFile);
-//       if (error) {
-//         toast.error(error);
-//       } else if (data?.items) {
-//         // Map API OCR items into OCRItem shape (defensive)
-//         const parsed: OCRItem[] = (data.items as any[]).map(it => ({
-//           name: it.name ?? '',
-//           calories: it.calories ?? null,
-//           price: it.price ?? null,
-//           ingredients: it.ingredients ?? null,
-//           quantity: it.quantity ?? null,
-//           servings: it.servings ?? null,
-//           veg_flag: it.veg_flag ?? null,
-//           kind: it.kind ?? null,
-//           description: it.description ?? null,
-//         }));
-//         setExtractedItems(parsed);
-//         setUploadOpen(false);
-//         setReviewOpen(true);
-//         toast.success(`Extracted ${parsed.length} items. Review before submitting.`);
-//       } else {
-//         toast.error('No items returned from OCR');
-//       }
-//     } catch (err) {
-//       toast.error('Upload failed');
-//       console.error(err);
-//     } finally {
-//       setUploading(false);
-//       setSelectedFile(null);
-//     }
-//   };
-
-//   // Edit handlers inside review modal
-//   const updateExtractedItem = (idx: number, patch: Partial<OCRItem>) => {
-//     setExtractedItems(prev => {
-//       const copy = [...prev];
-//       copy[idx] = { ...copy[idx], ...patch };
-//       return copy;
-//     });
-//   };
-
-//   const removeExtractedItem = (idx: number) => {
-//     setExtractedItems(prev => prev.filter((_, i) => i !== idx));
-//   };
-
-
-
-//   // Submit all reviewed items
-//   const submitAllExtracted = async () => {
-//     if (!cafeId) return toast.error('Cafe ID missing');
-//     if (extractedItems.length === 0) return toast.error('No items to submit');
-//     setSubmittingExtracted(true);
-//     try {
-//       const payloads: ItemCreateRequest[] = extractedItems.map(it => ({
-//         name: (it.name || '').trim(),
-//         description: it.description || '',
-//         ingredients: it.ingredients
-//           ? (Array.isArray(it.ingredients)
-//               ? it.ingredients.join(', ')
-//               : String(it.ingredients))
-//           : undefined,
-//         calories: it.calories ?? 0,
-//         price: it.price ?? 0.0,
-//         quantity: it.quantity ?? undefined,
-//         servings: it.servings ?? undefined,
-//         veg_flag: it.veg_flag ?? true,
-//         kind: it.kind ?? undefined,
-//       }));
-  
-//       const { data, error } = await itemsApi.replaceMenu(cafeId, payloads);
-//       if (error) {
-//         toast.error(error);
-//       } else {
-//         toast.success(`Successfully replaced menu with ${data.items_created} items`);
-//         setReviewOpen(false);
-//         setExtractedItems([]);
-//         await fetchItems();
-//       }
-//     } catch (err) {
-//       console.error(err);
-//       toast.error('Failed to replace menu');
-//     } finally {
-//       setSubmittingExtracted(false);
-//     }
-//   };
-  
-//   // const submitAllExtracted = async () => {
-//   //   if (!cafeId) return toast.error('Cafe ID missing');
-//   //   if (extractedItems.length === 0) return toast.error('No items to submit');
-//   //   setSubmittingExtracted(true);
-//   //   try {
-//   //     const created: MenuItem[] = [];
-//   //     for (const it of extractedItems) {
-//   //       // Basic validation + conversion to ItemCreateRequest
-//   //       const payload: ItemCreateRequest = {
-//   //         name: (it.name || '').trim(),
-//   //         description: it.description || '',
-//   //         ingredients: it.ingredients
-//   //           ? (Array.isArray(it.ingredients)
-//   //               ? it.ingredients.join(', ')
-//   //               : String(it.ingredients))
-//   //           : undefined,
-//   //         calories: it.calories ?? 0,
-//   //         price: it.price ?? 0.0,
-//   //         quantity: it.quantity ?? undefined, // ✅ coerce null → undefined
-//   //         servings: it.servings ?? undefined, // ✅ coerce null → undefined
-//   //         veg_flag: it.veg_flag ?? true,
-//   //         kind: it.kind ?? undefined, // ✅ coerce null → undefined
-//   //       };
-//   //       const { data, error } = await itemsApi.addMenuItem(cafeId, payload);
-//   //       if (error) {
-//   //         toast.error(`Failed to add ${payload.name}: ${error}`);
-//   //       } else if (data) {
-//   //         created.push(data);
-//   //       }
-//   //     }
-//   //     toast.success(`Added ${created.length} items`);
-//   //     setReviewOpen(false);
-//   //     setExtractedItems([]);
-//   //     // refresh items list
-//   //     await fetchItems();
-//   //   } catch (err) {
-//   //     console.error(err);
-//   //     toast.error('Failed submitting items');
-//   //   } finally {
-//   //     setSubmittingExtracted(false);
-//   //   }
-//   // };
-
-//   // Filter visible items
-//   const visibleItems = useMemo(() => {
-//     const q = searchTerm.trim().toLowerCase();
-//     if (!q) return items;
-//     return items.filter(i =>
-//       i.name.toLowerCase().includes(q) ||
-//       (i.category ?? '').toLowerCase().includes(q) ||
-//       (i.description ?? '').toLowerCase().includes(q)
-//     );
-//   }, [items, searchTerm]);
-
-//   // Simple UI helpers
-//   const handleDeleteItem = async (itemId: number) => {
-//     if (!confirm('Delete this item?')) return;
-//     try {
-//       const { error } = await itemsApi.deleteItem(itemId);
-//       if (error) {
-//         toast.error(error);
-//       } else {
-//         toast.success('Item deleted');
-//         await fetchItems();
-//       }
-//     } catch (err) {
-//       toast.error('Delete failed');
-//     }
-//   };
-
-//   return (
-//     <div className="space-y-6 p-6">
-//       <div className="flex justify-between items-start">
-//         <div>
-//           <h1 className="text-3xl font-bold">Menu Management</h1>
-//           <p className="text-muted-foreground">Manage menu items and upload PDF menus for AI parsing.</p>
-//         </div>
-
-//         <div className="flex items-center gap-2">
-//           <Button variant="outline" onClick={() => setUploadOpen(true)}><Upload className="mr-2 h-4 w-4" /> Upload PDF Menu</Button>
-//           <Button onClick={() => { /* open add item modal (not implemented here) */ }}><Plus className="mr-2 h-4 w-4" /> Add Item</Button>
-//         </div>
-//       </div>
-
-//       {/* Stats */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-//         <Card><CardHeader><CardTitle>Total Items</CardTitle></CardHeader><CardContent>{stats.totalItems}</CardContent></Card>
-//         <Card><CardHeader><CardTitle>Categories</CardTitle></CardHeader><CardContent>{stats.categoriesCount}</CardContent></Card>
-//         <Card><CardHeader><CardTitle>Avg Price</CardTitle></CardHeader><CardContent>${stats.avgPrice.toFixed(2)}</CardContent></Card>
-//         <Card><CardHeader><CardTitle>Vegetarian</CardTitle></CardHeader><CardContent>{stats.vegCount}</CardContent></Card>
-//       </div>
-
-//       {/* Search */}
-//       <Card>
-//         <CardContent className="flex items-center gap-4">
-//           <Input placeholder="Search items by name, category, description..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-//           <Button variant="ghost" onClick={fetchItems} disabled={loadingItems}>
-//             {loadingItems ? <Loader2 className="animate-spin h-4 w-4" /> : 'Refresh'}
-//           </Button>
-//         </CardContent>
-//       </Card>
-
-//       {/* Items grid */}
-//       <div>
-//         {loadingItems ? (
-//           <div className="text-center py-8"><Loader2 className="animate-spin mx-auto" /> Loading items...</div>
-//         ) : visibleItems.length === 0 ? (
-//           <Card className="text-center py-12">
-//             <CardContent>
-//               <p>No items found</p>
-//             </CardContent>
-//           </Card>
-//         ) : (
-//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-//             {visibleItems.map(it => (
-//               <Card key={it.id}>
-//                 {/* image if present */}
-//                 {it.image && <div className="aspect-video bg-gray-100"><img src={it.image} alt={it.name} className="object-cover w-full h-full" /></div>}
-//                 <CardHeader>
-//                   <div className="flex justify-between items-start">
-//                     <div>
-//                       <CardTitle>{it.name}</CardTitle>
-//                       <CardDescription className="text-sm">{it.description}</CardDescription>
-//                       <div className="mt-2 text-sm">
-//                         <span className="font-medium">${it.price.toFixed(2)}</span>
-//                         <span className="text-muted-foreground ml-3"> {it.calories} cal</span>
-//                       </div>
-//                       <div className="mt-2"><Badge>{it.category}</Badge></div>
-//                     </div>
-//                     <div className="flex flex-col gap-2">
-//                       <Button size="sm" variant="ghost" onClick={() => { /* open edit modal (not implemented) */ }}>Edit</Button>
-//                       <Button size="sm" variant="destructive" onClick={() => handleDeleteItem(it.id)}><Trash2 className="h-4 w-4" /></Button>
-//                     </div>
-//                   </div>
-//                 </CardHeader>
-//                 <CardContent>
-//                   {/* any extra details */}
-//                 </CardContent>
-//               </Card>
-//             ))}
-//           </div>
-//         )}
-//       </div>
-
-//       {/* Upload PDF Dialog */}
-//       <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-//         <DialogContent>
-//           <DialogHeader>
-//             <DialogTitle>Upload PDF Menu</DialogTitle>
-//           </DialogHeader>
-
-//           <div className="space-y-4">
-//             <input
-//               type="file"
-//               accept="application/pdf"
-//               onChange={(e) => handleFileChange(e.target.files?.[0])}
-//             />
-//             {selectedFile && <div>Selected: {selectedFile.name}</div>}
-
-//             <div className="text-sm text-muted-foreground">
-//               Upload a PDF of your menu. The AI will attempt to extract dish names, prices, calories and ingredients.
-//             </div>
-//           </div>
-
-//           <DialogFooter className="flex justify-between">
-//             <Button variant="outline" onClick={() => setUploadOpen(false)}>Cancel</Button>
-//             <Button onClick={handleUpload} disabled={uploading || !selectedFile}>
-//               {uploading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Upload className="mr-2 h-4 w-4" />}
-//               Extract Menu Items
-//             </Button>
-//           </DialogFooter>
-//         </DialogContent>
-//       </Dialog>
-
-//       {/* Review Extracted Items Dialog */}
-//       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
-//         <DialogContent className="max-w-5xl">
-//           <DialogHeader>
-//             <DialogTitle>Review Extracted Items</DialogTitle>
-//             <p className="text-sm text-muted-foreground">Edit any item before submitting them to your menu.</p>
-//           </DialogHeader>
-
-//           <div className="space-y-4 max-h-[60vh] overflow-auto p-2">
-//             {extractedItems.length === 0 ? (
-//               <div className="text-center p-6">No items extracted.</div>
-//             ) : extractedItems.map((ei, idx) => (
-//               <Card key={idx} className="p-3">
-//                 <div className="flex gap-4">
-//                   <div className="flex-1 space-y-2">
-//                     <Input value={ei.name} onChange={e => updateExtractedItem(idx, { name: e.target.value })} placeholder="Name" />
-//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-//                       <Input value={String(ei.price ?? '')} onChange={e => updateExtractedItem(idx, { price: parseFloat(e.target.value || '0') || undefined })} placeholder="Price (e.g., 9.99)" />
-//                       <Input value={String(ei.calories ?? '')} onChange={e => updateExtractedItem(idx, { calories: parseInt(e.target.value || '0') || undefined })} placeholder="Calories" />
-//                     </div>
-//                     <Textarea value={ei.description ?? ''} onChange={e => updateExtractedItem(idx, { description: e.target.value })} placeholder="Description (optional)" />
-//                     <Input value={ei.ingredients ?? ''} onChange={e => updateExtractedItem(idx, { ingredients: e.target.value })} placeholder="Ingredients (comma separated)" />
-//                     <div className="flex gap-2">
-//                       <Select value={ei.kind ?? ''} onValueChange={v => updateExtractedItem(idx, { kind: v || undefined })}>
-//                         <SelectTrigger className="w-48"><SelectValue placeholder="Category" /></SelectTrigger>
-//                         <SelectContent>
-//                           <SelectItem value="appetizer">Appetizer</SelectItem>
-//                           <SelectItem value="main">Main</SelectItem>
-//                           <SelectItem value="dessert">Dessert</SelectItem>
-//                           <SelectItem value="beverage">Beverage</SelectItem>
-//                           <SelectItem value="other">Other</SelectItem>
-//                         </SelectContent>
-//                       </Select>
-
-//                       <div className="flex items-center gap-2">
-//                         <label className="flex items-center gap-2">
-//                           <input type="checkbox" checked={!!ei.veg_flag} onChange={e => updateExtractedItem(idx, { veg_flag: e.target.checked })} />
-//                           <span className="text-sm">Vegetarian</span>
-//                         </label>
-//                       </div>
-//                     </div>
-//                   </div>
-
-//                   <div className="w-40 flex flex-col gap-2 items-end">
-//                     <Button variant="destructive" onClick={() => removeExtractedItem(idx)}><Trash2 /></Button>
-//                     <div className="text-sm text-muted-foreground">Preview</div>
-//                     <div className="border p-2 w-full text-sm rounded">{ei.name}</div>
-//                   </div>
-//                 </div>
-//               </Card>
-//             ))}
-//           </div>
-
-//           <DialogFooter className="flex justify-between items-center">
-//             <div>
-//               <Button variant="outline" onClick={() => { setReviewOpen(false); setExtractedItems([]); }}>Cancel</Button>
-//             </div>
-
-//             <div className="flex items-center gap-2">
-//               <Button variant="ghost" onClick={() => { /* optionally save draft */ }}>Save Draft</Button>
-//               <Button onClick={submitAllExtracted} disabled={submittingExtracted}>
-//               {submittingExtracted ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Check className="mr-2 h-4 w-4" />}
-//               Replace Existing Menu ({extractedItems.length})
-//             </Button>
-
-//             </div>
-//           </DialogFooter>
-//         </DialogContent>
-//       </Dialog>
-//     </div>
-//   );
-// };
-
-// export default MenuManagement;
-
