@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 class OCRService:
     def __init__(self):
+        """Initialize OCR service with Mistral API client."""
         self.api_key = settings.MISTRAL_API_KEY
         self.client = Mistral(api_key=self.api_key)
     

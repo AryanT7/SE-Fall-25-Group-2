@@ -16,6 +16,7 @@ router = APIRouter(prefix="/drivers", tags=["drivers"])
 
 @router.post("/login", response_model=Token)
 def driver_login(data: DriverLoginRequest, db: Session = Depends(get_db)):
+    """Authenticate a driver and return access/refresh tokens."""
     user = db.query(User).filter(User.email == data.email).first()
     if not user or not verify_password(data.password, user.hashed_password) or user.role != user.role.__class__.DRIVER:
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -26,6 +27,7 @@ def driver_login(data: DriverLoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/register", response_model=UserOut)
 def driver_register(data: UserCreate, db: Session = Depends(get_db)):
+    """Register a new driver account (role preset to DRIVER)."""
     # reuse user creation flow but set role to DRIVER
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -46,6 +48,7 @@ def get_current_driver(current: User = Depends(get_current_user), db: Session = 
 
 @router.get("/{driver_id}/assigned-orders", response_model=list[AssignedOrderOut])
 def get_assigned_orders(driver_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """List orders assigned to a driver (driver can only view own, admin can view any)."""
     # allow drivers to fetch their own assigned orders; admins allowed
     if current.role != Role.DRIVER and current.role != Role.ADMIN:
         raise HTTPException(status_code=403, detail="Insufficient role")
@@ -57,6 +60,7 @@ def get_assigned_orders(driver_id: int, db: Session = Depends(get_db), current: 
 
 @router.post("/{driver_id}/location")
 def post_location(driver_id: int, loc: DriverLocationIn, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Post a driver's current location (driver/admin only)."""
     if current.role != Role.DRIVER and current.role != Role.ADMIN:
         raise HTTPException(status_code=403, detail="Insufficient role")
     if current.role == Role.DRIVER and current.id != driver_id:
@@ -127,6 +131,7 @@ def get_available_drivers(db: Session = Depends(get_db), current: User = Depends
 
 @router.post("/{driver_id}/orders/{order_id}/pickup", response_model=AssignedOrderOut)
 def pickup_order(driver_id: int, order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Mark an assigned order as picked up (driver/admin only, driver remains OCCUPIED)."""
     if current.role != Role.DRIVER and current.role != Role.ADMIN:
         raise HTTPException(status_code=403, detail="Insufficient role")
     order = db.query(Order).filter(Order.id == order_id, Order.driver_id == driver_id).first()
@@ -145,6 +150,7 @@ def pickup_order(driver_id: int, order_id: int, db: Session = Depends(get_db), c
 
 @router.post("/{driver_id}/orders/{order_id}/deliver", response_model=AssignedOrderOut)
 def deliver_order(driver_id: int, order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Mark an assigned order as delivered and set driver status back to IDLE (driver/admin only)."""
     if current.role != Role.DRIVER and current.role != Role.ADMIN:
         raise HTTPException(status_code=403, detail="Insufficient role")
     order = db.query(Order).filter(Order.id == order_id, Order.driver_id == driver_id).first()
@@ -199,7 +205,7 @@ def driver_update_order_status(driver_id: int, order_id: int, new_status: OrderS
 
 @router.websocket("/driver/{driver_id}/ws")
 async def driver_ws(websocket: WebSocket, driver_id: int):
-    # Minimal illustrative websocket endpoint. In production, use auth and proper connection tracking.
+    # Minimal illustrative websocket endpoint for driver messages (unauthenticated demo only).
     await websocket.accept()
     try:
         while True:

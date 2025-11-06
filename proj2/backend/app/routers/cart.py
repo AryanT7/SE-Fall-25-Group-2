@@ -11,11 +11,13 @@ router = APIRouter(prefix="/cart", tags=["cart"])
 
 @router.get("/", response_model=CartOut)
 def get_cart(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Get or create the current user's cart and return its metadata."""
     cart = get_or_create_cart(db, current.id)
     return CartOut(id=cart.id, user_id=cart.user_id, created_at=cart.created_at)
 
 
 def get_or_create_cart(db: Session, user_id: int) -> Cart:
+    """Fetch the user's cart or create a new one if missing."""
     cart = db.query(Cart).filter(Cart.user_id == user_id).first()
     if not cart:
         cart = Cart(user_id=user_id)
@@ -26,6 +28,7 @@ def get_or_create_cart(db: Session, user_id: int) -> Cart:
 
 @router.post("/add", response_model=dict)
 def add_to_cart(data: CartAddItem, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Add or increment an item in the cart; enforce single-cafe constraint."""
     item = db.query(Item).filter(Item.id == data.item_id, Item.active == True).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -58,6 +61,7 @@ def add_to_cart(data: CartAddItem, db: Session = Depends(get_db), current: User 
 
 @router.get("/summary", response_model=CartSummary)
 def cart_summary(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Return calories and price totals grouped by assignee, plus cart totals."""
     cart = get_or_create_cart(db, current.id)
     rows = db.query(CartItem, Item, User).join(Item, CartItem.item_id == Item.id).join(User, CartItem.assignee_user_id == User.id).filter(CartItem.cart_id == cart.id).all()
     by_person = defaultdict(lambda: {"calories": 0.0, "price": 0.0})
@@ -75,6 +79,7 @@ def cart_summary(db: Session = Depends(get_db), current: User = Depends(get_curr
 
 @router.delete("/clear", response_model=dict)
 def clear_cart(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Remove all items from the current user's cart."""
     cart = get_or_create_cart(db, current.id)
     db.query(CartItem).filter(CartItem.cart_id == cart.id).delete()
     db.commit()
@@ -136,6 +141,7 @@ def update_cart_item(cart_item_id: int, payload: dict, db: Session = Depends(get
 
 @router.delete("/item/{cart_item_id}")
 def delete_cart_item(cart_item_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Delete a specific cart item belonging to the current user."""
     cart = get_or_create_cart(db, current.id)
     ci = db.query(CartItem).filter(CartItem.id == cart_item_id, CartItem.cart_id == cart.id).first()
     if not ci:

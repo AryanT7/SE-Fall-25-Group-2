@@ -8,6 +8,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.post("/block_user/{user_id}")
 def block_user(user_id: int, db: Session = Depends(get_db), admin: User = Depends(require_roles(Role.ADMIN))):
+    """Deactivate a user account (admin only)."""
     u = db.query(User).filter(User.id == user_id).first()
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
@@ -27,6 +28,7 @@ def create_cafe_admin(
     db: Session = Depends(get_db),
     admin: User = Depends(require_roles(Role.ADMIN)),
 ):
+    """Create a cafe via admin endpoint with query params (admin only)."""
     c = Cafe(name=name, address=address, cuisine=cuisine, owner_id=owner_id, lat=lat, lng=lng)
     db.add(c)
     db.commit()
@@ -35,6 +37,7 @@ def create_cafe_admin(
 
 @router.delete("/cafes/{cafe_id}")
 def delete_cafe(cafe_id: int, db: Session = Depends(get_db), admin: User = Depends(require_roles(Role.ADMIN))):
+    """Permanently delete a cafe (admin only)."""
     c = db.query(Cafe).filter(Cafe.id == cafe_id).first()
     if not c:
         raise HTTPException(status_code=404, detail="Cafe not found")

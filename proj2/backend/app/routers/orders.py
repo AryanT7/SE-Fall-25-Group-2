@@ -12,6 +12,7 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 @router.post("/place", response_model=OrderOut)
 def place_order(data: PlaceOrderRequest, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Create an order from the user's cart for a single cafe, then clear the cart."""
     cart = db.query(Cart).filter(Cart.user_id == current.id).first()
     if not cart:
         raise HTTPException(status_code=400, detail="Empty cart")
@@ -42,6 +43,7 @@ def place_order(data: PlaceOrderRequest, db: Session = Depends(get_db), current:
 
 @router.get("/o/{order_id}", response_model=OrderOut)
 def get_order(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Fetch a single order if requester is owner, cafe staff/owner, or admin."""
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -55,6 +57,7 @@ def get_order(order_id: int, db: Session = Depends(get_db), current: User = Depe
 
 @router.get("/{order_id}/summary", response_model=OrderSummaryOut)
 def order_summary(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Return order with item breakdown and (if any) minimal driver info."""
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -97,6 +100,7 @@ def order_summary(order_id: int, db: Session = Depends(get_db), current: User = 
 
 @router.post("/{order_id}/cancel", response_model=OrderOut)
 def cancel_order(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Cancel own order within allowed window when in cancellable statuses."""
     order = db.query(Order).filter(Order.id == order_id, Order.user_id == current.id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -112,10 +116,12 @@ def cancel_order(order_id: int, db: Session = Depends(get_db), current: User = D
 
 @router.get("/my", response_model=list[OrderOut])
 def my_orders(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """List the authenticated user's orders, newest first."""
     return db.query(Order).filter(Order.user_id == current.id).order_by(Order.created_at.desc()).all()
 
 @router.get("/{cafe_id}", response_model=list[OrderOut])
 def cafe_orders(cafe_id: int, status: OrderStatus | None = None, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """List cafe orders for staff/owners, optionally filtered by status."""
     require_cafe_staff_or_owner(cafe_id, db, current)
     q = db.query(Order).filter(Order.cafe_id == cafe_id)
     if status:

@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from .config import settings
 import os
 
+# Resolve the database URL and initialize SQLAlchemy engine/session.
 # Choose database URL with sensible precedence to support Postgres and SQLite
 # 1) POSTGRES_DATABASE_URL (explicit Postgres override)
 # 2) DATABASE_URL (generic SQLAlchemy URL)
@@ -26,6 +27,7 @@ Base = declarative_base()
 
 from typing import Generator
 def get_db() -> Generator:
+    """Yield a SQLAlchemy session scoped to the request lifecycle."""
     db = SessionLocal()
     try:
         yield db

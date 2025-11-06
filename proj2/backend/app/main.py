@@ -1,3 +1,4 @@
+"""FastAPI application setup: mounts routers, configures CORS, and exposes health."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine
@@ -50,4 +51,5 @@ app.include_router(ocr_router.router)
 
 @app.get("/")
 def root():
+    """Health endpoint to verify the API is running."""
     return {"ok": True, "service": "Cafe Calories API"}

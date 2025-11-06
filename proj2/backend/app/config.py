@@ -1,3 +1,4 @@
+"""Application settings loaded from environment with sensible defaults."""
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv

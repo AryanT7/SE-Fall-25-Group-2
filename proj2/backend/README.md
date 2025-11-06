@@ -1,19 +1,25 @@
 # Cafe Calories Backend API
 
-A FastAPI-based backend service for managing cafe operations, menu items, orders, and calorie tracking.
+A FastAPI backend for cafe ordering, delivery (driver assignment), payments, analytics, and calorie goals.
+
+## Intended users
+- Consumers: browse cafes, manage carts, place and track orders, set calorie goals.
+- Cafe owners/staff: manage cafes, items, orders, and view analytics.
+- Drivers: update location/status, receive assignments, pickup and deliver orders.
+- Admins: manage users/cafes and enforce platform policies.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.8+
-- pip or pipenv
+- pip
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone and enter backend**
    ```bash
    git clone <repository-url>
-   cd cafe_calories_backend
+   cd proj2/backend
    ```
 
 2. **Install dependencies**
@@ -21,15 +27,17 @@ A FastAPI-based backend service for managing cafe operations, menu items, orders
    pip install -r requirements.txt
    ```
 
-3. **Run the application**
+3. **Run the application (SQLite default)**
    ```bash
-   uvicorn app.main:app --reload
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
 4. **Access the API**
    - API Base URL: `http://127.0.0.1:8000`
    - Interactive API docs: `http://127.0.0.1:8000/docs`
    - Alternative docs: `http://127.0.0.1:8000/redoc`
+
+Note: To use PostgreSQL instead of SQLite, set `POSTGRES_DATABASE_URL` or `DATABASE_URL`. See `DBSetup.md`.
 
 ## 📚 API Documentation
 
@@ -39,7 +47,7 @@ http://127.0.0.1:8000
 ```
 
 ### Authentication
-Most endpoints require JWT authentication. Include the token in the Authorization header:
+Most endpoints require JWT. Include the token in the Authorization header:
 ```
 Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
@@ -523,38 +531,41 @@ DECLINED   CANCELLED
 
 ### Project Structure
 ```
-cafe_calories_backend/
+proj2/backend/
 ├── app/
 │   ├── main.py              # FastAPI application
 │   ├── database.py          # Database configuration
 │   ├── models.py            # SQLAlchemy models
 │   ├── schemas.py           # Pydantic schemas
-│   ├── auth.py              # Authentication logic
+│   ├── auth.py              # Authentication helpers
 │   ├── config.py            # Configuration
 │   ├── deps.py              # Dependencies
 │   ├── routers/             # API route handlers
-│   │   ├── auth.py
-│   │   ├── users.py
-│   │   ├── cafes.py
-│   │   ├── items.py
-│   │   ├── cart.py
-│   │   ├── orders.py
-│   │   ├── payments.py
-│   │   ├── goals.py
-│   │   ├── admin.py
-│   │   └── analytics.py
+│   │   ├── auth.py, users.py, cafes.py, items.py, cart.py,
+│   │   ├── orders.py, payments.py, goals.py, admin.py, analytics.py,
+│   │   └── drivers.py, reviews.py, ocr.py
 │   └── services/            # Business logic
-│       ├── ocr.py
-│       └── recommend.py
+│       ├── driver.py, ocr.py, recommend.py, review_summarizer.py
 ├── requirements.txt
 └── README.md
 ```
 
 ### Database
-The application uses SQLite by default. Database file: `app.db`
+Default: SQLite file `app.db` in this directory. Optional: PostgreSQL (see `DBSetup.md`).
 
 ### Environment Variables
-Configure your application using environment variables or update `config.py`.
+The backend reads, in priority order:
+- `POSTGRES_DATABASE_URL` (e.g., `postgresql+psycopg://user:pass@localhost:5432/cafe_calories`)
+- `DATABASE_URL` (generic SQLAlchemy URL)
+- fallback to SQLite in `config.py`
+
+More: `DBSetup.md` and `docs/openapi.md`.
+
+### Related docs
+- Database setup: `DBSetup.md`
+- Driver flow: `DRIVER_ASSIGNMENT_TESTING.md`
+- OCR ingestion: `OCR_README.md`
+---
 
 ---
 

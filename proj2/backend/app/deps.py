@@ -8,6 +8,7 @@ from .models import User, Role, StaffAssignment, Cafe
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
+    """Resolve and return the active user from a Bearer token or raise 401."""
     payload = decode_token(token)
     user = db.query(User).filter(User.id == payload.uid, User.is_active == True).first()
     if not user:
@@ -16,12 +17,14 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
 
 def require_roles(*roles: Role):
     def checker(user: User = Depends(get_current_user)):
+        """Ensure the current user has one of the required roles or raise 403."""
         if user.role not in roles:
             raise HTTPException(status_code=403, detail="Insufficient role")
         return user
     return checker
 
 def require_cafe_staff_or_owner(cafe_id: int, db: Session, user: User):
+    """Authorize current user as cafe owner/staff/admin for the given cafe or raise 403."""
     if user.role == Role.ADMIN:
         return
     cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()

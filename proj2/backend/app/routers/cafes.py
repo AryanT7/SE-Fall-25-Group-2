@@ -39,6 +39,7 @@ def create_cafe(data: CafeCreate, db: Session = Depends(get_db), owner: User = D
 
 @router.get("/", response_model=List[CafeOut])
 def list_cafes(q: str | None = None, db: Session = Depends(get_db)):
+    """List active cafes, optionally filtered by case-insensitive name match."""
     query = db.query(Cafe).filter(Cafe.active == True)
     if q:
         like = f"%{q}%"
@@ -55,6 +56,7 @@ def get_cafe(cafe_id: int, db: Session = Depends(get_db)):
     return cafe
 @router.post("/{cafe_id}/menu/upload", response_model=OCRResult)
 def upload_menu(cafe_id: int, pdf: UploadFile = File(...), db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Upload a cafe menu PDF and return OCR-parsed items (owner/admin only)."""
     cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
     if not cafe:
         raise HTTPException(status_code=404, detail="Cafe not found")
@@ -71,6 +73,7 @@ def replace_menu(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
+    """Replace entire cafe menu with provided items (owner/admin only)."""
     cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
     if not cafe:
         raise HTTPException(status_code=404, detail="Cafe not found")

@@ -1,4 +1,5 @@
 def daily_calorie_recommendation(height_cm: float, weight_kg: float, sex: str, age_years: int, activity: str) -> int:
+    """Calculate daily calorie recommendation using revised Harris-Benedict BMR formula with activity multiplier."""
     sex = (sex or "").strip().upper()
     # Harris–Benedict (revised)
     if sex.startswith("M"):
