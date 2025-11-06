@@ -9,6 +9,7 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 @router.get("/cafe/{cafe_id}", response_model=dict)
 def cafe_analytics(cafe_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Return cafe analytics: orders per day, top-selling items, and revenue per day (staff/owner/admin only)."""
     require_cafe_staff_or_owner(cafe_id, db, current)
     orders_per_day = db.query(func.date(Order.created_at), func.count()).\
         filter(Order.cafe_id == cafe_id).group_by(func.date(Order.created_at)).all()

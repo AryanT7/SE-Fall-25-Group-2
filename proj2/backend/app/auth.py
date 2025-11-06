@@ -9,12 +9,15 @@ from .models import Role
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
+    """Hash a plaintext password using bcrypt."""
     return pwd_context.hash(password)
 
 def verify_password(plain: str, hashed: str) -> bool:
+    """Verify a plaintext password against a bcrypt hash."""
     return pwd_context.verify(plain, hashed)
 
 def create_token(uid: int, email: str, role: Role, expires_delta: timedelta) -> str:
+    """Create a signed JWT containing user id/email/role with an expiry."""
     now = datetime.utcnow()
     payload = {
         "sub": email,
@@ -26,6 +29,7 @@ def create_token(uid: int, email: str, role: Role, expires_delta: timedelta) -> 
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALG)
 
 def decode_token(token: str) -> TokenPayload:
+    """Decode and validate a JWT, returning its typed payload or raising 401."""
     try:
         data = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALG])
         return TokenPayload(sub=data["sub"], uid=data["uid"], role=Role(data["role"]), exp=data["exp"])

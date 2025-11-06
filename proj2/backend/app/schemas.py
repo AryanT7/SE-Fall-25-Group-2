@@ -1,3 +1,4 @@
+"""Pydantic schemas for request/response validation and serialization."""
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Dict
 from datetime import datetime, date

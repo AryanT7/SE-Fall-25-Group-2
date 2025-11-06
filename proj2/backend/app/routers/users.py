@@ -10,6 +10,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("/register", response_model=UserOut)
 def register(data: UserCreate, db: Session = Depends(get_db)):
+    """Register a new user with role and optional profile attributes."""
     print("REGISTER activity_level =", data.activity_level)  # debug
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -35,11 +36,13 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserOut)
 def get_me(current: User = Depends(get_current_user)):
+    """Return the authenticated user's profile."""
     print("GET /me activity_level =", current.activity_level)  # debug
     return current
 
 @router.delete("/me", response_model=dict)
 def delete_self(current: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Soft-deactivate the authenticated user's account."""
     current.is_active = False
     db.add(current)
     db.commit()

@@ -10,6 +10,7 @@ router = APIRouter(prefix="/items", tags=["items"])
 
 @router.post("/{cafe_id}", response_model=ItemOut)
 def add_item(cafe_id: int, data: ItemCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Add a new menu item to a cafe (owner/admin only)."""
     cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
     if not cafe:
         raise HTTPException(status_code=404, detail="Cafe not found")
@@ -23,6 +24,7 @@ def add_item(cafe_id: int, data: ItemCreate, db: Session = Depends(get_db), user
 
 @router.put("/{item_id}", response_model=ItemOut)
 def update_item(item_id: int, data: ItemCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Update an existing menu item (owner/admin only)."""
     item = db.query(Item).filter(Item.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -38,6 +40,7 @@ def update_item(item_id: int, data: ItemCreate, db: Session = Depends(get_db), u
 
 @router.delete("/{item_id}")
 def delete_item(item_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Delete a menu item (owner/admin only)."""
     item = db.query(Item).filter(Item.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -60,6 +63,7 @@ def list_all_items(q: str | None = None, db: Session = Depends(get_db)):
 
 @router.get("/{cafe_id}", response_model=List[ItemOut])
 def list_items(cafe_id: int, q: str | None = None, db: Session = Depends(get_db)):
+    """List active items for a given cafe, optionally filtered by name."""
     query = db.query(Item).filter(Item.cafe_id == cafe_id, Item.active == True)
     if q:
         like = f"%{q}%"

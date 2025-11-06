@@ -1,3 +1,4 @@
+"""SQLAlchemy ORM models for users, cafes, items, orders, payments, goals, drivers, and reviews."""
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Float, DateTime, Enum, Text, Date, UniqueConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship

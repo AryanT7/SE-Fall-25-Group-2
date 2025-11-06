@@ -8,6 +8,7 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 
 @router.post("/{order_id}")
 def create_payment(order_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Create a mock payment record for an order (order owner only, payable statuses only)."""
     order = db.query(Order).filter(Order.id == order_id, Order.user_id == current.id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
