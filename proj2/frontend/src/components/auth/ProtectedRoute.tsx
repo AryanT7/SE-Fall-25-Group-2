@@ -7,6 +7,19 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component ProtectedRoute
+ * @description Route protection component for authenticated access control.
+ * Features:
+ * - Authentication state verification
+ * - Role-based access control
+ * - Redirection to login for unauthenticated users
+ * - Loading state handling during auth checks
+ * - Path-based authorization rules
+ * - Token expiration handling
+ * 
+ * Wraps protected routes to ensure only authenticated users
+ * with appropriate roles can access them.
  */
 
 import React from 'react';

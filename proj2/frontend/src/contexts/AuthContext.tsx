@@ -7,6 +7,28 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ *
+ * @context AuthContext
+ * @description Central authentication and user management context for the application.
+ * 
+ * Features:
+ * - User authentication state management
+ * - Login/Register/Logout functionality
+ * - Token management (access & refresh tokens)
+ * - User role-based access control
+ * - Persistent auth state across page reloads
+ * - Auto-login for restaurant owners
+ * - Error handling and state updates
+ * 
+ * Methods:
+ * - login(credentials): Authenticates user and sets up session
+ * - register(userData): Creates new user account
+ * - logout(): Clears auth state and tokens
+ * - refreshUser(): Updates user data from server
+ * - clearError(): Resets error state
+ * 
+ * Usage:
+ * Wrap your app in AuthProvider and use useAuth() hook to access auth state
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';

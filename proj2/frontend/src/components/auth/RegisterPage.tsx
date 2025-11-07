@@ -7,6 +7,21 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component RegisterPage
+ * @description User registration component for new account creation.
+ * Features:
+ * - Multi-step registration process
+ * - Role selection (Customer/Restaurant Owner/Driver)
+ * - Form validation with real-time feedback
+ * - Restaurant details for owner registration
+ * - Driver details and vehicle information
+ * - Terms and conditions acceptance
+ * - Automatic login after registration
+ * - Profile picture upload
+ * 
+ * Implements role-specific registration flows and validates
+ * required information based on selected role.
  */
 
 import React, { useState } from 'react';

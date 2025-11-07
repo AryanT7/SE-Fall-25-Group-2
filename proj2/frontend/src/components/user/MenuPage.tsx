@@ -7,6 +7,22 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component MenuPage
+ * @description Interactive restaurant menu browsing interface.
+ * Features:
+ * - Menu item search and filtering
+ * - Category organization
+ * - Calorie-aware suggestions
+ * - Item customization options
+ * - Dietary preference filters
+ * - Nutritional information display
+ * - Popular items highlight
+ * - AI-powered recommendations
+ * - Price and portion details
+ * 
+ * Integrates with FoodSuggestions for personalized
+ * menu recommendations based on user preferences.
  */
 
 import React, { useState, useEffect } from 'react';

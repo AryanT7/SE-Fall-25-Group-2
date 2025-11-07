@@ -7,6 +7,21 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component ReviewInsights
+ * @description AI-powered review analysis and insights dashboard.
+ * Features:
+ * - Sentiment analysis of customer reviews
+ * - Review trend tracking
+ * - Common feedback patterns
+ * - Menu item satisfaction scores
+ * - Service quality metrics
+ * - Customer satisfaction trends
+ * - Review response suggestions
+ * - Improvement recommendations
+ * 
+ * Uses natural language processing to provide actionable
+ * insights from customer feedback.
  */
 
 import React, { useEffect, useState, useCallback } from 'react';

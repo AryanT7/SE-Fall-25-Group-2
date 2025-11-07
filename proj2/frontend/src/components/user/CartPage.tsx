@@ -7,6 +7,23 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component CartPage
+ * @description Shopping cart and checkout management system.
+ * Features:
+ * - Real-time cart updates
+ * - Item quantity adjustment
+ * - Split order functionality
+ * - Delivery address management
+ * - Payment method selection
+ * - Order preview
+ * - Calorie tracking
+ * - Emotional state tracking
+ * - Regret prediction
+ * - Group ordering support
+ * 
+ * Integrates with EmotionalStateDialog and RegretPredictionEngine
+ * to provide mindful ordering experience.
  */
 
 import React, { useState, useEffect } from 'react';

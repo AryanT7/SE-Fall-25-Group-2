@@ -7,6 +7,22 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component Analytics
+ * @description Advanced business analytics and reporting dashboard.
+ * Features:
+ * - Revenue tracking and forecasting
+ * - Sales trend analysis
+ * - Menu item performance metrics
+ * - Customer behavior insights
+ * - Peak hour identification
+ * - Seasonal trend analysis
+ * - Inventory optimization suggestions
+ * - Profit margin calculations
+ * - Customer retention metrics
+ * 
+ * Uses Recharts for data visualization and provides
+ * actionable business intelligence insights.
  */
 
 import React, { useEffect, useState } from "react";

@@ -7,6 +7,22 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component StaffManagement
+ * @description Staff and role management system for restaurants.
+ * Features:
+ * - Staff member registration
+ * - Role assignment and permissions
+ * - Schedule management
+ * - Performance tracking
+ * - Shift planning
+ * - Time tracking
+ * - Task assignment
+ * - Staff feedback system
+ * - Training status tracking
+ * 
+ * Provides comprehensive tools for managing restaurant
+ * staff and their responsibilities.
  */
 
 import React, { useState, useEffect } from 'react';
