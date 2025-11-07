@@ -7,6 +7,17 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component Navigation
+ * @description Role-based navigation menu component.
+ * Features:
+ * - Dynamic menu items based on user role (Customer/Restaurant/Driver)
+ * - Mobile-responsive drawer navigation
+ * - Active route highlighting
+ * - Nested menu groups for complex navigation
+ * - Accessibility support with ARIA labels
+ * 
+ * Uses react-router-dom for routing and AuthContext for role-based access control.
  */
 
 import React from 'react';

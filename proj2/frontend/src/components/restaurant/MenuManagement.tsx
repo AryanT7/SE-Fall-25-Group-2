@@ -7,6 +7,24 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component MenuManagement
+ * @description Comprehensive menu and item management system.
+ * Features:
+ * - Menu item CRUD operations
+ * - Category management
+ * - Price and portion control
+ * - Nutritional information tracking
+ * - Item availability toggling
+ * - Bulk menu updates
+ * - Image management
+ * - Special offers/deals setup
+ * - Menu OCR import support
+ * - Menu performance analytics
+ * - Seasonal menu planning
+ * 
+ * Integrates with inventory system and provides
+ * OCR capabilities for quick menu digitization.
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';

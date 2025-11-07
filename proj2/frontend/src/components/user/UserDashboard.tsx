@@ -7,6 +7,18 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ *
+ * @component UserDashboard
+ * @description Main dashboard component for regular users. Displays user's calorie tracking,
+ * recent orders, emotional insights, and food recommendations. Acts as the central hub for
+ * user interactions with the system.
+ *
+ * Features:
+ * - Calorie goal tracking and progress
+ * - Recent order history
+ * - Emotional state analysis
+ * - AI-powered food recommendations
+ * - Quick access to restaurants and menu
  */
 
 import React, { useState, useEffect, useMemo } from 'react';

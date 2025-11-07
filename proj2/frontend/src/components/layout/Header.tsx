@@ -7,6 +7,17 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component Header
+ * @description Main navigation header component that appears on all pages.
+ * Features:
+ * - User profile menu and authentication status
+ * - Navigation links based on user role
+ * - Cart status and quick access
+ * - Responsive design with mobile menu
+ * - Theme toggle (light/dark mode)
+ * 
+ * Uses AuthContext for user authentication state and CartContext for cart updates.
  */
 
 import React from 'react';

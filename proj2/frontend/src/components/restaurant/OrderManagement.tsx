@@ -7,6 +7,22 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component OrderManagement
+ * @description Real-time order processing and management system.
+ * Features:
+ * - Live order queue with status updates
+ * - Order acceptance and rejection
+ * - Preparation time estimation
+ * - Driver assignment
+ * - Order history and search
+ * - Customer communication
+ * - Order filtering and sorting
+ * - Priority order handling
+ * - Order modification support
+ * 
+ * Integrates with driver assignment system and
+ * provides real-time updates to customers.
  */
 
 import React, { useState, useEffect } from 'react';

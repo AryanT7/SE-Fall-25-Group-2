@@ -7,6 +7,18 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component EmotionalInsights
+ * @description Analyzes and displays user's emotional eating patterns and provides insights.
+ * Features:
+ * - Tracks emotional state during ordering
+ * - Visualizes correlations between emotions and food choices
+ * - Identifies potential emotional eating triggers
+ * - Provides mindful eating recommendations
+ * - Historical emotional state tracking
+ * 
+ * Works in conjunction with EmotionalStateDialog and RegretPredictionEngine
+ * to provide a comprehensive emotional awareness system for users.
  */
 
 import React, { useState, useEffect } from 'react';

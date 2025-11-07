@@ -7,6 +7,22 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component DriverDashboard
+ * @description Driver's order management and delivery interface.
+ * Features:
+ * - Real-time order notifications
+ * - Route optimization
+ * - Delivery status updates
+ * - Earnings tracking
+ * - Customer contact info
+ * - Order pickup confirmation
+ * - Delivery time estimation
+ * - Location tracking
+ * - Performance metrics
+ * 
+ * Provides comprehensive delivery management tools
+ * with real-time updates and GPS integration.
  */
 
 import React, { useEffect, useState } from 'react';

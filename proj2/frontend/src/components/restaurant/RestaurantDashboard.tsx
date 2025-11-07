@@ -7,6 +7,21 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component RestaurantDashboard
+ * @description Central dashboard for restaurant owners and staff.
+ * Features:
+ * - Real-time order monitoring
+ * - Revenue analytics and trends
+ * - Popular items tracking
+ * - Staff management
+ * - Customer feedback overview
+ * - Inventory status
+ * - Peak hours analysis
+ * - Menu performance metrics
+ * 
+ * Provides comprehensive restaurant management tools
+ * and business intelligence insights.
  */
 
 import React, { useEffect, useState } from 'react';

@@ -7,6 +7,18 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component AIFoodRecommendations
+ * @description AI-powered food recommendation component that suggests menu items based on:
+ * - User's historical orders
+ * - Current emotional state
+ * - Calorie goals and restrictions
+ * - Time of day and seasonal factors
+ * - Similar user preferences
+ * 
+ * The component uses machine learning to analyze patterns and provide personalized 
+ * suggestions that align with the user's health goals while considering their 
+ * emotional state and past preferences.
  */
 
 import React, { useEffect, useMemo, useState } from 'react';

@@ -7,6 +7,20 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component LoginPage
+ * @description User authentication component for handling login.
+ * Features:
+ * - Email/password authentication
+ * - Role-based login (User/Restaurant/Driver)
+ * - Form validation
+ * - Error handling and feedback
+ * - Remember me functionality
+ * - Password reset request
+ * - Redirect to appropriate dashboard based on role
+ * 
+ * Uses AuthContext for authentication state management
+ * and JWT token handling.
  */
 
 import React, { useState, useEffect } from 'react';

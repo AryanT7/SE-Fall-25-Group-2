@@ -7,6 +7,21 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ * 
+ * @component CalorieSettings
+ * @description Personal calorie tracking and goal management.
+ * Features:
+ * - Daily calorie goal setting
+ * - Progress tracking visualization
+ * - Meal-based calorie logging
+ * - Nutritional goal customization
+ * - Historical trend analysis
+ * - BMI and health metrics
+ * - Goal adjustment recommendations
+ * - Diet preference settings
+ * 
+ * Integrates with menu recommendations and order history
+ * to provide personalized health insights.
  */
 
 import React, { useState, useEffect } from 'react';
