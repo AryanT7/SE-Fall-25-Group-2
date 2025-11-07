@@ -49,19 +49,13 @@ const ContactUs: React.FC = () => {
     {
       icon: Mail,
       title: 'Email',
-      content: 'support@calorieconnect.com',
+      content: 'nirala@ncsu.edu,smvyas@ncsu.edu,atapkir@ncsu.edu,sgijre@ncsu.edu',
       description: 'Send us an email anytime',
-    },
-    {
-      icon: Phone,
-      title: 'Phone',
-      content: '+1 (919) NC-STATE',
-      description: 'Mon-Fri from 8am to 6pm',
     },
     {
       icon: MapPin,
       title: 'Office',
-      content: '486 Champions Close, Raleigh, NC 27606',
+      content: 'NCSU, Raleigh, NC 27606',
       description: 'Visit us in person',
     },
   ];
