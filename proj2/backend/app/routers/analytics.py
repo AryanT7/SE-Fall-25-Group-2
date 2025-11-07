@@ -23,7 +23,6 @@ def cafe_analytics(cafe_id: int, db: Session = Depends(get_db), current: User = 
     orders_per_day = (
         db.query(func.date(Order.created_at).label("date"), func.count().label("count"))
         .filter(Order.cafe_id == cafe_id)
-        .filter(Order.status.in_([OrderStatus.ACCEPTED, OrderStatus.READY, OrderStatus.PICKED_UP]))
         .group_by(func.date(Order.created_at))
         .all()
     )
