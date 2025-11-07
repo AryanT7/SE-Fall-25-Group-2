@@ -1,0 +1,61 @@
+name: Generate and Publish Inline Docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: proj2/backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Install Sphinx and a lightweight theme used by conf.py
+          pip install sphinx alabaster
+
+      - name: Generate documentation with Sphinx
+        working-directory: proj2/backend
+        run: |
+          # build HTML into docs/build (source is docs/source)
+          sphinx-build -b html docs/source docs/build
+
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # upload the built HTML from Sphinx
+          path: proj2/backend/docs/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to gh-pages under subdirectory 'backend-docs'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: proj2/backend/docs/build
+          destination_dir: backend-docs
+          allow_empty_commit: true
