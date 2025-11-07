@@ -10,7 +10,7 @@ This guide will help you set up the Calorie Connect project on your local machin
 - **PostgreSQL** (optional, SQLite is used by default)
 
 ### Frontend
-- **Node.js 16+** and **npm** (or **yarn**)
+- **npm** (or **yarn**)
 
 ## Backend Installation
 
@@ -147,9 +147,8 @@ To populate the database with sample cafes, items, and users:
 
 ```bash
 cd proj2/backend
-python seed_via_api.py
-# OR
 python seed_cafes.py
+# OR
 python seed_data.py
 ```
 
