@@ -193,22 +193,6 @@ This project and its source code are the property of Group 2:
 
 ---
 
-## 7. Folder Structure & Conventions
-frontend/
-├── src/
-│ ├── api/ # API integration layers
-│ ├── components/ # React components
-│ │ ├── auth/ # Authentication components
-│ │ ├── driver/ # Driver-specific components
-│ │ ├── restaurant/ # Restaurant management
-│ │ ├── user/ # User-facing components
-│ │ └── ui/ # Reusable UI components
-│ ├── context/ # React Context providers
-│ └── utils/ # Helper functions
-
-
----
-
 ## 8. Key Highlights
 - Role-based access and navigation  
 - Real-time order tracking  
