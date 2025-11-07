@@ -7,106 +7,93 @@
 | Category                         | Question                                                                                                                                                                                                                                                                                                                      | Yes | No | Evidence |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | -- | -------- |
 | **Q1 - Software Overview**       |  |  |   |   |
-|Question 1.1| Does your website and documentation provide a clear, high-level overview of your software?| ✅   |   |          |
-|Question 1.2| Does your website and documentation clearly describe the type of user who should use your software?| ✅   |   |          |
-|Question 1.3| Do you publish case studies to show how your software has been used by yourself and others?| ✅   |   |          |
+|Question 1.1| Does your website and documentation provide a clear, high-level overview of your software?| ✅   |   |    https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md      |
+|Question 1.2| Does your website and documentation clearly describe the type of user who should use your software?| ✅   |   |    https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md      |
+|Question 1.3| Do you publish case studies to show how your software has been used by yourself and others?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md     |
 | **Q2 - Identity**                | |  |   |   |
 |Question 2.1| Is the name of your project/software unique?| ✅   |   |          |
 |Question 2.2| Is your project/software name free from trademark violations?| ✅   |   |          |
 | **Q3 - Availability**            | |  |   |   |
-|Question 3.1| Is your software available as a package that can be deployed without building it?| ✅   |   |          |
-|Question 3.2| Is your software available for free?| ✅   |   |          |
-|Question 3.3| Is your source code publicly available to download, either as a downloadable bundle or via access to a source code repository?| ✅   |   |          |
-| Question 3.4 | Is your software hosted in an established, third-party repository like [GitHub](https://github.com), [BitBucket](https://bitbucket.org), [LaunchPad](https://launchpad.net), or [SourceForge](https://sourceforge.net)? | ✅ |  | |
+|Question 3.1| Is your software available as a package that can be deployed without building it?| ✅   |   |   https://github.com/AryanT7/SE-Fall-25-Group-2/releases       |
+|Question 3.2| Is your software available for free?| ✅   |   |      https://github.com/AryanT7/SE-Fall-25-Group-2/releases    |
+|Question 3.3| Is your source code publicly available to download, either as a downloadable bundle or via access to a source code repository?| ✅   |   |       https://github.com/AryanT7/SE-Fall-25-Group-2/releases   |
+| Question 3.4 | Is your software hosted in an established, third-party repository like [GitHub](https://github.com), [BitBucket](https://bitbucket.org), [LaunchPad](https://launchpad.net), or [SourceForge](https://sourceforge.net)? | ✅ |  |Github |
 | **Q4 - Documentation**           | |  |   |   |
-|Question 4.1| Is your documentation clearly available on your website or within your software?| ✅   |   |          |
-|Question 4.2| Does your documentation include a "quick start" guide, that provides a short overview of how to use your software with some basic examples of use?| ✅   |   |          |
-|Question 4.3| If you provide more extensive documentation, does this provide clear, step-by-step instructions on how to deploy and use your software?| ✅   |   |          |
-|Question 4.4| Do you provide a comprehensive guide to all your software’s commands, functions and options?| ✅   |   |          |
-|Question 4.5| Do you provide troubleshooting information that describes the symptoms and step-by-step solutions for problems and error messages?| ✅   |   |          |
-|Question 4.6| If your software can be used as a library, package or service by other software, do you provide comprehensive API documentation?| ✅   |   |          |
-|Question 4.7| Do you store your documentation under revision control with your source code?| ✅   |   |          |
-|Question 4.8| Do you publish your release history e.g. release data, version numbers, key features of each release etc. on your web site or in your documentation?| ✅   |   |          |
+|Question 4.1| Is your documentation clearly available on your website or within your software?| ✅   |   |    https://aryant7.github.io/SE-Fall-25-Group-2/      |
+|Question 4.2| Does your documentation include a "quick start" guide, that provides a short overview of how to use your software with some basic examples of use?| ✅   |   |  https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md        |
+|Question 4.3| If you provide more extensive documentation, does this provide clear, step-by-step instructions on how to deploy and use your software?| ✅   |   |    https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md      |
+|Question 4.4| Do you provide a comprehensive guide to all your software’s commands, functions and options?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md     |
+|Question 4.5| Do you provide troubleshooting information that describes the symptoms and step-by-step solutions for problems and error messages?| ✅   |   |   https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md       |
+|Question 4.6| If your software can be used as a library, package or service by other software, do you provide comprehensive API documentation?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md     |
+|Question 4.7| Do you store your documentation under revision control with your source code?| ✅   |   |    https://aryant7.github.io/SE-Fall-25-Group-2/       |
+|Question 4.8| Do you publish your release history e.g. release data, version numbers, key features of each release etc. on your web site or in your documentation?| ✅   |   |    https://github.com/AryanT7/SE-Fall-25-Group-2/releases         |
 | **Q5 - Support**                 | |  |   |   |
-|Question 5.1| Does your software describe how a user can get help with using your software?| ✅   |   |          |
-|Question 5.2| Does your website and documentation describe what support, if any, you provide to users and developers?| ✅   |   |          |
-|Question 5.3| Does your project have an e-mail address or forum that is solely for supporting users?| ✅   |   |          |
-|Question 5.4| Are e-mails to your support e-mail address received by more than one person?| ✅   |   |          |
-|Question 5.5| Does your project have a ticketing system to manage bug reports and feature requests?| ✅   |  |          |
-|Question 5.6| Is your project's ticketing system publicly visible to your users, so they can view bug reports and feature requests?| ✅   |   |          |
+|Question 5.1| Does your software describe how a user can get help with using your software?| ✅   |   |     Contact Us or Email     |
+|Question 5.2| Does your website and documentation describe what support, if any, you provide to users and developers?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md      |
+|Question 5.3| Does your project have an e-mail address or forum that is solely for supporting users?| ✅   |   |    https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md       |
+|Question 5.4| Are e-mails to your support e-mail address received by more than one person?| ✅   |   |    Github Email Notifications and contact Us      |
+|Question 5.5| Does your project have a ticketing system to manage bug reports and feature requests?| ✅   |  |     Github     |
+|Question 5.6| Is your project's ticketing system publicly visible to your users, so they can view bug reports and feature requests?| ✅   |   |     Github     |
 | **Q6 - Maintainability**         | |  |   |   |
 |Question 6.1| Is your software’s architecture and design modular?| ✅   |   |          |
 |Question 6.2| Does your software use an accepted coding standard or convention?| ✅   |   |          |
 | **Q7 - Open Standards**          | |  |   |   |
-|Question 7.1| Does your software allow data to be imported and exported using open data formats?| ✅   |   |          |
-|Question 7.2| Does your software allow communications using open communications protocols?| ✅   |   |          |
+|Question 7.1| Does your software allow data to be imported and exported using open data formats?| ✅   |   |     JSON     |
+|Question 7.2| Does your software allow communications using open communications protocols?| ✅   |   |       HTTP   |
 | **Q8 - Portability**             | |  |   |   |
 |Question 8.1| Is your software cross-platform compatible?| ✅   |   |          |
 | **Q9 - Accessibility**           | |  |   |   |
 |Question 9.1| Does your software adhere to appropriate accessibility conventions or standards?| ✅   |   |          |
 |Question 9.2| Does your documentation adhere to appropriate accessibility conventions or standards?| ✅   |   |          |
 | **Q10 - Source Code Management** | |  |   |   |
-|Question 10.1| Is your source code stored in a repository under revision control?| ✅   |   |          |
-|Question 10.2| Is each source code release a snapshot of the repository?| ✅   |   |          |
-|Question 10.3| Are releases tagged in the repository?| ✅   |   |          |
-|Question 10.4| Is there a branch of the repository that is always stable? (i.e. tests always pass, code always builds successfully)| ✅   |   |          |
-|Question 10.5| Do you back-up your repository?| ✅   |   |          |
+|Question 10.1| Is your source code stored in a repository under revision control?| ✅   |   |    Github      |
+|Question 10.2| Is each source code release a snapshot of the repository?| ✅   |   |    https://github.com/AryanT7/SE-Fall-25-Group-2/releases      |
+|Question 10.3| Are releases tagged in the repository?| ✅   |   |      https://github.com/AryanT7/SE-Fall-25-Group-2/releases    |
+|Question 10.4| Is there a branch of the repository that is always stable? (i.e. tests always pass, code always builds successfully)| ✅   |   |    main      |
+|Question 10.5| Do you back-up your repository?| ✅   |   |      [zenodo  link](https://zenodo.org/records/17546997)  |
 | **Q11 - Building & Installing**  | |  |   |   |
-|Question 11.1| Do you provide publicly-available instructions for building your software from the source code?| ✅   |   |          |
-|Question 11.2| Can you build, or package, your software using an automated tool?| ✅   |   |          |
-|Question 11.3| Do you provide publicly-available instructions for deploying your software?| ✅   |   |          |
-|Question 11.4| Does your documentation list all third-party dependencies?| ✅   |   |          |
-|Question 11.5| Does your documentation list the version number for all third-party dependencies?| ✅   |   |          |
-|Question 11.6| Does your software list the web address, and licences for all third-party dependencies and say whether the dependencies are mandatory or optional?| ✅   |   |          |
-|Question 11.7| Can you download dependencies using a dependency management tool or package manager?| ✅   |   |          |
-|Question 11.8| Do you have tests that can be run after your software has been built or deployed to show whether the build or deployment has been successful?| ✅   |   |          |
+|Question 11.1| Do you provide publicly-available instructions for building your software from the source code?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md     |
+|Question 11.2| Can you build, or package, your software using an automated tool?| ✅   |   |    [Github Actions](https://github.com/AryanT7/SE-Fall-25-Group-2/actions)    |
+|Question 11.3| Do you provide publicly-available instructions for deploying your software?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md     |
+|Question 11.4| Does your documentation list all third-party dependencies?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md     |
+|Question 11.5| Does your documentation list the version number for all third-party dependencies?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md     |
+|Question 11.6| Does your software list the web address, and licences for all third-party dependencies and say whether the dependencies are mandatory or optional?| ✅   |   |   https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md       |
+|Question 11.7| Can you download dependencies using a dependency management tool or package manager?| ✅   |   |       https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/README.md   |
+|Question 11.8| Do you have tests that can be run after your software has been built or deployed to show whether the build or deployment has been successful?| ✅   |   |    [Github Actions](https://github.com/AryanT7/SE-Fall-25-Group-2/actions)       |
 | **Q12 - Testing**                | |  |   |   |
-|Question 12.1| Do you have an automated test suite for your software?| ✅   |   |          |
-|Question 12.2| Do you have a framework to periodically (e.g. nightly) run your tests on the latest version of the source code?| ✅   |   |          |
-|Question 12.3| Do you use continuous integration, automatically running tests whenever changes are made to your source code?| ✅   |   |          |
-|Question 12.4| Are your test results publicly visible?| ✅   |   |          |
-|Question 12.5| Are all manually-run tests documented?| ✅   |   |          |
+|Question 12.1| Do you have an automated test suite for your software?| ✅   |   |     [Github Actions](https://github.com/AryanT7/SE-Fall-25-Group-2/actions)      |
+|Question 12.2| Do you have a framework to periodically (e.g. nightly) run your tests on the latest version of the source code?| ✅   |   |    [Github Actions](https://github.com/AryanT7/SE-Fall-25-Group-2/actions)       |
+|Question 12.3| Do you use continuous integration, automatically running tests whenever changes are made to your source code?| ✅   |   |     [Github Actions](https://github.com/AryanT7/SE-Fall-25-Group-2/actions)      |
+|Question 12.4| Are your test results publicly visible?| ✅   |   |     [Github Actions](https://github.com/AryanT7/SE-Fall-25-Group-2/actions)      |
+|Question 12.5| Are all manually-run tests documented?| ✅   |   |    [Github Actions](https://github.com/AryanT7/SE-Fall-25-Group-2/actions)       |
 | **Q13 - Community Engagement**   |  |  |   |   |                                                                                                                                                                                           
-|Question 13.1| Does your project have resources (e.g. blog, Twitter, RSS feed, Facebook page, wiki, mailing list) that are regularly updated with information about your software?| ✅   |   |          |
-|Question 13.2| Does your website state how many projects and users are associated with your project?| ✅   |   |          |
-|Question 13.3| Do you provide success stories on your website?| ✅   |   |          |
+|Question 13.1| Does your project have resources (e.g. blog, Twitter, RSS feed, Facebook page, wiki, mailing list) that are regularly updated with information about your software?| ✅   |   |     Github Issues/Github     |
+|Question 13.2| Does your website state how many projects and users are associated with your project?| ✅   |   |    Login page      |
+|Question 13.3| Do you provide success stories on your website?| ✅   |   |      Login Page    |
 |Question 13.4| Do you list your important partners and collaborators on your website?| ✅   |   |          |
-|~Question 13.5~| ~Do you list your project's publications on your website or link to a resource where these are available?~ | ✅   |   |          |
+|~Question 13.5~| ~Do you list your project's publications on your website or link to a resource where these are available?~ | ✅   |   |         |
 |Question 13.6| Do you list third-party publications that refer to your software on your website or link to a resource where these are available?| ✅   |   |          |
-|Question 13.7| Can users subscribe to notifications to changes to your source code repository?| ✅   |   |          |
+|Question 13.7| Can users subscribe to notifications to changes to your source code repository?| ✅   |   |    Github Watch Repo or Star     |
 |Question 13.8| If your software is developed as an open source project (and, not just a project developing open source software), do you have a governance model?| ✅   |   |          |
 | **Q14 - Contributions**          ||  |   |   |
-|Question 14.1| Do you accept contributions (e.g. bug fixes, enhancements, documentation updates, tutorials) from people who are not part of your project?| ✅   |   |          |
-|Question 14.2| Do you have a contributions policy?| ✅   |   |          |
-|Question 14.3| Is your contributions' policy publicly available?| ✅   |   |          |
-|Question 14.4| Do contributors keep the copyright/IP of their contributions?| ✅   |   |          |
+|Question 14.1| Do you accept contributions (e.g. bug fixes, enhancements, documentation updates, tutorials) from people who are not part of your project?| ✅   |   |      https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/CONTRIBUTING.md    |
+|Question 14.2| Do you have a contributions policy?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/CONTRIBUTING.md     |
+|Question 14.3| Is your contributions' policy publicly available?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/CONTRIBUTING.md     |
+|Question 14.4| Do contributors keep the copyright/IP of their contributions?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/CONTRIBUTING.md     |
 | **Q15 - Licensing**              |  |  |   |   |                                                                                                                                                                                                                                 
-|Question 15.1| Does your website and documentation clearly state the copyright owners of your software and documentation?| ✅   |   |          |
-|Question 15.2| Does each of your source code files include a copyright statement?| ✅   |   |          |
-|Question 15.3| Does your website and documentation clearly state the licence of your software?| ✅   |   |          |
-|Question 15.4| Is your software released under an open source licence?| ✅   |   |          |
-|Question 15.5| Is your software released under an OSI-approved open-source licence?| ✅   |   |          |
-|Question 15.6| Does each of your source code files include a licence header?| ✅   |   |          |
-|Question 15.7| Do you have a recommended citation for your software?| ✅   |   |          |
+|Question 15.1| Does your website and documentation clearly state the copyright owners of your software and documentation?| ✅   |   |     Yes Each file has this     |
+|Question 15.2| Does each of your source code files include a copyright statement?| ✅   |   |        YEs  |
+|Question 15.3| Does your website and documentation clearly state the licence of your software?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/LICENSE     |
+|Question 15.4| Is your software released under an open source licence?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/LICENSE     |
+|Question 15.5| Is your software released under an OSI-approved open-source licence?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/LICENSE     |
+|Question 15.6| Does each of your source code files include a licence header?| ✅   |   |      yes    |
+|Question 15.7| Do you have a recommended citation for your software?| ✅   |   |      https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/CITATION.cff    |
 | **Q16 - Future Plans**           |  |  |   |   |
-|Question 16.1| Does your website or documentation include a project roadmap (a list of project and development milestones for the next 3, 6 and 12 months)?| ✅   |   |          |
+|Question 16.1| Does your website or documentation include a project roadmap (a list of project and development milestones for the next 3, 6 and 12 months)?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/blob/main/proj2/Section_1_Group_2.pdf     |
 |Question 16.2| Does your website or documentation describe how your project is funded, and the period over which funding is guaranteed?| ✅   |   |          |
-|Question 16.3| Do you make timely announcements of the deprecation of components, APIs, etc.?| ✅   |   |          |
+|Question 16.3| Do you make timely announcements of the deprecation of components, APIs, etc.?| ✅   |   |     https://github.com/AryanT7/SE-Fall-25-Group-2/releases     |
 
 
-### Repository Rubric (projec2 only)
-
-
-- The project repo **MUST** have a branch called `MAIN`. Groups will be assessed via their commit history (seen under "Insights") in `MAIN`.
-  - Projects where all group members are not active in discussions will either lose marks, or the offending student may be expelled from the group.
-- Projects where all group members are not actively making commits will lose marks, or the offending student may be expelled from the group.
-  - To assess your involvement, we need to see your involvement 
-  - So groups need to maintain an active discussion in some online forum.
-    - e.g. GitHub issue reports will be fun.
-    - e.g. Your private discord challen. 
-    - Whatever forum you use, your poster (defined above) must include a QR code link that that location
-
-Each team starts with full marks but **loses** 0.33 marks for missing items:
 
 
 |Notes|Evidence|Score|
@@ -157,65 +144,4 @@ but nevertheless, here is a track record that everyone is contributing a lot)|ev
 
 
 
-## Poster Requirements
-
-
-Each poster must:
-
-
-- Be a **standard page size** (e.g., letter or A4).
-- Use a  **small fonts** (text may be as small as 4 to 6 points).
-- Be submitted as a **PDF file**.
-- Avoid **vast amounts of white space**.
--  Be exciting
-    - Not be silly (so exciting, but professional)
-    - Be a standard page size (e.g., letter or A4).
-    - Avoid vast amounts of white space.
-- Include the following:
-  - **URLs/QR codes**:
-    - To the repository.
-    - To your discussion forum. Note that this forum may be private (but accessible to CSC510 tutors and lecturers)
-    - To a live demo (how you host the demo is up to you).
-  - Include **3–5 implementation milestones** to improve Version i+1.
-      - Milestones must demonstrate a **possible implementation plan** with clear goals.  
-  - Have a clear mission statement paragraph. The why (the chalelnge you arerepsonding too) and the what (you will build) and the *so what (benefits of this sstem)
-e.g. "Online content can be emotionally overwhelming our app helps make sense of it. Sentiment Analyzer Pro lets users analyze the emotional tone of text, images, news, speech, and even YouTube comments. Whether you're tracking brand sentiment, filtering negativity, or just staying informed, the app makes emotional insights fast and accessible. With a Chrome extension and improved Ul, it's now easier than ever to understand how content feels not just what it says."
-  - List the stakeholders (e.g Admin, Staff, Customer. Who else?). Maybe as part of the mission statement?
-  - Include at least 8 milestones cases (4 for October, a further 4 planned for "release2" in Novermber).
-  - Show a group number
-  - Show group member names
-  - Show icons describing your proposed tech stack
-  - Include small screen snap(s) of the  system (if you are some cli thing, then this will be simple: just a snap of some proposed call to some tool, with with some text printed out-
-- Be ambitious. Dull milestones will lose you marks in Proj2
-- Not be too ambitious (hey, be ware, you have to code this).
-- For project 2: **Sell the software**:
-    - Highlight what is bettre now that this code was written 
-    - **Propose a better version (Version i+1):**
-- **Boast your test cases**:
-    - E.g., "One group listed 130+ test cases, showcasing their ability to make changes while maintaining old functionality."
-
-
-## 📌 **Submission Instructions:**
-
-
-- Submit your work to **Moodle** (1 poster) **AND**
-- Post your poster to the following shared file: [Project 2](https://drive.google.com/drive/folders/1ueWw4PO8PFUWQxxDbtx1LyinhJQ4kS_C?usp=sharing) - [Project 3](https://drive.google.com/drive/folders/1dGGQNCWC3BakD-nUZn5vPecPdm0KAhXA?usp=sharing).
-
-
-💬 **Get Involved!**
-
-
-- React in the Discussions Forum to the posters you like so we can identify the best ones! 👍👎
-
-
-
-
-## Ways to Lose Points
-
-
-- Your poster or demo **does not** have the above features.
-- Your poster **fails to effectively sell the project**. Specifically:
-  - Within the **first 15 seconds** of reading, the poster **does not clearly explain** what the project is about.
-  - The poster **does not make a compelling case** for why this technology stack is interesting (e.g., "Select this project to learn about Kubernetes").
-- You have too few test cases.
  
