@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # upload the built HTML from Sphinx
-          path: docs/build
+          path: proj2/backend/docs/build
 
   deploy:
     needs: build
