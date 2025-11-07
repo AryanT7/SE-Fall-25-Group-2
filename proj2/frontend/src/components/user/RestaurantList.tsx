@@ -7,6 +7,18 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ *
+ * @component RestaurantList
+ * @description Client-side list of nearby restaurants with search, filter and
+ * sorting facilities. Fetches cafes from the backend and renders compact cards
+ * showing name, cuisine, address, phone (tel: link) and opening hours. Each
+ * card links to the restaurant's menu for ordering.
+ *
+ * Features:
+ * - Server-backed search (via `cafeApi.getCafes`) and client-side filtering by cuisine
+ * - Displays address, contact phone (if provided by backend), and timings
+ * - Clean card UI with quick "View Menu" action
+ * - Graceful loading/error states and filter reset
  */
 
 import React, { useEffect, useState } from 'react';

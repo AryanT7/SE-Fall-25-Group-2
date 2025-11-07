@@ -7,6 +7,11 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ *
+ * @component RestaurantReviews
+ * @description Displays aggregated restaurant review statistics and the
+ * list of customer reviews. Shows average rating, distribution, detailed
+ * scores and an empty state when no reviews exist.
  */
 
 import React, { useState, useEffect } from 'react';

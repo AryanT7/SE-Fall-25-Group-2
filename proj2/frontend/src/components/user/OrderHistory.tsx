@@ -7,6 +7,12 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ *
+ * @component OrderHistory
+ * @description Lists the user's past and current orders with tabbed views
+ * (all/active/completed/cancelled). Fetches orders and normalizes item-level
+ * details for display, supports inline review submission, reorder and cancel
+ * actions.
  */
 
 import React, { useState, useEffect } from 'react';

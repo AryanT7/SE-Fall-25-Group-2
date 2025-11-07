@@ -80,7 +80,7 @@ This project and its source code are the property of Group 2:
   - Purpose: Browse restaurants, quick filters (open now, rating).
 - **AIFoodRecommendations**  
   - Path: `src/components/user/AIFoodRecommendations.tsx`  
-  - Purpose: Show AI-powered suggestions (based on history, calorie goals and mood).
+  - Purpose: Show food suggestions (based on information gathered from the user when registering their account).
 - **CartPage**  
   - Path: `src/components/user/CartPage.tsx`  
   - Purpose: Shopping cart management, apply coupons, checkout.

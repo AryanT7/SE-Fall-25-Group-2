@@ -7,6 +7,12 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ *
+ * @component ReviewDialog
+ * @description Modal dialog used to collect a user's review for an order.
+ * Collects overall rating, detailed scores (food/service/value), category tags
+ * and a written comment, validates input, and returns a Review object to the
+ * caller via onReviewSubmit.
  */
 
 import React, { useState } from 'react';

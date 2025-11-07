@@ -7,6 +7,11 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ *
+ * @component OrderTracking
+ * @description Real-time order tracking UI. Polls the backend for order
+ * status, maps status to progress steps, and fetches the restaurant/cafe
+ * details (name/address/phone) to display contact and ETA information.
  */
 
 import React, { useState, useEffect } from 'react';

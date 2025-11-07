@@ -7,6 +7,12 @@
  * - Dilip Irala Narasimhareddy
  * - Sachi Vyas
  * - Supraj Gijre
+ *
+ * @component FoodSuggestions
+ * @description Renders calorie-aware suggested menu items for a user. Prefers
+ * items that fit within the user's remaining calories and shows compact cards
+ * with item metadata and optional restaurant info. Shows an explicit "no
+ * suggestions" state when nothing fits.
  */
 
 import React, { useMemo, useState } from 'react';
