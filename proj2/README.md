@@ -11,6 +11,19 @@
 ![image](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 
 
+![Pull Requests](https://img.shields.io/github/issues-pr/AryanT7/SE-Fall-25-Group-2.svg?color=green)
+![Contributors](https://img.shields.io/github/contributors/AryanT7/SE-Fall-25-Group-2.svg)
+![Repo Size](https://img.shields.io/github/repo-size/AryanT7/SE-Fall-25-Group-2.svg)
+![Last Commit](https://img.shields.io/github/last-commit/AryanT7/SE-Fall-25-Group-2.svg?color=green)
+
+
+
+![Python](https://img.shields.io/badge/python-3.11+-blue.svg) ![FastAPI](https://img.shields.io/badge/framework-FastAPI-009688.svg) |
+![React.js](https://img.shields.io/badge/framework-React.js-000000.svg) ![TypeScript](https://img.shields.io/badge/language-TypeScript-007ACC.svg) |
+![SQLite3](https://img.shields.io/badge/database-SQLite3-07405E.svg) |![flake8](https://img.shields.io/badge/linting-flake8-80D1C8.svg) 
+![pytest](https://img.shields.io/badge/testing-pytest-0A9EDC.svg) ![prettier](https://img.shields.io/badge/code%20style-prettier-F7B93E.svg) |
+![typescript](https://img.shields.io/badge/type--checker-typescript-007ACC.svg) |
+
 
 # CI / Status
 #
@@ -201,6 +214,7 @@ Copyright © 2025 Group 2: Sachi Vyas, Aryan Tapkire, Supraj Gijre, Irala Narasi
 - Aryan Tapkire (atapkir)
 - Supraj Gijre (sgijre)
 - Irala Narasimhareddy Dilip Kumar (nirala)
+
 
 
 
