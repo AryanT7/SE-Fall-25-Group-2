@@ -138,6 +138,31 @@ npx vitest run
   - `proj2/backend/OCR_README.md`
   - `proj2/backend/ReviewSummarizer.md`
 
+### Reference documents
+Quick links to markdown docs in this repository (relative to this file):
+
+- [Project dependencies](./depedencies.md)
+- [INSTALL instructions](./INSTALL.md)
+- [CONTRIBUTING guide](./CONTRIBUTING.md)
+- [Code of Conduct](./CODE-OF-CONDUCT.md)
+- [Rubriks and grading notes](./Rubriks.md)
+
+- Backend
+  - [Backend README](./backend/README.md)
+  - [DB setup guide](./backend/DBSetup.md)
+  - [Driver assignment testing guide](./backend/DRIVER_ASSIGNMENT_TESTING.md)
+  - [OCR menu ingestion README](./backend/OCR_README.md)
+  - [Mistral review summarizer](./backend/ReviewSummarizer.md)
+  - [Backend docs (Sphinx / MkDocs)](./backend/docs)
+  - [Backend openapi/md files](./backend/docs/openapi.md)
+
+- Frontend
+  - [Frontend README](./frontend/README.md)
+  - [Frontend attributions](./frontend/src/Attributions.md)
+  - [Frontend UI guidelines](./frontend/src/guidelines/Guidelines.md)
+
+If you add more documentation files, please link them here so they're easy to find.
+
 ## Who should use this software?
 - Consumers who want to discover cafes, order food, and track daily/weekly calorie goals.
 - Cafe owners and staff who manage menus, accept/prepare orders, and view simple analytics.
