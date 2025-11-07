@@ -45,7 +45,6 @@ jobs:
           path: proj2/backend/docs/build
 
   deploy:
-  deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
