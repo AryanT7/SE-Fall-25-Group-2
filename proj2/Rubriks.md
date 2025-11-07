@@ -131,22 +131,22 @@ but nevertheless, here is a track record that everyone is contributing a lot)|ev
 |Evidence that the whole team is using the same tools: everyone can get to all tools and files| |3
 |Evidence that the whole team is using the same tools (e.g. config files in the repo, updated by lots of different people)| |3
 |Evidence that the whole team is using the same tools (e.g. tutor can ask anyone to share screen, they demonstrate the system running on their computer)| |3
-|Evidence that the members of the team are working across multiple places in the code base| |3
-|Short release cycles | (hard to see in short projects) project members are committing often enough so that everyone can get your work| |3
-|The file .gitignore lists what files should not be saved to the repo. See [examples](https://github.com/github/gitignore)|in GH| |3
-|The file INSTALL.md lists how to install the code|in GH| |3
-|The file LICENSE.md lists rules of usage for this repo|in GH| |3
-|The file CODE-OF-CONDUCT.md lists rules of behavior for this repo; e.g. see [example](https://github.com/probot/template/blob/master/CODE_OF_CONDUCT.md)|in GH| |3
-|The file CONTRIBUTING.md lists coding standards and lots of tips on how to extend the system without screwing things up; e.g. see [example](https://github.com/probot/template/blob/master/CONTRIBUTING.md)|in GH| |3
-|The file README.md contains all the following|in GH| |3
-|Video|2min video of new functionality, showing a significant delta from prior.| |3
-|DOI badge: exists. To get a Digitial Object Indentifier, regiser the project at [Zenodo](https://docs.github.com/en/repositories/archiving-a-github-repository/referencing-and-citing-content). DOI badges look like this: ![Zenodo doi badge](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1234567-blue.svg) |in GH|  |3
-|Badges showing your style checkers |config files in GH showing your config, badges in README| |3
-|Badges showing your code formatters. |config files in GH showing your this formatter's  config, badges in README||3
-|Badges showing your syntax checkers. |config files iin  GH showing this checker's config, badges in README  ||3
+|Evidence that the members of the team are working across multiple places in the code base| 3
+|Short release cycles | (hard to see in short projects) project members are committing often enough so that everyone can get your work| 3
+|The file .gitignore lists what files should not be saved to the repo. See [examples](https://github.com/github/gitignore)|in GH| 3
+|The file INSTALL.md lists how to install the code|in GH| 3
+|The file LICENSE.md lists rules of usage for this repo|in GH| 3
+|The file CODE-OF-CONDUCT.md lists rules of behavior for this repo; e.g. see [example](https://github.com/probot/template/blob/master/CODE_OF_CONDUCT.md)|in GH| 3
+|The file CONTRIBUTING.md lists coding standards and lots of tips on how to extend the system without screwing things up; e.g. see [example](https://github.com/probot/template/blob/master/CONTRIBUTING.md)|in GH| 3
+|The file README.md contains all the following|in GH| 3
+|Video|2min video of new functionality, showing a significant delta from prior.| 3
+|DOI badge: exists. To get a Digitial Object Indentifier, regiser the project at [Zenodo](https://docs.github.com/en/repositories/archiving-a-github-repository/referencing-and-citing-content). DOI badges look like this: ![Zenodo doi badge](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1234567-blue.svg) |in GH| 3
+|Badges showing your style checkers |config files in GH showing your config, badges in README| 3
+|Badges showing your code formatters. |config files in GH showing your this formatter's  config, badges in README|3
+|Badges showing your syntax checkers. |config files iin  GH showing this checker's config, badges in README  |3
 |Badges showing your code coverage tools|config files in GH, badges in README| |3
-|Badges showing any other Other automated analysis tools|config files in GH, badges in README||3
-| |3|
+|Badges showing any other Other automated analysis tools|config files in GH, badges in README|3
+| 3|
 
 
 - **Column 1**: Required points (see table above and ).
