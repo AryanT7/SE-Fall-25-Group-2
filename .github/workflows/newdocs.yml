@@ -29,16 +29,20 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          # Install Sphinx and a lightweight theme used by conf.py
+          pip install sphinx alabaster
 
-      - name: Generate documentation
+      - name: Generate documentation with Sphinx
         working-directory: proj2/backend
         run: |
-          pdoc -o docs/ app/
+          # build HTML into docs/build (source is docs/source)
+          sphinx-build -b html docs/source docs/build
 
       - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/
+          # upload the built HTML from Sphinx
+          path: docs/build
 
   deploy:
     needs: build

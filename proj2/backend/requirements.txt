@@ -20,3 +20,5 @@ aiofiles
 python-dotenv
 requests
 pdoc
+sphinx
+sphinx-autodoc-typehints
