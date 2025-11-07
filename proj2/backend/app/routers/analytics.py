@@ -21,7 +21,9 @@ def cafe_analytics(cafe_id: int, db: Session = Depends(get_db), current: User = 
     """Return cafe analytics: orders per day, top-selling items, and revenue per day (staff/owner/admin only)."""
     require_cafe_staff_or_owner(cafe_id, db, current)
     orders_per_day = db.query(func.date(Order.created_at), func.count()).\
-        filter(Order.cafe_id == cafe_id).group_by(func.date(Order.created_at)).all()
+        filter(Order.cafe_id == cafe_id).\
+        filter(Order.status.in_([OrderStatus.ACCEPTED, OrderStatus.READY, OrderStatus.PICKED_UP])).\
+        .group_by(func.date(Order.created_at)).all()
     top_items = db.query(Item.name, func.sum(OrderItem.quantity)).\
         join(OrderItem, OrderItem.item_id == Item.id).\
         join(Order, Order.id == OrderItem.order_id).\
