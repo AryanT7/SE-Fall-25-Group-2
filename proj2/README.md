@@ -23,6 +23,12 @@
 [![Release Wheel](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/release_wheel.yml/badge.svg)](https://github.com/AryanT7/SE-Fall-25-Group-2/actions/workflows/release_wheel.yml)
 
 
+# Demo
+
+https://github.com/user-attachments/assets/db6361d5-bf06-4dc9-ae47-a1d0b531851a
+
+https://github.com/user-attachments/assets/e537d06e-7ac0-47b4-96c0-3e2f21528836
+
 **Connecting Calories to Conscious Choices!**
 
 A full‑stack project for cafe ordering, delivery, and calorie tracking that helps users monitor their nutritional balance and empowers restaurants with AI-driven insights.
@@ -170,6 +176,7 @@ Copyright © 2025 Group 2: Sachi Vyas, Aryan Tapkire, Supraj Gijre, Irala Narasi
 - Aryan Tapkire (atapkir)
 - Supraj Gijre (sgijre)
 - Irala Narasimhareddy Dilip Kumar (nirala)
+
 
 
 
