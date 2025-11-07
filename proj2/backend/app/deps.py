@@ -25,6 +25,14 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     return user
 
 def require_roles(*roles: Role):
+    """Create a dependency that ensures the current user has one of the required roles.
+    
+    Args:
+        *roles: Variable number of Role enum values that are allowed
+        
+    Returns:
+        A dependency function that checks user role and raises 403 if not authorized
+    """
     def checker(user: User = Depends(get_current_user)):
         """Ensure the current user has one of the required roles or raise 403."""
         if user.role not in roles:

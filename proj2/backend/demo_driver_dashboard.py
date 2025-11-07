@@ -28,6 +28,7 @@ BASE_URL = "http://localhost:8000"  # change to "http://localhost:8000/api/v1" i
 HEADERS_JSON = {"Content-Type": "application/json"}
 
 def post(endpoint, body=None, token=None):
+    """Make a POST request to the API endpoint."""
     headers = dict(HEADERS_JSON)
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -35,6 +36,7 @@ def post(endpoint, body=None, token=None):
     return r
 
 def get(endpoint, token=None, params=None):
+    """Make a GET request to the API endpoint."""
     headers = {}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -42,6 +44,7 @@ def get(endpoint, token=None, params=None):
     return r
 
 def register_user(email, name, password, role="USER"):
+    """Register a new user account."""
     payload = {"email": email, "name": name, "password": password, "role": role}
     r = post("/users/register", payload)
     if r.ok:
@@ -51,6 +54,7 @@ def register_user(email, name, password, role="USER"):
     return False
 
 def login(email, password, role="USER"):
+    """Login a user and return access token."""
     payload = {"email": email, "password": password, "role": role}
     r = post("/auth/login", payload)
     if not r.ok:
@@ -62,6 +66,7 @@ def login(email, password, role="USER"):
     return token
 
 def create_cafe(token, name, address, lat=0.0, lng=0.0):
+    """Create a new cafe."""
     payload = {"name": name, "address": address, "lat": lat, "lng": lng}
     r = post("/cafes", payload, token)
     if r.ok:
@@ -72,6 +77,7 @@ def create_cafe(token, name, address, lat=0.0, lng=0.0):
     return None
 
 def create_item(cafe_id, token, name="Demo Item", price=5.00, calories=100):
+    """Create a menu item for a cafe."""
     payload = {
         "name": name,
         "description": "Seeded item",
@@ -93,6 +99,7 @@ def create_item(cafe_id, token, name="Demo Item", price=5.00, calories=100):
     return None
 
 def add_to_cart(item_id, quantity, token):
+    """Add an item to the shopping cart."""
     payload = {"item_id": item_id, "quantity": quantity}
     r = post("/cart/add", payload, token)
     if r.ok:
@@ -102,6 +109,7 @@ def add_to_cart(item_id, quantity, token):
     return False
 
 def place_order(cafe_id, token):
+    """Place an order from the cart."""
     payload = {"cafe_id": cafe_id}
     r = post("/orders/place", payload, token)
     if r.ok:
@@ -112,6 +120,7 @@ def place_order(cafe_id, token):
     return None
 
 def list_cafe_orders(cafe_id, token, status="PENDING"):
+    """List orders for a cafe filtered by status."""
     params = {"status": status}
     r = get(f"/orders/{cafe_id}", token, params=params)
     if r.ok:
@@ -121,6 +130,7 @@ def list_cafe_orders(cafe_id, token, status="PENDING"):
     return []
 
 def accept_order(order_id, token):
+    """Accept an order (change status to ACCEPTED)."""
     headers = {"Authorization": f"Bearer {token}"}  # no JSON body
     # send new_status as query parameter (API expects it in query)
     r = requests.post(f"{BASE_URL}/orders/{order_id}/status", headers=headers, params={"new_status": "ACCEPTED"})
@@ -131,6 +141,7 @@ def accept_order(order_id, token):
     return None
 
 def register_driver(email, name, password):
+    """Register a new driver account."""
     payload = {"email": email, "name": name, "password": password}
     r = post("/drivers/register", payload)
     if r.ok:
@@ -140,6 +151,7 @@ def register_driver(email, name, password):
     return None
 
 def login_driver(email, password):
+    """Login a driver and return access token."""
     payload = {"email": email, "password": password}
     r = post("/drivers/login", payload)
     if r.ok:
@@ -151,6 +163,7 @@ def login_driver(email, password):
     return None
 
 def post_driver_location(driver_id, token, lat, lng):
+    """Post driver's current location."""
     payload = {"lat": lat, "lng": lng, "timestamp": datetime.utcnow().isoformat()}
     r = post(f"/drivers/{driver_id}/location", payload, token)
     if r.ok:
@@ -160,6 +173,7 @@ def post_driver_location(driver_id, token, lat, lng):
     return False
 
 def get_driver_me(token):
+    """Get current driver's profile information."""
     r = get("/drivers/me", token)
     if r.ok:
         return r.json()
@@ -167,6 +181,7 @@ def get_driver_me(token):
     return None
 
 def assign_driver_to_order(order_id, token, driver_id=None):
+    """Assign a driver to an order (auto-assign if driver_id is None)."""
     payload = {"driver_id": driver_id} if driver_id is not None else None
     r = post(f"/orders/{order_id}/assign-driver", payload, token)
     if r.ok:
@@ -176,12 +191,14 @@ def assign_driver_to_order(order_id, token, driver_id=None):
     return None
 
 def my_orders(token):
+    """Get current user's orders."""
     r = get("/orders/my", token)
     if r.ok:
         return r.json()
     return []
 
 def main():
+    """Main function demonstrating order creation and driver assignment workflow."""
     # unique suffix to avoid collisions
     suffix = uuid.uuid4().hex[:6]
     owner_email = f"owner_{suffix}@example.com"

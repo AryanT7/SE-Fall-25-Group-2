@@ -7,6 +7,7 @@
 # - Sachi Vyas
 # - Supraj Gijre
 
+"""Script to export OpenAPI schema from FastAPI app to JSON file."""
 # scripts/export_openapi.py
 import sys
 import json

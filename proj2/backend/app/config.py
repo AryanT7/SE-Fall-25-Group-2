@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseModel):
+    """Application configuration settings loaded from environment variables with sensible defaults."""
     APP_NAME: str = "Cafe Calories API"
     JWT_SECRET: str = os.getenv("JWT_SECRET", "dev-secret-change-me")
     JWT_ALG: str = "HS256"

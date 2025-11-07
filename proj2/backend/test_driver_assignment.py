@@ -32,16 +32,19 @@ except:
     RESET = ''
 
 def print_success(msg):
+    """Print a success message."""
     print(f"[OK] {msg}")
 
 def print_error(msg):
+    """Print an error message."""
     print(f"[FAIL] {msg}")
 
 def print_info(msg):
+    """Print an info message."""
     print(f"[TEST] {msg}")
 
 def test_endpoint(name, func):
-    """Test wrapper with error handling"""
+    """Test wrapper with error handling for API endpoints."""
     print_info(f"Testing: {name}")
     try:
         result = func()
@@ -64,6 +67,7 @@ def test_endpoint(name, func):
         return None
 
 def main():
+    """Main test function for driver assignment feature."""
     print("\n" + "="*60)
     print("DRIVER ASSIGNMENT FEATURE TEST SUITE")
     print("="*60 + "\n")

@@ -7,6 +7,7 @@
 # - Sachi Vyas
 # - Supraj Gijre
 
+"""Database configuration and session management for SQLAlchemy."""
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from .config import settings
@@ -31,8 +32,13 @@ engine = create_engine(
     connect_args={"check_same_thread": False} if database_uri.startswith("sqlite") else {},
     pool_pre_ping=True,
 )
+"""SQLAlchemy engine instance for database connections."""
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+"""Session factory for creating database sessions."""
+
 Base = declarative_base()
+"""Base class for all SQLAlchemy ORM models."""
 
 from typing import Generator
 def get_db() -> Generator:

@@ -17,11 +17,12 @@ from app.auth import hash_password
 
 
 def ensure_schema():
-    # Make sure tables exist before seeding
+    """Ensure database tables exist before seeding."""
     Base.metadata.create_all(bind=engine)
 
 
 def seed_users(db, num_users: int = 10):
+    """Create a specified number of test users in the database."""
     users = []
     for i in range(num_users):
         email = f"user{i+1}@example.com"
@@ -43,6 +44,7 @@ def seed_users(db, num_users: int = 10):
 
 
 def seed_cafes(db, owner: models.User | None, num_cafes: int = 10):
+    """Create a specified number of test cafes in the database."""
     cafes = []
     # Sample coordinates around a city center (e.g., Raleigh, NC)
     BASE_LAT = 35.7796
@@ -66,6 +68,7 @@ def seed_cafes(db, owner: models.User | None, num_cafes: int = 10):
 
 
 def seed_items(db, cafes: list[models.Cafe], items_per_cafe: int = 5):
+    """Create menu items for each cafe in the database."""
     items = []
     for cafe in cafes:
         for i in range(items_per_cafe):
@@ -91,6 +94,7 @@ def seed_items(db, cafes: list[models.Cafe], items_per_cafe: int = 5):
 
 
 def seed_orders(db, users: list[models.User], cafes: list[models.Cafe], items: list[models.Item], orders_per_user: int = 10):
+    """Create orders for users with random items from cafes."""
     # Build a map cafe_id -> items
     cafe_to_items: dict[int, list[models.Item]] = {}
     for it in items:
@@ -180,6 +184,7 @@ def seed_reviews(db, cafe: models.Cafe, num_reviews: int = 10, user_ids: list[in
 
 
 def main():
+    """Main function to seed the database with test data."""
     ensure_schema()
     db = SessionLocal()
     try:

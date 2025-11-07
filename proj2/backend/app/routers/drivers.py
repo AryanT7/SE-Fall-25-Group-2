@@ -214,7 +214,7 @@ def driver_update_order_status(driver_id: int, order_id: int, new_status: OrderS
 
 @router.websocket("/driver/{driver_id}/ws")
 async def driver_ws(websocket: WebSocket, driver_id: int):
-    # Minimal illustrative websocket endpoint for driver messages (unauthenticated demo only).
+    """WebSocket endpoint for driver real-time messaging (minimal demo implementation)."""
     await websocket.accept()
     try:
         while True:

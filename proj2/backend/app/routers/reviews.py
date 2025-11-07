@@ -31,6 +31,7 @@ async def get_review_summary(
     db: Session = Depends(get_db),
     force: bool = Query(False, description="Force regeneration of summary even if cached")
 ):
+    """Get AI-generated summary of reviews for a cafe (cached or regenerated)."""
     try:
         result = await ReviewSummarizerService.summarize_reviews(db, cafe_id, force)
         return result
