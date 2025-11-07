@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from datetime import date
 from ..database import get_db
 from ..schemas import GoalSet, GoalOut, GoalRecommendationRequest
-from ..models import CalorieGoal, User, Order, OrderItem
+from ..models import CalorieGoal, User, Order, OrderItem, OrderStatus
 from ..deps import get_current_user
 from ..services.recommend import daily_calorie_recommendation
 
@@ -37,7 +37,12 @@ def today_intake(db: Session = Depends(get_db), current: User = Depends(get_curr
     """Calculate today's calorie intake from completed orders for the authenticated user."""
     today = date.today()
     rows = db.query(OrderItem.subtotal_calories).join(Order, OrderItem.order_id == Order.id).\
-        filter(Order.user_id == current.id, OrderItem.assignee_user_id == current.id, Order.created_at >= today).all()
+        filter(
+            Order.user_id == current.id,
+            OrderItem.assignee_user_id == current.id,
+            Order.created_at >= today,
+            Order.status != OrderStatus.CANCELLED,
+        ).all()
     total = sum(v[0] for v in rows) if rows else 0
     return {"date": str(today), "calories": total}
 
