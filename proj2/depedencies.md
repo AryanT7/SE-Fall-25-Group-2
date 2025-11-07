@@ -111,8 +111,3 @@ Notes / install
   npm run build
   ```
 - Some dependencies use `*` (wildcard). Pinning them is recommended for reproducible builds.
-- Add ESLint/Prettier to devDependencies if you want CI lint/format enforcement.
-
-## Recommendations
-- Add lockfiles for both backend (requirements-lock.txt or use Poetry) and frontend (`package-lock.json` / `pnpm-lock.yaml`) for reproducible CI builds.
-- Add minimal lint/format config files (.eslintrc, .prettierrc, ruff/black settings) before enabling strict CI checks.
