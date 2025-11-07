@@ -49,7 +49,7 @@ const ContactUs: React.FC = () => {
     {
       icon: Mail,
       title: 'Email',
-      content: 'nirala@ncsu.edu,smvyas@ncsu.edu,atapkir@ncsu.edu,sgijre@ncsu.edu',
+      content: 'nirala,smvyas,atapkir,sgijre@ncsu.edu',
       description: 'Send us an email anytime',
     },
     {
@@ -242,6 +242,18 @@ const ContactUs: React.FC = () => {
             </p>
             <p className="text-sm text-muted-foreground">
               Average response time: 2-4 hours during business hours
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Sachi Vyas
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Dilip Kumar
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Aryan Tapkire
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Supraj Gijre
             </p>
           </div>
         </CardContent>

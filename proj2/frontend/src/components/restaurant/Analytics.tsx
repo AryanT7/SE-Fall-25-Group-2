@@ -97,7 +97,7 @@ const AnalyticsPage: React.FC = () => {
         <Card className="shadow-sm">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Total Orders</p>
+              <p className="text-gray-500 text-sm">Total Accepted Orders</p>
               <h2 className="text-2xl font-semibold">{totalOrders}</h2>
             </div>
             <ShoppingBag className="text-blue-500 w-8 h-8" />
