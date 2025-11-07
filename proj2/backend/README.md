@@ -25,6 +25,45 @@ A FastAPI backend for cafe ordering, delivery (driver assignment), payments, ana
 - Python 3.8+
 - pip
 
+### Dependencies
+
+The following dependencies are required and will be installed via `requirements.txt`:
+
+**Core Framework:**
+- `fastapi` - Modern, fast web framework for building APIs
+- `uvicorn` - ASGI server for running FastAPI applications
+
+**Database:**
+- `sqlalchemy` - SQL toolkit and ORM
+- `psycopg[binary]` - PostgreSQL adapter for Python
+
+**Authentication & Security:**
+- `pydantic[email]` - Data validation using Python type annotations
+- `bcrypt == 4.0.1` - Password hashing library
+- `passlib[bcrypt] == 1.7.4` - Password hashing library with bcrypt support
+- `python-jose[cryptography]` - JWT implementation for Python
+- `PyJWT` - JSON Web Token implementation
+
+**File Handling:**
+- `python-multipart` - Multipart form data parser
+- `aiofiles` - Async file operations
+- `PyPDF2` - PDF file manipulation library
+
+**AI/ML:**
+- `mistralai>=1.0.0` - Mistral AI SDK for AI integrations
+
+**HTTP Client:**
+- `httpx>=0.27.2` - Async HTTP client
+- `requests` - HTTP library for making requests
+- `anyio>=4.3.0` - Async compatibility library
+
+**Testing:**
+- `pytest>=8.3.0` - Testing framework
+- `pytest-cov>=4.1.0` - Coverage plugin for pytest
+
+**Configuration:**
+- `python-dotenv` - Load environment variables from .env files
+
 ### Installation
 
 1. **Clone and enter backend**
