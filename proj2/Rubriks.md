@@ -112,26 +112,26 @@ Each team starts with full marks but **loses** 0.33 marks for missing items:
 |Notes|Evidence|Score|
 |-----|---------|--|
 |Workload is spread over the whole team (one team member is often Xtimes more productive than the others... --| |3
-but nevertheless, here is a track record that everyone is contributing a lot)|evidence in GH| |3
-|Number of commits|in GH| |3
-|Number of commits: by different people|in GH| |3
+but nevertheless, here is a track record that everyone is contributing a lot)|evidence in GH| 3
+|Number of commits|in GH| 3
+|Number of commits: by different people|in GH| 3
 |Issues reports: there are **many**| |3
 |Issues are being closed|evidence in GH| |3
-|Docs: doco generated, format not ugly |in GH| |
+|Docs: doco generated, format not ugly |in GH| 3|
 |Docs: what: point descriptions of each class/function (in isolation)| |3 |
-|Docs: how: for common use cases X,Y,Z mini-tutorials showing worked examples on how to do X,Y,Z|doc page entries| | 3|
+|Docs: how: for common use cases X,Y,Z mini-tutorials showing worked examples on how to do X,Y,Z|doc page entries| 3|
 |Docs: why: docs tell a story, motivate the whole thing, deliver a punchline that makes you want to rush out and use the thing| |3
 |Docs: short video, animated, hosted on your repo. That convinces people why they want to work on your code.| |3
 |Use of version control tools| |3
-|Test cases exist|dozens of tests and those test cases are more than 30% of the code base| |3
-|Test cases are routinely executed|E.g. travis-com.com or github actions or something| |3
-|Issues are discussed before they are closed|even if you discuss in slack, need a sumamry statement here| |3
-|Chat channel: exists|Link or screenshots| |3
-|Test cases: a large proportion of the issues related to handling failing cases.|If a test case fails, open an issue and fix it| |3
+|Test cases exist|dozens of tests and those test cases are more than 30% of the code base| 3
+|Test cases are routinely executed|E.g. travis-com.com or github actions or something| 3
+|Issues are discussed before they are closed|even if you discuss in slack, need a sumamry statement here| 3
+|Chat channel: exists|Link or screenshots| 3
+|Test cases: a large proportion of the issues related to handling failing cases.|If a test case fails, open an issue and fix it| 3
 |Evidence that the whole team is using the same tools: everyone can get to all tools and files| |3
 |Evidence that the whole team is using the same tools (e.g. config files in the repo, updated by lots of different people)| |3
 |Evidence that the whole team is using the same tools (e.g. tutor can ask anyone to share screen, they demonstrate the system running on their computer)| |3
-|Evidence that the members of the team are working across multiple places in the code base| 3
+|Evidence that the members of the team are working across multiple places in the code base| |3
 |Short release cycles | (hard to see in short projects) project members are committing often enough so that everyone can get your work| 3
 |The file .gitignore lists what files should not be saved to the repo. See [examples](https://github.com/github/gitignore)|in GH| 3
 |The file INSTALL.md lists how to install the code|in GH| 3
@@ -144,9 +144,8 @@ but nevertheless, here is a track record that everyone is contributing a lot)|ev
 |Badges showing your style checkers |config files in GH showing your config, badges in README| 3
 |Badges showing your code formatters. |config files in GH showing your this formatter's  config, badges in README|3
 |Badges showing your syntax checkers. |config files iin  GH showing this checker's config, badges in README  |3
-|Badges showing your code coverage tools|config files in GH, badges in README| |3
+|Badges showing your code coverage tools|config files in GH, badges in README| 3
 |Badges showing any other Other automated analysis tools|config files in GH, badges in README|3
-| 3|
 
 
 - **Column 1**: Required points (see table above and ).
